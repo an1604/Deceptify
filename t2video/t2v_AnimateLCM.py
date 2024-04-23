@@ -2,6 +2,9 @@
 This is a Latent Consistency Model (LCM) for video generation.
  High computational complexity for my PC...
  Try this shit in some other place.
+
+ Link:
+    https://huggingface.co/wangfuyun/AnimateLCM
  """
 
 import torch
