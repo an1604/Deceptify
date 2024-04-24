@@ -24,7 +24,7 @@ pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config, beta_schedule="
 pipe.load_lora_weights(os.getenv('WEIGHTS_ANIMATE_LCM'),
                        weight_name=os.getenv('WEIGHT_NAME_ANIMATE_LCM'),
                        adapter_name=os.getenv('ADAPTER'))
-pipe.set_adapters(["lcm-lora"], [0.8])
+pipe.set_adapters(["ADAPTER"], [0.8])
 
 pipe.enable_vae_slicing()
 pipe.enable_model_cpu_offload()
