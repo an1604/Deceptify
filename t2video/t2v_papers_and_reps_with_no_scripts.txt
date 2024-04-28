@@ -1,0 +1,15 @@
+1) StreamingT2V: A great T2V approach for video generation using text prompt, according to their research paper, they applied 23 conv layers for both encoder and decoder,
+for applying hugh resolution and quality videos (long videos).
+
+GitHub repo for clone and run the project locally (with a lot of hopes): https://github.com/Picsart-AI-Research/StreamingT2V
+Research paper: https://arxiv.org/abs/2403.14773
+
+2) Mora: A multimodal model for T2V generation, uses a huge architecture inside, but had an open source page on GitHub.
+Maybe it will be a free-api key, or maybe the finetune will be good when the code is updated to the repo.
+GitHub repo: https://github.com/lichao-sun/Mora/tree/main
+Research paper: https://arxiv.org/pdf/2403.13248
+
+3) Open sora plan - an open source sora plan for generating videos bia prompts, the github repo for this demo plan:
+https://github.com/PKU-YuanGroup/Open-Sora-Plan
+
+3)
