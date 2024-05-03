@@ -1,16 +1,17 @@
-from flask import Flask
+from flask import Flask, render_template
+from flask import redirect as flask_redirect
 
 app = Flask(__name__)  # The application as an object, Now can use this object to route and staff.
 
 
 @app.route('/')  # The root router (welcome page).
 def index():
-    return '<h1>Hello World!</h1>'
+    return render_template('index.html')
 
 
 @app.route('/newchat')  # The new chat route.
 def newchat():
-    return '<h1>New Chat</h1>'
+    return render_template('newchat.html')
 
 
 @app.route('/user/<name>')  # The user-page route.

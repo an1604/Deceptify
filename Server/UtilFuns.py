@@ -1,14 +1,12 @@
-# Importing necessary libraries
+# Importing the necessary libraries
 import sounddevice as sd
 import soundfile as sf
-
 
 
 def grabAudioIO():
     """
     Function to grab audio input and output devices
     """
-   
 
     # Getting the list of audio devices
     devices = sd.query_devices()
@@ -20,6 +18,7 @@ def grabAudioIO():
 
     # Returning the input and output devices
     return input_device, output_device
+
 
 def recordConvo(input_device, output_device):
     """
@@ -33,7 +32,8 @@ def recordConvo(input_device, output_device):
     duration = 10
 
     # Recording the conversation
-    recording = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=2, device=(input_device, output_device))
+    recording = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=2,
+                       device=(input_device, output_device))
 
     # Returning the recording
     return recording, sample_rate
