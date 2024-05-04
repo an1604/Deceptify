@@ -22,9 +22,11 @@ def newchat():
 def user(name):
     return '<h1>Hello %s!</h1>' % name
 
+
 @app.route('/dashboard')
 def dashboard():
     return render_template('dashboard.html')
+
 
 # Error handlers routes
 @app.errorhandler(404)
