@@ -1,20 +1,30 @@
 # Importing the necessary libraries
 import sounddevice as sd
 import soundfile as sf
+import pyaudio
 
+def pygrabAudioIO():
+    """
+    Function to grab audio input and output devices
+    """
+
+    p = pyaudio.PyAudio()
+
+    # Getting the default input and output devices
+    input_device = p.get_default_input_device_info()
+    output_device = p.get_default_output_device_info()
+
+    # Returning the input and output devices
+    return input_device, output_device
 
 def grabAudioIO():
     """
     Function to grab audio input and output devices
     """
 
-    # Getting the list of audio devices
-    devices = sd.query_devices()
-    print(devices)
-
-    # Getting the input and output devices
-    input_device = int(input("Relevant Deceptify input "))
-    output_device = int(input("Relevant Deceptify output "))
+    # Getting the default input and output devices
+    input_device = sd.default.device[0]
+    output_device = sd.default.device[1]
 
     # Returning the input and output devices
     return input_device, output_device
