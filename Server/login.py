@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import multiprocessing
 
-CORRECT_PASSWORD = "1234"  # Change 'yourpassword' to your actual password
+CORRECT_PASSWORD = "1234"  # Change '1234' to your actual password
 root = None
 
 

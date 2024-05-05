@@ -11,6 +11,8 @@ from forms import *
 load_dotenv()
 
 SECRET_KEY = 'hard to guess key'
+
+
 def create_app():
     app = Flask(__name__)  # The application as an object, Now can use this object to route and staff.
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # A secret key for the encryption process (not really useful).
