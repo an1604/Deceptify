@@ -62,10 +62,17 @@ def upload_voice_file():
 @app.route('/record_voice', methods=['GET', 'POST'])  # Route for record a new voice file.
 def record_voice():
     press_to_record = NewVoiceRecord()
+    # if session['IS_RECORD']:
+    #     session['IS_RECORD'] = False
+    #     flash('Your message has been recorded.')
+    #     return render_template('record_voice.html', form=press_to_record)
     if press_to_record.validate_on_submit():
-        print('submitted')
-        flash('You Record your message.')
+        session['IS_RECORD'] = True
+        print("Before function called")
+        # TODO: FIX THIS FUNCTION, MESSED UP THE ROUTE NAVIGATION AND RETURN STATUS 404!
         record = recordConvo()  # Records the client's voice for maximum 10 seconds.
+        print("After function called")
+        flash('Please Record your message.')
         return flask_redirect(url_for('new_voice_attack'))
     return render_template('record_voice.html', form=press_to_record)
 
