@@ -1,21 +1,21 @@
 # Importing the necessary libraries
 import sounddevice as sd
 import soundfile as sf
-import pyaudio
+# import pyaudio
 
-def pygrabAudioIO():
-    """
-    Function to grab audio input and output devices
-    """
-
-    p = pyaudio.PyAudio()
-
-    # Getting the default input and output devices
-    input_device = p.get_default_input_device_info()
-    output_device = p.get_default_output_device_info()
-
-    # Returning the input and output devices
-    return input_device, output_device
+# def pygrabAudioIO():
+#     """
+#     Function to grab audio input and output devices
+#     """
+#
+#     p = pyaudio.PyAudio()
+#
+#     # Getting the default input and output devices
+#     input_device = p.get_default_input_device_info()
+#     output_device = p.get_default_output_device_info()
+#
+#     # Returning the input and output devices
+#     return input_device, output_device
 
 def grabAudioIO():
     """
@@ -29,7 +29,7 @@ def grabAudioIO():
     # Returning the input and output devices
     return input_device, output_device
 
-
+# TODO: either add to bellow or create new method for self recording
 def recordConvo(input_device, output_device):
     """
     Function to record the conversation

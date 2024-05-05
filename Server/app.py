@@ -69,8 +69,9 @@ def record_voice():
     if press_to_record.validate_on_submit():
         session['IS_RECORD'] = True
         print("Before function called")
-        # TODO: FIX THIS FUNCTION, MESSED UP THE ROUTE NAVIGATION AND RETURN STATUS 404!
-        record = recordConvo()  # Records the client's voice for maximum 10 seconds.
+        # Omer 5/5/24
+        inouttuple = grabAudioIO()
+        record = recordConvo(inouttuple[0],inouttuple[1])  # Records the client's voice for maximum 10 seconds.
         print("After function called")
         flash('Please Record your message.')
         return flask_redirect(url_for('new_voice_attack'))
