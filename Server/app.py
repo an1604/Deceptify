@@ -1,34 +1,90 @@
-from flask import Flask, render_template, make_response, session
+import pdb
+import time
+
+from flask import Flask, render_template, make_response, session, url_for, flash
 from flask_bootstrap import Bootstrap
+import os
+from dotenv import load_dotenv
+
+import concurrent.futures
 
 from flask import request  # For handling client's requests.
 from flask import redirect as flask_redirect
 
+from UtilFuns import *
+from forms import *
+
+load_dotenv()
+
 app = Flask(__name__)  # The application as an object, Now can use this object to route and staff.
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # A secret key for the encryption process (not really useful).
 bootstrap = Bootstrap(app)
 
 
-@app.route('/')  # The root router (welcome page).
+@app.route('/', methods=['GET', 'POST'])  # The root router (welcome page).
 def index():
     return render_template('index.html')
 
 
-@app.route('/newchat')  # The new chat route.
+@app.route('/newchat', methods=['GET', 'POST'])  # The new chat route.
 def newchat():
     return render_template('newchat.html')
 
 
-@app.route('/new_voice_attack')  # New voice attack page.
+@app.route('/new_voice_attack', methods=['GET', 'POST'])  # New voice attack page.
 def new_voice_attack():
-    return render_template('new_voice_attack.html')
+    passwd = None
+    form = VoiceChoiceForm()
+    if form.validate_on_submit():
+        passwd = form.passwd
+        choice = form.selection.data
+        if 'upload' in choice.lower():
+            return flask_redirect(url_for('upload_voice_file'))
+        else:
+            return flask_redirect(url_for('record_voice'))
+        return flask_redirect('index')
+    return render_template('new_voice_attack.html', form=form)
 
 
-@app.route('/user/<name>')  # The user-page route.
-def user(name):
-    return '<h1>Hello %s!</h1>' % name
+@app.route('/upload_voice_file', methods=['GET', 'POST'])  # Route for uploading an existing voice rec file.
+def upload_voice_file():
+    voice_file = None
+    passwd = None
+    form = VoiceUploadForm()
+    if form.validate_on_submit():
+        voice_file = form.file_field
+        passwd = form.passwd
+        flash('Voice uploaded to the server!')
+        return flask_redirect(url_for('new_voice_attack'))
+    return render_template('upload_voice_file.html', form=form)
 
 
-@app.route('/dashboard')
+@app.route('/record_voice', methods=['GET', 'POST'])  # Route for record a new voice file.
+def record_voice():
+    press_to_record = NewVoiceRecord()
+    if press_to_record.validate_on_submit():
+        print('submitted')
+        flash('You Record your message.')
+        record = recordConvo()  # Records the client's voice for maximum 10 seconds.
+        return flask_redirect(url_for('new_voice_attack'))
+    return render_template('record_voice.html', form=press_to_record)
+
+
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    email = None
+    contact_field = None
+    passwd = None
+    form = ContactForm()
+    if form.validate_on_submit():
+        email = form.email
+        contact_field = form.contact_field
+        passwd = form.passwd
+        return flask_redirect(url_for('index'))
+    return render_template('contact.html', form=form)
+
+
+@app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     return render_template('dashboard.html')
 

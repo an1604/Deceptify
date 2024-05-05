@@ -24,6 +24,7 @@ def recordConvo(input_device, output_device):
     """
     Function to record the conversation
     """
+    print("recordConvo called!")
 
     # Getting the sample rate
     sample_rate = 44100
@@ -35,5 +36,6 @@ def recordConvo(input_device, output_device):
     recording = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=2,
                        device=(input_device, output_device))
 
+    print(f"recordConvo Function done, output is: {recording} ")
     # Returning the recording
     return recording, sample_rate
