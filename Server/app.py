@@ -36,7 +36,7 @@ def new_voice_attack():
     passwd = None
     form = VoiceChoiceForm()
     if form.validate_on_submit():
-        passwd = form.passwd
+        passwd = form.passwd.data
         choice = form.selection.data
         if 'upload' in choice.lower():
             return flask_redirect(url_for('upload_voice_file'))
@@ -52,8 +52,8 @@ def upload_voice_file():
     passwd = None
     form = VoiceUploadForm()
     if form.validate_on_submit():
-        voice_file = form.file_field
-        passwd = form.passwd
+        voice_file = form.file_field.data
+        passwd = form.passwd.data
         flash('Voice uploaded to the server!')
         return flask_redirect(url_for('new_voice_attack'))
     return render_template('upload_voice_file.html', form=form)
@@ -77,9 +77,9 @@ def contact():
     passwd = None
     form = ContactForm()
     if form.validate_on_submit():
-        email = form.email
-        contact_field = form.contact_field
-        passwd = form.passwd
+        email = form.email.data
+        contact_field = form.contact_field.data
+        passwd = form.passwd.data
         return flask_redirect(url_for('index'))
     return render_template('contact.html', form=form)
 
