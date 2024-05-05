@@ -18,6 +18,11 @@ def newchat():
     return render_template('newchat.html')
 
 
+@app.route('/new_voice_attack')  # New voice attack page.
+def new_voice_attack():
+    return render_template('new_voice_attack.html')
+
+
 @app.route('/user/<name>')  # The user-page route.
 def user(name):
     return '<h1>Hello %s!</h1>' % name

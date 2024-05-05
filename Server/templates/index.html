@@ -6,8 +6,8 @@
 {% block page_content %}
 {{macros.func_name('Aviv')}}
 
-<p>
-    This is a function example, you can use macros to create a function and then use it in
-    your other templates.
-</p>
+<a href="{{url_for('new_voice_attack')}}">
+    <button type="button">Generate Voice Attack</button>
+</a>
+
 {%endblock%}
