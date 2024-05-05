@@ -10,7 +10,7 @@ from forms import *
 
 load_dotenv()
 
-
+SECRET_KEY = 'hard to guess key'
 def create_app():
     app = Flask(__name__)  # The application as an object, Now can use this object to route and staff.
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # A secret key for the encryption process (not really useful).
@@ -18,7 +18,7 @@ def create_app():
 
     @app.route('/', methods=['GET', 'POST'])  # The root router (welcome page).
     def index():
-        return render_template('index.html')
+        return render_template('templates/index.html')
 
     @app.route('/newchat', methods=['GET', 'POST'])  # The new chat route.
     def newchat():
@@ -55,7 +55,7 @@ def create_app():
         if press_to_record.validate_on_submit():
             session['IS_RECORD'] = True
             print("Before function called")
-            # Omer 5/5/24
+            # Omer 5/5/24 temporary ugly logic till i make new method for self recording
             inouttuple = grabAudioIO()
             record = recordConvo(inouttuple[0], inouttuple[1])  # Records the client's voice for maximum 10 seconds.
             print("After function called")
