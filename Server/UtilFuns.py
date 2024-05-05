@@ -1,6 +1,8 @@
 # Importing the necessary libraries
 import sounddevice as sd
 import soundfile as sf
+
+
 # import pyaudio
 
 # def pygrabAudioIO():
@@ -28,6 +30,7 @@ def grabAudioIO():
 
     # Returning the input and output devices
     return input_device, output_device
+
 
 # TODO: either add to bellow or create new method for self recording
 def recordConvo(input_device, output_device):

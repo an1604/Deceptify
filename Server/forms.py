@@ -21,11 +21,8 @@ class VoiceUploadForm(FlaskForm):  # For uploading voice recordings for the mode
 
 
 class VoiceChoiceForm(FlaskForm):
-    selection = SelectField(label="Choose your type of recording",
-                            choices=['Record',
-                                     'Upload'],
-                            validators=[
-                                DataRequired()])  # Selection tag for choosing which kind of uploading the user prefer.
+    selection = SelectField(label="Choose your type of recording", choices=['Record', 'Upload'], validators=[
+        DataRequired()])  # Selection tag for choosing which kind of uploading the user prefer.
     passwd = PasswordField('Enter you key for validation', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
