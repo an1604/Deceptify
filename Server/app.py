@@ -8,17 +8,29 @@ from dotenv import load_dotenv
 
 from flask import redirect as flask_redirect
 
-from UtilFuns import *
 from forms import *
 
 load_dotenv()
 
 
+def create_audio_file():
+    project_dir = os.path.dirname(os.path.realpath(__file__))
+    audio_dir = "AudioFiles"
+    audio_dir_path = os.path.join(project_dir, audio_dir)
+    if not os.path.exists(audio_dir_path):
+        os.makedirs(audio_dir_path)
+    return audio_dir_path
+
+
 def create_app():
     app = Flask(__name__)  # The application as an object, Now can use this object to route and staff.
-    app.config['SECRET_KEY'] = 'hard to guess string'
-    app.config['UPLOAD_FOLDER'] = r'C:\Users\adina\Desktop\תקיית_עבודות\Deceptify\Deceptify\Server\Audio_Files'
+
     # app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # A secret key for the encryption process (not really useful).
+    app.config['SECRET_KEY'] = 'hard to guess string'
+
+    audio_file_path = create_audio_file()
+    app.config['UPLOAD_FOLDER'] = audio_file_path
+
     bootstrap = Bootstrap(app)
 
     @app.route('/', methods=['GET', 'POST'])  # The root router (welcome page).
@@ -56,11 +68,7 @@ def create_app():
 
     @app.route('/record_voice', methods=['GET', 'POST'])  # Route for record a new voice file.
     def record_voice():
-        press_to_record = NewVoiceRecord()
-        if press_to_record.validate_on_submit():
-            inouttuple = grabAudioIO()
-            record = recordConvo(inouttuple[0], inouttuple[1])  # Records the client's voice for maximum 10 seconds.
-        return render_template('record_voice.html', form=press_to_record)
+        return render_template('record_voice.html')
 
     @app.route('/save-record', methods=['GET', 'POST'])
     def save_record():
