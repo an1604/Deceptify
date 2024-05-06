@@ -1,6 +1,7 @@
 import time
+import uuid
 
-from flask import Flask, render_template, make_response, session, url_for, flash
+from flask import Flask, render_template, make_response, session, url_for, flash, request
 from flask_bootstrap import Bootstrap
 import os
 from dotenv import load_dotenv
@@ -13,11 +14,11 @@ from forms import *
 load_dotenv()
 
 
-
 def create_app():
     app = Flask(__name__)  # The application as an object, Now can use this object to route and staff.
     app.config['SECRET_KEY'] = 'hard to guess string'
-    #app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # A secret key for the encryption process (not really useful).
+    app.config['UPLOAD_FOLDER'] = r'C:\Users\adina\Desktop\תקיית_עבודות\Deceptify\Deceptify\Server\Audio_Files'
+    # app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # A secret key for the encryption process (not really useful).
     bootstrap = Bootstrap(app)
 
     @app.route('/', methods=['GET', 'POST'])  # The root router (welcome page).
@@ -57,16 +58,26 @@ def create_app():
     def record_voice():
         press_to_record = NewVoiceRecord()
         if press_to_record.validate_on_submit():
-            session['IS_RECORD'] = True
-            print("Before function called")
-            # Omer 5/5/24 temporary ugly logic till i make new method for self recording
             inouttuple = grabAudioIO()
             record = recordConvo(inouttuple[0], inouttuple[1])  # Records the client's voice for maximum 10 seconds.
-            print("After function called")
-            flash('Please Record your message.')
-
-            return flask_redirect(url_for('new_voice_attack'))
         return render_template('record_voice.html', form=press_to_record)
+
+    @app.route('/save-record', methods=['GET', 'POST'])
+    def save_record():
+        # check if the post-request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return flask_redirect(request.url)
+        file = request.files['file']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            flash('No selected file')
+            return flask_redirect(request.url)
+        file_name = str(uuid.uuid4()) + ".mp3"
+        full_file_name = os.path.join(app.config['UPLOAD_FOLDER'], file_name)
+        file.save(full_file_name)
+        return '<h1>File saved</h1>'
 
     @app.route('/contact', methods=['GET', 'POST'])
     def contact():
