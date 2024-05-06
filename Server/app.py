@@ -1,3 +1,5 @@
+import time
+
 from flask import Flask, render_template, make_response, session, url_for, flash
 from flask_bootstrap import Bootstrap
 import os
@@ -10,17 +12,17 @@ from forms import *
 
 load_dotenv()
 
-SECRET_KEY = 'hard to guess key'
 
 
 def create_app():
     app = Flask(__name__)  # The application as an object, Now can use this object to route and staff.
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # A secret key for the encryption process (not really useful).
+    app.config['SECRET_KEY'] = 'hard to guess string'
+    #app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # A secret key for the encryption process (not really useful).
     bootstrap = Bootstrap(app)
 
     @app.route('/', methods=['GET', 'POST'])  # The root router (welcome page).
     def index():
-        return render_template('templates/index.html')
+        return render_template('index.html')
 
     @app.route('/newchat', methods=['GET', 'POST'])  # The new chat route.
     def newchat():
@@ -62,6 +64,7 @@ def create_app():
             record = recordConvo(inouttuple[0], inouttuple[1])  # Records the client's voice for maximum 10 seconds.
             print("After function called")
             flash('Please Record your message.')
+
             return flask_redirect(url_for('new_voice_attack'))
         return render_template('record_voice.html', form=press_to_record)
 
@@ -91,11 +94,4 @@ def create_app():
     def internal_error(error):
         return render_template('500.html'), 500
 
-    @app.errorhandler(Exception)
-    def exception_handler(error):
-        return render_template('404.html'), 404
-
     return app
-
-# if __name__ == '__main__':
-#     app.run(debug=True)  # TODO: Remove the debug=True in production.
