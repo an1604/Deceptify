@@ -8,5 +8,4 @@
 # /dataSources.local.xml
 .idea 
 .env
-
-
+/Server/AudioFiles/*
