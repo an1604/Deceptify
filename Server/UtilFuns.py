@@ -46,9 +46,14 @@ def recordConvo(input_device, output_device):
     duration = 10
 
     # Recording the conversation
-    recording = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=2,
+    recording = sd.rec(int(duration), samplerate=sample_rate, channels=1,
                        device=(input_device, output_device))
 
     print(f"recordConvo Function done, output is: {recording} ")
     # Returning the recording
     return recording, sample_rate
+# main to test methods
+# if __name__ == '__main__':
+#    inout = grabAudioIO()
+#    print(recordConvo(inout[0],inout[1]))
+
