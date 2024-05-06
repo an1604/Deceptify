@@ -7,6 +7,7 @@ import os
 from dotenv import load_dotenv
 
 from flask import redirect as flask_redirect
+from werkzeug.utils import secure_filename
 
 from forms import *
 
@@ -30,6 +31,7 @@ def create_app():
 
     audio_file_path = create_audio_file()
     app.config['UPLOAD_FOLDER'] = audio_file_path
+
 
     bootstrap = Bootstrap(app)
 
@@ -62,6 +64,13 @@ def create_app():
         if form.validate_on_submit():
             voice_file = form.file_field.data
             passwd = form.passwd.data
+            if voice_file.filename == '':
+                flash('No selected file')
+                return flask_redirect(request.url)
+            # file_name = str(voice_file) + ".mp3"
+            file_name = secure_filename(voice_file.filename)
+            full_file_name = os.path.join(app.config['UPLOAD_FOLDER'], file_name)
+            voice_file.save(full_file_name)
             flash('Voice uploaded to the server!')
             return flask_redirect(url_for('new_voice_attack'))
         return render_template('upload_voice_file.html', form=form)
