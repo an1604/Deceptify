@@ -9,7 +9,6 @@ root = None
 def run_flask_app():
     from app import create_app  # Import your Flask app creation function
     app = create_app()
-    app.run(debug=True, use_reloader=False)
 
 
 def submit_action():
