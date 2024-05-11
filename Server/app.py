@@ -56,7 +56,7 @@ def create_app():
 
     audio_file_path = create_audio_file()
     app.config['UPLOAD_FOLDER'] = audio_file_path
-
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'  # The database URI.
     bootstrap = Bootstrap(app)
     global db
     db = SQLAlchemy(app)
