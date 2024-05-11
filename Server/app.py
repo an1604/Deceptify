@@ -8,7 +8,7 @@ from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 import os
 from dotenv import load_dotenv
-from routes import execute_routes
+from Server.routes import execute_routes
 
 load_dotenv()
 

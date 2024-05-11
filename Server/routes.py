@@ -5,8 +5,8 @@ from flask import redirect as flask_redirect
 from werkzeug.utils import secure_filename
 
 
-from Forms.general_forms import *
-from Forms.upload_data_forms import *
+from Server.Forms.general_forms import *
+from Server.Forms.upload_data_forms import *
 from flask import render_template, url_for, flash, request
 
 
