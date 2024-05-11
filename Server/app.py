@@ -16,6 +16,7 @@ remote_server_ip = os.getenv("REMOTE_SERVER_IP")
 remote_server_port = os.getenv("REMOTE_SERVER_PORT")
 updates_queue = queue.Queue()  # Queue for handling updates from the remote server.
 data = None  # The data parameter keeps the last update from the remoter server.
+db = None
 
 
 def check_for_updates():  # This function will run in the background to communicate with the remote server.
@@ -57,6 +58,7 @@ def create_app():
     app.config['UPLOAD_FOLDER'] = audio_file_path
 
     bootstrap = Bootstrap(app)
+    global db
     db = SQLAlchemy(app)
     execute_routes(app)  # Executing the routes
 
@@ -69,4 +71,3 @@ def create_app():
 
     app.run(debug=True, use_reloader=False)  # Running the application.
     return app
-
