@@ -4,9 +4,12 @@ import uuid
 from flask import redirect as flask_redirect
 from werkzeug.utils import secure_filename
 
-from Server.Forms.general_forms import *
-from Server.Forms.upload_data_forms import *
+
+from Forms.general_forms import *
+from Forms.upload_data_forms import *
 from flask import render_template, url_for, flash, request
+
+
 
 
 def error_routes(app):  # Error handlers routes
@@ -29,7 +32,9 @@ def general_routes(app):  # This function stores all the general routes.
         form = ProfileForm()
         if form.validate_on_submit():
             name = form.name_filed.data
-            type_ = form.role_field.data
+            #omer 11/5/24 changed type_ to role
+            role = form.role_field.data
+            gen_info = form.gen_info_field.data
             flash("Profile created successfully")
             return flask_redirect(url_for('index'))
         return render_template('attack_pages/new_profile.html', form=form)

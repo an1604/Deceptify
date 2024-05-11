@@ -5,9 +5,10 @@ import queue
 import requests
 from flask import Flask, render_template, url_for, flash, request
 from flask_bootstrap import Bootstrap
+from flask_sqlalchemy import SQLAlchemy
 import os
 from dotenv import load_dotenv
-from Server.routes import execute_routes
+from routes import execute_routes
 
 load_dotenv()
 
@@ -56,7 +57,7 @@ def create_app():
     app.config['UPLOAD_FOLDER'] = audio_file_path
 
     bootstrap = Bootstrap(app)
-
+    db = SQLAlchemy(app)
     execute_routes(app)  # Executing the routes
 
     # TODO: UNCOMMENT THIS ROWS!
@@ -68,3 +69,4 @@ def create_app():
 
     app.run(debug=True, use_reloader=False)  # Running the application.
     return app
+

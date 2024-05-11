@@ -34,6 +34,7 @@ class ProfileForm(FlaskForm):
                                       choices=[('DataSets', 'DataSets'), ('Recordings', 'Recordings'),
                                                ('Video', 'Video')],
                                       validators=[DataRequired()])
+    gen_info_field = StringField("General Information", description="Enter any general information here", validators=[DataRequired()])
 
     # Additional fields to upload different types of data
     recording_upload = FileField(label='Upload Your Voice Recording', validators=[
@@ -45,5 +46,8 @@ class ProfileForm(FlaskForm):
     # video_upload = FileField('Upload Video')
 
     submit = SubmitField('Submit')
+
+
+
 
 
