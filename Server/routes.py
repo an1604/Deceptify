@@ -4,12 +4,11 @@ import uuid
 from flask import redirect as flask_redirect
 from werkzeug.utils import secure_filename
 
-
 from Server.Forms.general_forms import *
 from Server.Forms.upload_data_forms import *
 from flask import render_template, url_for, flash, request
-
-
+import Util
+from Server.data.prompt import Prompt
 
 
 def error_routes(app):  # Error handlers routes
@@ -58,7 +57,7 @@ def general_routes(app):  # This function stores all the general routes.
         return render_template('dashboard.html')
 
 
-def attack_generation_routes(app):
+def attack_generation_routes(app,data_storage):
     @app.route('/newattack', methods=['GET', 'POST'])  # The new chat route.
     def newattack():
         # omer 11/5/24 added form and capturing data + generating unique id
@@ -77,6 +76,7 @@ def attack_generation_routes(app):
     def attack_dashboard():
         form = AttackDashboardForm()
         return render_template('attack_pages/attack_dashboard.html', form=form)
+
     @app.route('/information_gathering', methods=['GET', 'POST'])
     def information_gathering():
         form = InformationGatheringForm()
@@ -158,8 +158,28 @@ def attack_generation_routes(app):
         file.save(full_file_name)
         return '<h1>File saved</h1>'
 
+    @app.route('/attack_profile/view_prompts', methods=['GET', 'POST'])
+    def view_prompts():
+        Util.add_default_prompts(data_storage)
+        Addform = PromptAddForm()
+        Deleteform = PromptDeleteForm()
+        Deleteform.prompt_field.choices = [(prompt.prompt_desc,prompt.prompt_desc)
+                                           for prompt in data_storage.get_prompts()]
+        if Addform.validate_on_submit():
+            desc = Addform.prompt_field.data
+            new_prompt = Prompt(prompt_desc=desc)# add sound when clicking button
+            data_storage.add_prompt(new_prompt)
+            return flask_redirect(url_for('view_prompts'))
+        if Deleteform.validate_on_submit(): #Delete goes the add form instead
+            desc = Deleteform.prompt_field.data
+            prompt = Prompt(prompt_desc=desc)
+            data_storage.delete_prompt(prompt)
+            return flask_redirect(url_for('view_prompts'))
+        prs = data_storage.get_prompts()
+        return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform, prompts = prs)
 
-def execute_routes(app):  # Function that executes all the routes.
+
+def execute_routes(app,data_storage):  # Function that executes all the routes.
     general_routes(app)  # General pages navigation
-    attack_generation_routes(app)  # Attack generation pages navigation
+    attack_generation_routes(app,data_storage)  # Attack generation pages navigation
     error_routes(app)  # Errors pages navigation

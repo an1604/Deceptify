@@ -3,6 +3,7 @@ from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import StringField, SubmitField, FileField, PasswordField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Email
 
+
 # omer 11/5/24 added get_profiles function to allow easy debug will be removed before final merge
 # created CampaignForm allows user to name the campaign, choose mimic and target profiles
 #  and write a description, also creates unique campaign id see routes.py line 63
@@ -12,13 +13,15 @@ def get_profiles(attacker=False):
         return [('Attacker', 'Oded'), ('Attacker', 'Hadar')]
     else:
         return [('Victim', 'Bibi'), ('Victim', 'Bugs Bunny')]
-    
+
+
 class CampaignForm(FlaskForm):
     campaign_name = StringField("Campaign Name", validators=[DataRequired()])
     mimic_profile = SelectField("Mimic Profile", choices=get_profiles(attacker=True), validators=[DataRequired()])
     target_profile = SelectField("Target Profile", choices=get_profiles(), validators=[DataRequired()])
     campaign_description = TextAreaField("Campaign Description", validators=[DataRequired()])
     submit = SubmitField('Submit')
+
 
 class AttackDashboardForm(FlaskForm):
     submit = SubmitField('Submit')
@@ -54,7 +57,8 @@ class ProfileForm(FlaskForm):
                                       choices=[('DataSets', 'DataSets'), ('Recordings', 'Recordings'),
                                                ('Video', 'Video')],
                                       validators=[DataRequired()])
-    gen_info_field = StringField("General Information", description="Enter any general information here", validators=[DataRequired()])
+    gen_info_field = StringField("General Information", description="Enter any general information here",
+                                 validators=[DataRequired()])
 
     # Additional fields to upload different types of data
     recording_upload = FileField(label='Upload Your Voice Recording', validators=[
@@ -68,6 +72,11 @@ class ProfileForm(FlaskForm):
     submit = SubmitField('Submit')
 
 
+class PromptAddForm(FlaskForm):
+    prompt_field = StringField("Add Prompt", validators=[DataRequired()])
+    submit = SubmitField('Add')
 
 
-
+class PromptDeleteForm(FlaskForm):
+    prompt_field = SelectField(label="Select prompt to delete")
+    submit = SubmitField('Delete')

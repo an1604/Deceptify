@@ -9,6 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 import os
 from dotenv import load_dotenv
 from Server.routes import execute_routes
+from Server.data.DataStorage import DataStorage
 
 load_dotenv()
 
@@ -58,9 +59,10 @@ def create_app():
     app.config['UPLOAD_FOLDER'] = audio_file_path
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'  # The database URI.
     bootstrap = Bootstrap(app)
+    data_storage = DataStorage()
     global db
     db = SQLAlchemy(app)
-    execute_routes(app)  # Executing the routes
+    execute_routes(app,data_storage)  # Executing the routes
 
     # TODO: UNCOMMENT THIS ROWS!
     #  THIS IS THE BACKGROUND THREAD FOR UPDATES CHECKING!!!!
