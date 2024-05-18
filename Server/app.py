@@ -57,6 +57,7 @@ def create_app():
     audio_file_path = create_audio_file()
     app.config['UPLOAD_FOLDER'] = audio_file_path
     bootstrap = Bootstrap(app)
+
     data_storage = DataStorage()
     execute_routes(app,data_storage)  # Executing the routes
 
