@@ -10,10 +10,14 @@ import os
 
 
 class DataStorage:
+    _shared_state = {}
+    
     def __init__(self):
-        self.profiles = set()
-        self.prompts = set()
-        self.attacks = set()
+        self.__dict__ = self._shared_state
+        if not self._shared_state:
+            self.profiles = set()
+            self.prompts = set()
+            self.attacks = set()
 
     def add_prompt(self, prompt): #check if a prompt already exist
         self.prompts.add(prompt)
@@ -29,9 +33,11 @@ class DataStorage:
         self.profiles.add(profile)
         print(self.profiles)
 
-    def add_attack(self, new_attack, attacker_profile, target_profile):
-        self.get_profile(attacker_profile).addAttack(new_attack)
-        self.get_profile(target_profile).addAttack(new_attack)
+    def add_attack(self, new_attack):
+        target = new_attack.get_target()
+        victim = new_attack.get_mimic_profile()
+        target.addAttack(new_attack)
+        victim.addAttack(new_attack)
         self.attacks.add(new_attack)
         print(f'current attacks: {self.attacks}')
 

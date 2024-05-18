@@ -87,10 +87,15 @@ def attack_generation_routes(app,data_storage):
     def newattack():
         # omer 11/5/24 added form and capturing data + generating unique id
         form = CampaignForm()
+        profNames = data_storage.getAllProfileNames()
+        form.mimic_profile.choices = profNames
+        form.target_profile.choices = profNames
         if form.validate_on_submit():
             campaign_name = form.campaign_name.data
             mimic_profile = form.mimic_profile.data
             target_profile = form.target_profile.data
+            mimic_profile = data_storage.get_profile(mimic_profile)
+            target_profile = data_storage.get_profile(target_profile)
             campaign_description = form.campaign_description.data
             attack_type = form.attack_type.data
             campaign_unique_id = str(uuid.uuid4())
