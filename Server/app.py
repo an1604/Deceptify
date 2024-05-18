@@ -5,7 +5,6 @@ import queue
 import requests
 from flask import Flask, render_template, url_for, flash, request
 from flask_bootstrap import Bootstrap
-from flask_sqlalchemy import SQLAlchemy
 import os
 from dotenv import load_dotenv
 from Server.routes import execute_routes
@@ -56,10 +55,7 @@ def create_app():
 
     audio_file_path = create_audio_file()
     app.config['UPLOAD_FOLDER'] = audio_file_path
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'  # The database URI.
     bootstrap = Bootstrap(app)
-    global db
-    db = SQLAlchemy(app)
     execute_routes(app)  # Executing the routes
 
     # TODO: UNCOMMENT THIS ROWS!
