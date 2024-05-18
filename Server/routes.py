@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 
 from Server.Forms.general_forms import *
 from Server.Forms.upload_data_forms import *
-from flask import render_template, url_for, flash, request
+from flask import render_template, url_for, flash, request, send_from_directory
 import Util
 from Server.data.prompt import Prompt
 
@@ -56,8 +56,12 @@ def general_routes(app):  # This function stores all the general routes.
     def dashboard():
         return render_template('dashboard.html')
 
+    @app.route('/mp3/<path:filename>')  # Serve the MP3 files statically
+    def serve_mp3(filename):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-def attack_generation_routes(app,data_storage):
+
+def attack_generation_routes(app, data_storage):
     @app.route('/newattack', methods=['GET', 'POST'])  # The new chat route.
     def newattack():
         # omer 11/5/24 added form and capturing data + generating unique id
@@ -69,12 +73,18 @@ def attack_generation_routes(app,data_storage):
             campaign_description = form.campaign_description.data
             campaign_unique_id = str(uuid.uuid4())
             flash("Campaign created successfully using")
-            return flask_redirect(url_for('attack_dashboard'))
+            return flask_redirect(url_for('attack_dashboard_transition'))
         return render_template('attack_pages/newattack.html', form=form)
+
+    @app.route('/attack_dashboard_transition', methods=['GET'])
+    def attack_dashboard_transition():
+        return render_template('attack_pages/attack_dashboard_transition.html')
 
     @app.route('/attack_dashboard', methods=['GET', 'POST'])
     def attack_dashboard():
         form = AttackDashboardForm()
+        form.prompt_field.choices = [(prompt.prompt_desc, prompt.prompt_desc)
+                                     for prompt in data_storage.get_prompts()]
         return render_template('attack_pages/attack_dashboard.html', form=form)
 
     @app.route('/information_gathering', methods=['GET', 'POST'])
@@ -161,25 +171,24 @@ def attack_generation_routes(app,data_storage):
     @app.route('/attack_profile/view_prompts', methods=['GET', 'POST'])
     def view_prompts():
         Util.add_default_prompts(data_storage)
-        Addform = PromptAddForm()
-        Deleteform = PromptDeleteForm()
-        Deleteform.prompt_field.choices = [(prompt.prompt_desc,prompt.prompt_desc)
+        Addform = PromptAddForm(data_storage=data_storage)
+        Deleteform = PromptDeleteForm(data_storage=data_storage)
+        Deleteform.prompt_delete_field.choices = [(prompt.prompt_desc, prompt.prompt_desc)
                                            for prompt in data_storage.get_prompts()]
-        if Addform.validate_on_submit():
-            desc = Addform.prompt_field.data
-            new_prompt = Prompt(prompt_desc=desc)# add sound when clicking button
+        if Addform.submit_add.data and Addform.validate_on_submit():
+            desc = Addform.prompt_add_field.data
+            new_prompt = Prompt(prompt_desc=desc)  # add sound when clicking button
             data_storage.add_prompt(new_prompt)
             return flask_redirect(url_for('view_prompts'))
-        if Deleteform.validate_on_submit(): #Delete goes the add form instead
-            desc = Deleteform.prompt_field.data
-            prompt = Prompt(prompt_desc=desc)
-            data_storage.delete_prompt(prompt)
+        if Deleteform.submit_delete.data and Deleteform.validate_on_submit():
+            desc = Deleteform.prompt_delete_field.data
+            data_storage.delete_prompt(desc)
             return flask_redirect(url_for('view_prompts'))
         prs = data_storage.get_prompts()
-        return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform, prompts = prs)
+        return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform, prompts=prs)
 
 
-def execute_routes(app,data_storage):  # Function that executes all the routes.
+def execute_routes(app, data_storage):  # Function that executes all the routes.
     general_routes(app)  # General pages navigation
-    attack_generation_routes(app,data_storage)  # Attack generation pages navigation
+    attack_generation_routes(app, data_storage)  # Attack generation pages navigation
     error_routes(app)  # Errors pages navigation

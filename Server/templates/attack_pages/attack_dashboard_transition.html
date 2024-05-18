@@ -1,0 +1,20 @@
+{% import "_macros.html" as macros %}
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Deceptify- AttackDashboard{%endblock%}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Opening attack dashboard</h1>
+</div>
+{% endblock %}
+{% block scripts %}
+    <script>
+        function openSmallWindow() {
+            window.open('/attack_dashboard', 'smallWindow', 'width=600,height=320,left=0,top=0,resizable=no,scrollbars=no,status=no');
+            window.close()
+        }
+        window.onload = openSmallWindow;
+    </script>
+{%endblock%}

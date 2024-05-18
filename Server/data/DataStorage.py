@@ -14,15 +14,18 @@ class DataStorage:
         self.profiles = set()
         self.prompts = set()
 
-    def add_prompt(self, prompt): #check if a prompt already exist
+    def add_prompt(self, prompt):
         self.prompts.add(prompt)
 
     def get_prompts(self):
         return self.prompts
 
-    def delete_prompt(self, prompt): #check if prompt exist
+    def delete_prompt(self, desc):
+        prompt = None
+        for prt in self.prompts:
+            if prt.prompt_desc == desc:
+                prompt = prt
         self.prompts.remove(prompt)
-
     def prepare_data_to_remote_server(self):
         """Prepare the data before sending to the remote server."""
 
