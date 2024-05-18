@@ -9,3 +9,4 @@
 .idea 
 .env
 /Server/AudioFiles/*
+**/__pycache__/
