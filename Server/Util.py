@@ -1,4 +1,4 @@
-from Server.data.prompt import Prompt
+from data.prompt import Prompt
 
 def add_default_prompts(data_storage):
     print("adding prompts")
