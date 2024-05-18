@@ -9,6 +9,7 @@ from Forms.upload_data_forms import *
 from flask import render_template, url_for, flash, request
 import Util
 from data.prompt import Prompt
+from data.Attacks import AttackFactory
 
 
 def error_routes(app):  # Error handlers routes
@@ -67,7 +68,10 @@ def attack_generation_routes(app,data_storage):
             mimic_profile = form.mimic_profile.data
             target_profile = form.target_profile.data
             campaign_description = form.campaign_description.data
+            attack_type = form.attack_type.data
             campaign_unique_id = str(uuid.uuid4())
+            attack = AttackFactory.create_attack(attack_type, campaign_name, mimic_profile, target_profile, campaign_description, campaign_unique_id)
+            data_storage.add_attack(attack)
             flash("Campaign created successfully using")
             return flask_redirect(url_for('attack_dashboard'))
         return render_template('attack_pages/newattack.html', form=form)

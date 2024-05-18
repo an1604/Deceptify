@@ -19,6 +19,8 @@ class CampaignForm(FlaskForm):
     campaign_name = StringField("Campaign Name", validators=[DataRequired()])
     mimic_profile = SelectField("Mimic Profile", choices=get_profiles(attacker=True), validators=[DataRequired()])
     target_profile = SelectField("Target Profile", choices=get_profiles(), validators=[DataRequired()])
+    attack_type = SelectField("Attack Type", choices=['Voice', 'Video'], validators=[DataRequired()])
+    # attack_type = SelectField("Attack Type", choices=['Voice Call', 'Voice Recording', 'Video Call', 'Video Recording'], validators=[DataRequired()])
     campaign_description = TextAreaField("Campaign Description", validators=[DataRequired()])
     submit = SubmitField('Submit')
 
