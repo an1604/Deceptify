@@ -110,7 +110,7 @@ class Attack:
             return False
         return (self.campaign_name, self.mimic_profile, self.target, self.description, self.id) == \
             (other.campaign_name, other.mimic_profile, other.target, other.description)
-
+# TODO: CONTINUE THIS VOICEATTACK IMPLEMENTATION.
 class VoiceAttack(Attack):
     """
     Class representing a voice attack.
@@ -157,7 +157,7 @@ class VoiceAttack(Attack):
                 self.recordings) == \
             (other.campaign_name, other.mimic_profile, other.target, other.description, other.transcript,
 other.recordings)
-
+# TODO: CONTINUE THIS VIDEOATTACK IMPLEMENTATION.
 class VideoAttack(Attack):
     """
     Class representing a video attack.
