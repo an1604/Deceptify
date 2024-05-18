@@ -29,15 +29,36 @@ class DataStorage:
         self.profiles.add(profile)
         print(self.profiles)
 
-    def add_attack(self, new_attack):
+    def add_attack(self, new_attack, attacker_profile, target_profile):
+        self.get_profile(attacker_profile).addAttack(new_attack)
+        self.get_profile(target_profile).addAttack(new_attack)
         self.attacks.add(new_attack)
         print(f'current attacks: {self.attacks}')
 
     def get_attacks(self):
-        return self.attacks
-
-    def get_profiles(self):
+        return self.attack
+    def delete_attack(self, attack):
+        self.attacks.remove(attack)
+    def get_AllProfiles(self):
         return self.profiles
+    def get_profiles(self, attacker: bool = False):
+        if attacker:
+            return [profile for profile in self.profiles if profile.role == "Attacker"]
+        else:
+            return [profile for profile in self.profiles if profile.role == "Victim"]
+            
+    def getAllProfileNames(self):
+        if len(self.profiles) == 0:
+            return ["No profiles available, time to create some!"]
+        else:
+            rtn_list = [profile.getName() for profile in self.profiles]
+            print(f'Profile names: {rtn_list}')
+            return rtn_list
+    def get_profile(self, profile_name):
+        for profile in self.profiles:
+            if profile.getName() == profile_name:
+                return profile
+        return None
 
     def prepare_data_to_remote_server(self):
         """Prepare the data before sending to the remote server."""

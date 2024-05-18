@@ -1,0 +1,14 @@
+{% import "_macros.html" as macros %}
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+        Viewing {{profileo.getName()}}
+{% endblock %}
+
+{% block page_content %}
+    <div>
+        <p>Role: {{ profileo.getRole() }}</p>
+        <p>Attacks: {{ profileo.get_attacks() }}</p>
+    </div>
+{% endblock %}

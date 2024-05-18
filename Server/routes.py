@@ -10,6 +10,7 @@ from flask import render_template, url_for, flash, request
 import Util
 from data.prompt import Prompt
 from data.Attacks import AttackFactory
+from data.Profile import Profile
 
 
 def error_routes(app):  # Error handlers routes
@@ -34,12 +35,35 @@ def general_routes(app):  # This function stores all the general routes.
             #omer 11/5/24 fixed typo of name_filed to name_field
             name = form.name_field.data
             #omer 11/5/24 changed type_ to role
-            role = form.role_field.data
+            role = form.role_field.data[0]
             gen_info = form.gen_info_field.data
+            profile = Profile(name, role, gen_info)
+            data_storage.add_profile(profile)
+            # profile.addAttack(AttackFactory.create_attack("Voice", "campaign_name", "mimic_profile", "target_profile", "campaign_description", "campaign_unique_id"))
             flash("Profile created successfully")
             return flask_redirect(url_for('index'))
-        return render_template('attack_pages/new_profile.html', form=form)
+        return render_template('attack_pages/new_profile.html', form = form)
 
+    @app.route('/profileview', methods=['GET', 'POST'])
+    def profileview():
+        form = ViewProfilesForm()
+        print("HELLO")
+        # tmp = [(profile.getName(), profile.getName()) for profile in data_storage.get_profiles()]
+        tmp = data_storage.getAllProfileNames()
+        print(f'tmp: {tmp}')
+        form.profile_list.choices = tmp
+        if form.validate_on_submit():
+            return flask_redirect(url_for('profile', profileo=form.profile_list.data))
+        return render_template('profileview.html', form = form)
+    
+    
+    @app.route('/profile', methods=['GET', 'POST'])
+    def profile():
+        profile = data_storage.get_profile(request.args.get('profileo'))
+        print(f'profile1111eeee2: {profile}')
+        return render_template('profile.html', profileo = profile)
+    
+    
     @app.route('/contact', methods=['GET', 'POST'])
     def contact():
         email = None

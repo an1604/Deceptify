@@ -47,6 +47,26 @@ class Attack:
         self.description = description
         self.id = camp_id
 
+    def get_target(self) -> Profile:
+        return self.target
+    def get_mimic_profile(self) -> Profile:
+        return self.mimic_profile
+    
+    def get_role(self, profile) -> str:
+        """
+        Determines the role of a given profile.
+
+        Args:
+            profile (str): The profile to determine the role for.
+
+        Returns:
+            str: The role of the profile. Possible values are "Attacker" or "Victim".
+        """
+        if Profile== self.mimic_profile:
+            return "Attacker"
+        elif profile == self.target:
+            return "Victim"
+    
     def to_dict(self):
         """
         Convert the attack object to a dictionary.
