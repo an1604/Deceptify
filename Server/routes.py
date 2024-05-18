@@ -4,12 +4,13 @@ import uuid
 from flask import redirect as flask_redirect
 from werkzeug.utils import secure_filename
 
-
-from Server.Forms.general_forms import *
-from Server.Forms.upload_data_forms import *
+from Forms.general_forms import *
+from Forms.upload_data_forms import *
 from flask import render_template, url_for, flash, request
-
-
+import Util
+from data.prompt import Prompt
+from data.Attacks import AttackFactory
+from data.Profile import Profile
 
 
 def error_routes(app):  # Error handlers routes
@@ -34,12 +35,35 @@ def general_routes(app):  # This function stores all the general routes.
             #omer 11/5/24 fixed typo of name_filed to name_field
             name = form.name_field.data
             #omer 11/5/24 changed type_ to role
-            role = form.role_field.data
+            role = form.role_field.data[0]
             gen_info = form.gen_info_field.data
+            profile = Profile(name, role, gen_info)
+            data_storage.add_profile(profile)
+            # profile.addAttack(AttackFactory.create_attack("Voice", "campaign_name", "mimic_profile", "target_profile", "campaign_description", "campaign_unique_id"))
             flash("Profile created successfully")
             return flask_redirect(url_for('index'))
-        return render_template('attack_pages/new_profile.html', form=form)
+        return render_template('attack_pages/new_profile.html', form = form)
 
+    @app.route('/profileview', methods=['GET', 'POST'])
+    def profileview():
+        form = ViewProfilesForm()
+        print("HELLO")
+        # tmp = [(profile.getName(), profile.getName()) for profile in data_storage.get_profiles()]
+        tmp = data_storage.getAllProfileNames()
+        print(f'tmp: {tmp}')
+        form.profile_list.choices = tmp
+        if form.validate_on_submit():
+            return flask_redirect(url_for('profile', profileo=form.profile_list.data))
+        return render_template('profileview.html', form = form)
+    
+    
+    @app.route('/profile', methods=['GET', 'POST'])
+    def profile():
+        profile = data_storage.get_profile(request.args.get('profileo'))
+        print(f'profile1111eeee2: {profile}')
+        return render_template('profile.html', profileo = profile)
+    
+    
     @app.route('/contact', methods=['GET', 'POST'])
     def contact():
         email = None
@@ -58,17 +82,25 @@ def general_routes(app):  # This function stores all the general routes.
         return render_template('dashboard.html')
 
 
-def attack_generation_routes(app):
+def attack_generation_routes(app,data_storage):
     @app.route('/newattack', methods=['GET', 'POST'])  # The new chat route.
     def newattack():
         # omer 11/5/24 added form and capturing data + generating unique id
         form = CampaignForm()
+        profNames = data_storage.getAllProfileNames()
+        form.mimic_profile.choices = profNames
+        form.target_profile.choices = profNames
         if form.validate_on_submit():
             campaign_name = form.campaign_name.data
             mimic_profile = form.mimic_profile.data
             target_profile = form.target_profile.data
+            mimic_profile = data_storage.get_profile(mimic_profile)
+            target_profile = data_storage.get_profile(target_profile)
             campaign_description = form.campaign_description.data
+            attack_type = form.attack_type.data
             campaign_unique_id = str(uuid.uuid4())
+            attack = AttackFactory.create_attack(attack_type, campaign_name, mimic_profile, target_profile, campaign_description, campaign_unique_id)
+            data_storage.add_attack(attack)
             flash("Campaign created successfully using")
             return flask_redirect(url_for('attack_dashboard'))
         return render_template('attack_pages/newattack.html', form=form)
@@ -77,6 +109,7 @@ def attack_generation_routes(app):
     def attack_dashboard():
         form = AttackDashboardForm()
         return render_template('attack_pages/attack_dashboard.html', form=form)
+
     @app.route('/information_gathering', methods=['GET', 'POST'])
     def information_gathering():
         form = InformationGatheringForm()
@@ -158,8 +191,28 @@ def attack_generation_routes(app):
         file.save(full_file_name)
         return '<h1>File saved</h1>'
 
+    @app.route('/attack_profile/view_prompts', methods=['GET', 'POST'])
+    def view_prompts():
+        Util.add_default_prompts(data_storage)
+        Addform = PromptAddForm()
+        Deleteform = PromptDeleteForm()
+        Deleteform.prompt_field.choices = [(prompt.prompt_desc,prompt.prompt_desc)
+                                           for prompt in data_storage.get_prompts()]
+        if Addform.validate_on_submit():
+            desc = Addform.prompt_field.data
+            new_prompt = Prompt(prompt_desc=desc)# add sound when clicking button
+            data_storage.add_prompt(new_prompt)
+            return flask_redirect(url_for('view_prompts'))
+        if Deleteform.validate_on_submit(): #Delete goes the add form instead
+            desc = Deleteform.prompt_field.data
+            prompt = Prompt(prompt_desc=desc)
+            data_storage.delete_prompt(prompt)
+            return flask_redirect(url_for('view_prompts'))
+        prs = data_storage.get_prompts()
+        return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform, prompts = prs)
 
-def execute_routes(app):  # Function that executes all the routes.
+
+def execute_routes(app,data_storage):  # Function that executes all the routes.
     general_routes(app)  # General pages navigation
-    attack_generation_routes(app)  # Attack generation pages navigation
+    attack_generation_routes(app,data_storage)  # Attack generation pages navigation
     error_routes(app)  # Errors pages navigation

@@ -1,0 +1,25 @@
+{% import "_macros.html" as macros %}
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+{% block page_content %}
+<div class="page-header">
+    <h1>View prompts</h1>
+</div>
+{% if prompts %}
+<h2>Prompts</h2>
+<div>
+    {% for prompt in prompts %}
+    <button type="button">{{prompt.prompt_desc}}</button>
+    <br>
+    <br>
+    {% endfor %}
+</div>
+{% endif %}
+{{ wtf.quick_form(Addform) }}
+<br>
+{% if prompts %}
+{{ wtf.quick_form(Deleteform) }}
+{% endif %}
+{%endblock%}

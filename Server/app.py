@@ -7,7 +7,8 @@ from flask import Flask, render_template, url_for, flash, request
 from flask_bootstrap import Bootstrap
 import os
 from dotenv import load_dotenv
-from Server.routes import execute_routes
+from routes import execute_routes
+from data.DataStorage import DataStorage
 
 load_dotenv()
 
@@ -56,7 +57,9 @@ def create_app():
     audio_file_path = create_audio_file()
     app.config['UPLOAD_FOLDER'] = audio_file_path
     bootstrap = Bootstrap(app)
-    execute_routes(app)  # Executing the routes
+
+    data_storage = DataStorage()
+    execute_routes(app,data_storage)  # Executing the routes
 
     # TODO: UNCOMMENT THIS ROWS!
     #  THIS IS THE BACKGROUND THREAD FOR UPDATES CHECKING!!!!
