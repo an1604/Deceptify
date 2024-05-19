@@ -12,9 +12,9 @@ class Prompt:
         """
 
         self.prompt_desc = prompt_desc
-        #self.prompt_profile = prompt_profile
-        #self.data = base64.b64encode(data.read()).decode('utf-8')  # embedd the data to make it JSON serializable.
-        #self.is_deletable(for premade prompts)
+        # self.prompt_profile = prompt_profile
+        # self.data = base64.b64encode(data.read()).decode('utf-8')  # embedd the data to make it JSON serializable.
+        # self.is_deletable(for premade prompts)
 
         def __repr__(self):
             return f"Prompt: {self.prompt_desc}"
@@ -28,7 +28,8 @@ class Prompt:
             return json.dumps(self.to_dict())
 
         @staticmethod
-        def from_json(json_prompt): return json.loads(json_prompt)
+        def from_json(json_prompt):
+            return json.loads(json_prompt)
 
         @staticmethod
         def from_dict(json_prompt):

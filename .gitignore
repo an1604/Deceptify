@@ -8,5 +8,7 @@
 # /dataSources.local.xml
 .idea 
 .env
+.venv
 /Server/AudioFiles/*
 **/__pycache__/
+.vscode

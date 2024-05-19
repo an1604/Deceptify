@@ -27,9 +27,9 @@ def check_for_updates():  # This function will run in the background to communic
             time.sleep(10)  # Waits 10 seconds before each request.
             url = f"http://{remote_server_ip}:{remote_server_port}/updates"  # TODO: CHANGE THE URL ACCORDING TO OUT NEEDS.
             headers = {  # TODO: ADJUST THE HEADERS.
-                'Content-Type': 'application/json',
-                'Secret_key': os.getenv("SECRET_KEY"),
-                'User_id': os.getenv("USER_ID"),
+                "Content-Type": "application/json",
+                "Secret_key": os.getenv("SECRET_KEY"),
+                "User_id": os.getenv("USER_ID"),
             }
             response = requests.post(url, headers=headers)
             if response.status_code == 200:
@@ -49,17 +49,19 @@ def create_audio_file():
 
 
 def create_app():
-    app = Flask(__name__)  # The application as an object, Now can use this object to route and staff.
+    app = Flask(
+        __name__
+    )  # The application as an object, Now can use this object to route and staff.
 
     # app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # A secret key for the encryption process (not really useful).
-    app.config['SECRET_KEY'] = 'hard to guess string'
+    app.config["SECRET_KEY"] = "hard to guess string"
 
     audio_file_path = create_audio_file()
-    app.config['UPLOAD_FOLDER'] = audio_file_path
+    app.config["UPLOAD_FOLDER"] = audio_file_path
     bootstrap = Bootstrap(app)
 
     data_storage = DataStorage()
-    execute_routes(app,data_storage)  # Executing the routes
+    execute_routes(app, data_storage)  # Executing the routes
 
     # TODO: UNCOMMENT THIS ROWS!
     #  THIS IS THE BACKGROUND THREAD FOR UPDATES CHECKING!!!!

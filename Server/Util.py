@@ -1,5 +1,6 @@
 from data.prompt import Prompt
 
+
 def add_default_prompts(data_storage):
     print("adding prompts")
     if not data_storage.get_prompts():
