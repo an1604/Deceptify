@@ -7,7 +7,7 @@ save that in the database.
 import base64
 import json
 import os
-from Profile import Profile
+from Server.data.Profile import Profile
 from typing import Set, List
 
 class DataStorage:
