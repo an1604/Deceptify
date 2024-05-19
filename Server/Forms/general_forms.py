@@ -5,10 +5,6 @@ from wtforms.validators import DataRequired, Email, ValidationError
 from Server.data.DataStorage import DataStorage
 
 
-# singleton instance of the DataStorage class
-data_storage = DataStorage()
-
-
 class CampaignForm(FlaskForm):
     campaign_name = StringField("Campaign Name", validators=[DataRequired()])
     mimic_profile = SelectField("Mimic Profile", validators=[DataRequired()])

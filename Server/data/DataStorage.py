@@ -98,6 +98,7 @@ class DataStorage:
             self.attacks.remove(attack_to_remove)
 
     def get_AllProfiles(self) -> Set[Profile]:
+        print(self.profiles)
         """
         Get all the profiles stored in the data storage.
 
@@ -133,7 +134,7 @@ class DataStorage:
         else:
             return [profile.getName() for profile in self.profiles]
 
-    def get_profile(self, profile_name) -> Profile|None:
+    def get_profile(self, profile_name) -> Profile | None:
         """
         Get a profile from the data storage by its name.
 

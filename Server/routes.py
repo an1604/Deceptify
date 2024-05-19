@@ -23,7 +23,7 @@ def error_routes(app):  # Error handlers routes
         return render_template("errors/500.html"), 500
 
 
-def general_routes(app):  # This function stores all the general routes.
+def general_routes(app,data_storage):  # This function stores all the general routes.
     @app.route("/", methods=["GET", "POST"])  # The root router (welcome page).
     def index():
         return render_template("index.html")
@@ -100,7 +100,7 @@ def attack_generation_routes(app, data_storage):
             target_profile = data_storage.get_profile(target_profile)
             campaign_description = form.campaign_description.data
             attack_type = form.attack_type.data
-            campaign_unique_id = str(uuid.uuid4())
+            campaign_unique_id = int(uuid.uuid4())
             attack = AttackFactory.create_attack(
                 attack_type,
                 campaign_name,
@@ -235,6 +235,6 @@ def attack_generation_routes(app, data_storage):
 
 
 def execute_routes(app, data_storage):  # Function that executes all the routes.
-    general_routes(app)  # General pages navigation
+    general_routes(app, data_storage)  # General pages navigation
     attack_generation_routes(app, data_storage)  # Attack generation pages navigation
     error_routes(app)  # Errors pages navigation
