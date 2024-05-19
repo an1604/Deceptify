@@ -1,15 +1,9 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
-from wtforms import (
-    StringField,
-    SubmitField,
-    FileField,
-    PasswordField,
-    TextAreaField,
-    SelectField,
-)
-from wtforms.validators import DataRequired, Email
-from data.DataStorage import DataStorage
+from wtforms import StringField, SubmitField, FileField, PasswordField, TextAreaField, SelectField
+from wtforms.validators import DataRequired, Email, ValidationError
+from Server.data.DataStorage import DataStorage
+
 
 # singleton instance of the DataStorage class
 data_storage = DataStorage()
@@ -37,7 +31,8 @@ class ViewAttacksForm(FlaskForm):
 
 
 class AttackDashboardForm(FlaskForm):
-    submit = SubmitField("Submit")
+    prompt_field = SelectField(label="Select prompt to activate", validators=[DataRequired()])
+    submit = SubmitField('Submit')
 
 
 class InformationGatheringForm(FlaskForm):
@@ -113,11 +108,37 @@ class ProfileForm(FlaskForm):
     submit = SubmitField("Submit")
 
 
+def validate_add_prompt(form, field):
+    prompt = field.data
+    for prt in form.data_storage.get_prompts():
+        if prompt == prt.prompt_desc:
+            raise ValidationError('This prompt already exist')
+
+
 class PromptAddForm(FlaskForm):
-    prompt_field = StringField("Add Prompt", validators=[DataRequired()])
-    submit = SubmitField("Add")
+    prompt_add_field = StringField("Add Prompt", validators=[DataRequired(), validate_add_prompt])
+    submit_add = SubmitField('Add')
+
+    def __init__(self, *args, **kwargs):
+        # Extract the extra argument
+        self.data_storage = kwargs.pop('data_storage', None)
+        super(PromptAddForm, self).__init__(*args, **kwargs)
+
+
+def validate_delete_prompt(form, field):
+    prompt = field.data
+    for prt in form.data_storage.get_prompts():
+        if prompt == prt.prompt_desc:
+            if not prt.is_deletable:
+                raise ValidationError('This prompt cannot be deleted')
+            return
 
 
 class PromptDeleteForm(FlaskForm):
-    prompt_field = SelectField(label="Select prompt to delete")
-    submit = SubmitField("Delete")
+    prompt_delete_field = SelectField(label="Select prompt to delete",validators=[validate_delete_prompt])
+    submit_delete = SubmitField('Delete')
+
+    def __init__(self, *args, **kwargs):
+        # Extract the extra argument
+        self.data_storage = kwargs.pop('data_storage', None)
+        super(PromptDeleteForm, self).__init__(*args, **kwargs)

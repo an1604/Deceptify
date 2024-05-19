@@ -4,7 +4,6 @@ Stores all the current information of the client, new attacks, profiles, recordi
 After the session ends, this object will push all the information to the remote server to
 save that in the database.
 """
-
 import base64
 import json
 import os
@@ -43,13 +42,11 @@ class DataStorage:
         """
         return self.prompts
 
-    def delete_prompt(self, prompt):
-        """
-        Delete a prompt from the data storage.
-
-        Args:
-            prompt: The prompt to be deleted.
-        """
+    def delete_prompt(self, desc):
+        prompt = None
+        for prt in self.prompts:
+            if prt.prompt_desc == desc:
+                prompt = prt
         self.prompts.remove(prompt)
 
     def add_profile(self, profile):
@@ -160,4 +157,7 @@ class DataStorage:
         """
         profiles = [profile.to_json() for profile in self.profiles]
         prompts = [prompt.to_json() for prompt in self.prompts]
-        return json.dumps({"profiles": profiles, "prompts": prompts})
+        return json.dumps({
+            'profiles': profiles,
+            'prompts': prompts
+        })
