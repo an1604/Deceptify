@@ -14,7 +14,7 @@ class AttackFactory:
         mimic_profile: Profile,
         target: Profile,
         description: str,
-        camp_id: int,
+        attack_id: int,
         recordings=None,
         transcript=None,
     ):
@@ -47,7 +47,7 @@ class AttackFactory:
                 mimic_profile,
                 target,
                 description,
-                camp_id,
+                attack_id,
                 recordings,
                 transcript,
             )
@@ -57,7 +57,7 @@ class AttackFactory:
                 mimic_profile,
                 target,
                 description,
-                camp_id,
+                attack_id,
                 recordings,
                 transcript,
             )
@@ -84,6 +84,9 @@ class Attack:
 
     def get_mimic_profile(self) -> Profile:
         return self.mimic_profile
+
+    def getID(self):
+        return self.id
 
     def get_role(self, profile) -> str:
         """
