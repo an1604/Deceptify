@@ -9,6 +9,7 @@
 {% block page_content %}
     <div>
         <p>Role: {{ profileo.getRole() }}</p>
+        <p>General info: {{profileo.getGeneralInfo()}}</p>
         <p>Attacks: {{ profileo.get_attacks() }}</p>
     </div>
 {% endblock %}

@@ -35,9 +35,11 @@ def general_routes(app,data_storage):  # This function stores all the general ro
             # omer 11/5/24 fixed typo of name_filed to name_field
             name = form.name_field.data
             # omer 11/5/24 changed type_ to role
-            role = form.role_field.data[0]
+            role = form.role_field.data
+            data_type = form.data_type_selection.data
             gen_info = form.gen_info_field.data
-            profile = Profile(name, role, gen_info)
+            data = form.recording_upload.data
+            profile = Profile(name, role, data_type, gen_info, data)
             data_storage.add_profile(profile)
             # profile.addAttack(AttackFactory.create_attack("Voice", "campaign_name", "mimic_profile", "target_profile", "campaign_description", "campaign_unique_id"))
             flash("Profile created successfully")

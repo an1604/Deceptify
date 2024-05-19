@@ -4,7 +4,7 @@ from flask import session, current_app as app
 
 
 class Profile:
-    def __init__(self, profile_name, role, general_info):
+    def __init__(self, profile_name, role, data_type,general_info, data):
         """
         :param profile_name: name of the profile
         :param role: role of the profile
@@ -14,15 +14,20 @@ class Profile:
         """
         self.profile_name = profile_name
         self.role = role
+        self.data_type = data_type
         self.general_info = general_info
         self.victimAttacks = set()
         self.AttackerAttacks = set()
+        self.data = base64.b64encode(data.read()).decode('utf-8')  # embedd the data to make it JSON serializable.
 
     def getName(self) -> str:
         return self.profile_name
 
     def getRole(self) -> str:
         return self.role
+
+    def getGeneralInfo(self) -> str:
+        return self.general_info
 
     def addAttack(self, attack) -> None:
         if attack.get_role(self) == "Attacker":
@@ -31,7 +36,7 @@ class Profile:
             self.victimAttacks.add(attack)
 
     def __repr__(self):
-        return f"Profile: {self.profile_name},{self.role},{self.general_info},{self.get_attacks()}"
+        return f"Profile: {self.profile_name}, {self.role}, {self.data_type}, {self.general_info}, {self.data}, {self.get_attacks()}"
 
     def get_attacks(self):
         return self.AttackerAttacks.union(self.victimAttacks)
