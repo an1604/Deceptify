@@ -84,7 +84,8 @@ class Attack:
 
     def get_mimic_profile(self) -> Profile:
         return self.mimic_profile
-
+    def getName(self):
+        return self.campaign_name
     def getID(self):
         return self.id
 
