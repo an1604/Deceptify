@@ -4,3 +4,4 @@
 /Server/AudioFiles/*
 **/__pycache__/
 .vscode
+.env.example
