@@ -7,7 +7,7 @@ import os
 load_dotenv()
 
 SERVER_URL = os.getenv('SERVER_URL')
-
+print(f"Server URL: {SERVER_URL}")
 def create_user(username, password):
     try:
         url = f"{SERVER_URL}/data"
