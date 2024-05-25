@@ -4,5 +4,4 @@
 /Server/AudioFiles/*
 **/__pycache__/
 .vscode
-
-
+/venv/

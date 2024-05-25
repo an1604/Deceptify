@@ -6,6 +6,7 @@ from register import RegisterWindow
 from network import login
 from logged_in import Mainwindow_logged
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -34,10 +35,12 @@ class MainWindow(QMainWindow):
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
             self.on_login()
 
+
 def main():
     app = QApplication([])
     window = MainWindow()
     app.exec_()
+
 
 if __name__ == "__main__":
     main()
