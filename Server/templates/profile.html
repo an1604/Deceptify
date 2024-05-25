@@ -20,5 +20,8 @@
                 <br>
             </div>
         {% endfor %}
+        <ul class="posts">
+            <li><a href="{{url_for('view_prompts',profile=profileo.profile_name)}}">View prompts</a></li>
+        </ul>
     </div>
 {% endblock %}

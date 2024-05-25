@@ -216,23 +216,23 @@ def attack_generation_routes(app, data_storage):
         file.save(full_file_name)
         return "<h1>File saved</h1>"
 
-    @app.route("/attack_profile/view_prompts", methods=["GET", "POST"])
+    @app.route("/view_prompts", methods=["GET", "POST"])
     def view_prompts():
-        Util.add_default_prompts(data_storage)
-        Addform = PromptAddForm(data_storage=data_storage)
-        Deleteform = PromptDeleteForm(data_storage=data_storage)
+        prof = data_storage.get_profile(request.args.get("profile"))
+        Addform = PromptAddForm(profile=prof)
+        Deleteform = PromptDeleteForm(profile=prof)
         Deleteform.prompt_delete_field.choices = [(prompt.prompt_desc, prompt.prompt_desc)
-                                           for prompt in data_storage.get_prompts()]
+                                           for prompt in prof.getPrompts()]
         if Addform.submit_add.data and Addform.validate_on_submit():
             desc = Addform.prompt_add_field.data
             new_prompt = Prompt(prompt_desc=desc)  # add sound when clicking button
-            data_storage.add_prompt(new_prompt)
-            return flask_redirect(url_for('view_prompts'))
+            prof.addPrompt(new_prompt)
+            return flask_redirect(url_for('view_prompts', profile=prof.profile_name))
         if Deleteform.submit_delete.data and Deleteform.validate_on_submit():
             desc = Deleteform.prompt_delete_field.data
-            data_storage.delete_prompt(desc)
-            return flask_redirect(url_for('view_prompts'))
-        prs = data_storage.get_prompts()
+            prof.deletePrompt(desc)
+            return flask_redirect(url_for('view_prompts',profile=prof.profile_name))
+        prs = prof.getPrompts()
         return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform, prompts=prs)
 
 

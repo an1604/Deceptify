@@ -2,6 +2,7 @@ import base64
 import json
 from flask import session, current_app as app
 
+from Server.data.prompt import Prompt
 
 class Profile:
     def __init__(self, profile_name, role, data_type,general_info, data):
@@ -18,7 +19,9 @@ class Profile:
         self.general_info = general_info
         self.victimAttacks = set()
         self.AttackerAttacks = set()
+        self.prompts = set[Prompt]()
         self.data = base64.b64encode(data.read()).decode('utf-8')  # embedd the data to make it JSON serializable.
+        self.setDefaultPrompts()
 
     def getName(self) -> str:
         return self.profile_name
@@ -34,6 +37,36 @@ class Profile:
             self.AttackerAttacks.add(attack)
         else:
             self.victimAttacks.add(attack)
+
+    def getPrompt(self, prompt_desc) -> Prompt | None:
+        for p in self.prompts:
+            if p.prompt_desc == prompt_desc:
+                return p
+        return None
+
+    def getPrompts(self) -> set[Prompt]:
+        return self.prompts
+
+    def addPrompt(self, prompt) -> None:
+        self.prompts.add(prompt)
+
+    def setDefaultPrompts(self) -> None:
+        self.addPrompt(Prompt(prompt_desc="Hello", is_deletable=False))
+        self.addPrompt(Prompt(prompt_desc="Hi", is_deletable=False))
+        self.addPrompt(Prompt(prompt_desc="Thank you", is_deletable=False))
+        self.addPrompt(Prompt(prompt_desc="Bye", is_deletable=False))
+        self.addPrompt(Prompt(prompt_desc="Sorry", is_deletable=False))
+        self.addPrompt(Prompt(prompt_desc="Why?", is_deletable=False))
+        self.addPrompt(Prompt(prompt_desc="What did you say?", is_deletable=False))
+        self.addPrompt(Prompt(prompt_desc="I don't know", is_deletable=False))
+        self.addPrompt(Prompt(prompt_desc="what are you talking about", is_deletable=False))
+
+    def deletePrompt(self, desc) -> None:
+        prompt = None
+        for prt in self.prompts:
+            if prt.prompt_desc == desc:
+                prompt = prt
+        self.prompts.remove(prompt)
 
     def __repr__(self):
         return f"Profile: {self.profile_name}, {self.role}, {self.data_type}, {self.general_info}, {self.data}, {self.get_attacks()}"

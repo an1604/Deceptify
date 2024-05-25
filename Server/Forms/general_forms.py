@@ -106,7 +106,7 @@ class ProfileForm(FlaskForm):
 
 def validate_add_prompt(form, field):
     prompt = field.data
-    for prt in form.data_storage.get_prompts():
+    for prt in form.profile.getPrompts():
         if prompt == prt.prompt_desc:
             raise ValidationError('This prompt already exist')
 
@@ -117,13 +117,13 @@ class PromptAddForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         # Extract the extra argument
-        self.data_storage = kwargs.pop('data_storage', None)
+        self.profile = kwargs.pop('profile', None)
         super(PromptAddForm, self).__init__(*args, **kwargs)
 
 
 def validate_delete_prompt(form, field):
     prompt = field.data
-    for prt in form.data_storage.get_prompts():
+    for prt in form.profile.getPrompts():
         if prompt == prt.prompt_desc:
             if not prt.is_deletable:
                 raise ValidationError('This prompt cannot be deleted')
@@ -136,5 +136,5 @@ class PromptDeleteForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         # Extract the extra argument
-        self.data_storage = kwargs.pop('data_storage', None)
+        self.profile = kwargs.pop('profile', None)
         super(PromptDeleteForm, self).__init__(*args, **kwargs)
