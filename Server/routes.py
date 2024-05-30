@@ -12,6 +12,35 @@ from Server.data.prompt import Prompt
 from Server.data.Attacks import AttackFactory
 from Server.data.Profile import Profile
 
+import requests
+from tkinter import messagebox
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
+SERVER_URL = os.getenv('SERVER_URL')
+print(f"Server URL: {SERVER_URL}")
+def create_user(username, password):
+    try:
+        url = f"{SERVER_URL}/data"
+        data = {"username": username, "password": password}
+        response = requests.post(url, json=data)
+        if response.status_code == 409:
+            messagebox.showerror("Error", "Username already exists.")
+            return False
+        response.raise_for_status()
+        try:
+            result = response.json()
+        except requests.exceptions.JSONDecodeError:
+            messagebox.showerror("Error", "Failed to decode server response.")
+            print(f"Server response: {response.text}")
+            return False
+        messagebox.showinfo("Success", f"User created successfully! ID: {result.get('id')}")
+        return True
+    except requests.exceptions.RequestException as e:
+        messagebox.showerror("Error", f"Failed to create user: {str(e)}")
+        return False
 
 def error_routes(app):  # Error handlers routes
     @app.errorhandler(404)
@@ -40,6 +69,9 @@ def general_routes(app,data_storage):  # This function stores all the general ro
             gen_info = form.gen_info_field.data
             data = form.recording_upload.data
             profile = Profile(name, role, data_type, gen_info, data)
+            if not create_user(name, name):
+                flash("Profile creation failed")
+                return render_template("attack_pages/new_profile.html", form=form)
             data_storage.add_profile(profile)
             # profile.addAttack(AttackFactory.create_attack("Voice", "campaign_name", "mimic_profile", "target_profile", "campaign_description", "campaign_unique_id"))
             flash("Profile created successfully")
