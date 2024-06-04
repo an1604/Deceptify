@@ -1,64 +1,41 @@
-import sounddevice as sd
+import pyaudio
 import wave
-import threading
 import numpy as np
 
-CHUNK = 1024
 
-def play_audio(file_path, event):
-    try:
-        wf = wave.open(file_path, 'rb')
-        sample_rate = wf.getframerate()
-        num_channels = wf.getnchannels()
+def play_audio_through_vbcable(audio_file_path):
+    # Open the audio file
+    wf = wave.open(audio_file_path, 'rb')
 
-        def callback(outdata, frames, time, status):
-            if status:
-                print(status)
-            data = wf.readframes(frames)
-            if len(data) == 0:
-                event.set()
-                raise sd.CallbackStop
-            data = np.frombuffer(data, dtype=np.int16).reshape(-1, num_channels)
+    # Instantiate PyAudio
+    p = pyaudio.PyAudio()
 
-            if len(data) < frames:
-                # If the read data is less than the required frames, pad with zeros
-                outdata[:len(data)] = data
-                outdata[len(data):] = 0
-            else:
-                outdata[:] = data
+    # Open a stream with the same format as the audio file
+    stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                    channels=wf.getnchannels(),
+                    rate=wf.getframerate(),
+                    output=True)
 
-        with sd.OutputStream(samplerate=sample_rate, channels=num_channels, dtype='int16', callback=callback):
-            event.wait()
-    except Exception as e:
-        print(f"Exception in play_audio: {e}")
+    # Read data in chunks
+    chunk = 1024
+    data = wf.readframes(chunk)
 
-def record_and_play(event):
-    try:
-        def callback(indata, outdata, frames, time, status):
-            if status:
-                print(status)
-            outdata[:] = indata
+    # Play the audio file
+    while data:
+        stream.write(data)
+        data = wf.readframes(chunk)
 
-        with sd.Stream(channels=1, dtype='int16', callback=callback):
-            event.wait()
-    except Exception as e:
-        print(f"Exception in record_and_play: {e}")
+    # Stop stream
+    stream.stop_stream()
+    stream.close()
 
-def main():
-    file_path = 'C:\\colman\\cyber\\Deceptify\\Server\\AudioFiles\\Test.wav'
-    stop_event = threading.Event()
+    # Close PyAudio
+    p.terminate()
 
-    # Start the play_audio thread
-    playback_thread = threading.Thread(target=play_audio, args=(file_path, stop_event))
-    playback_thread.start()
+    # Close the audio file
+    wf.close()
 
-    # Start the record_and_play thread
-    record_thread = threading.Thread(target=record_and_play, args=(stop_event,))
-    record_thread.start()
 
-    playback_thread.join()
-    stop_event.set()
-    record_thread.join()
-
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    audio_file_path = 'C:\\colman\\Deceptify\\Server\\AudioFiles\\testFool.wav'  # Replace with your audio file path
+    play_audio_through_vbcable(audio_file_path)

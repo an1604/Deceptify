@@ -5,7 +5,7 @@ from flask import session, current_app as app
 
 
 class Prompt:
-    def __init__(self, prompt_desc,is_deletable=True):
+    def __init__(self, prompt_desc, is_deletable=True,filename="Test.wav"):
         """
         :param prompt_desc: the prompt description
         :param prompt_profile: the profile that is connected to the prompt
@@ -15,7 +15,7 @@ class Prompt:
         self.prompt_desc = prompt_desc
         #self.prompt_profile = prompt_profile
         #self.audio_path = os.path.join(app.config['UPLOAD_FOLDER'], "Test.mp3")
-        self.filename = "Test.mp3"
+        self.filename = filename
         self.is_deletable = is_deletable
 
     def __repr__(self):

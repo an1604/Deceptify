@@ -1,9 +1,10 @@
 import os
+import time
 import uuid
 
 from flask import redirect as flask_redirect
 from werkzeug.utils import secure_filename
-
+from PyQt5.QtWidgets import QMessageBox
 from Server.Forms.general_forms import *
 from Server.Forms.upload_data_forms import *
 from flask import render_template, url_for, flash, request, send_from_directory
@@ -16,31 +17,56 @@ import requests
 from tkinter import messagebox
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 SERVER_URL = os.getenv('SERVER_URL')
 print(f"Server URL: {SERVER_URL}")
-def create_user(username, password):
+
+
+#def create_user(username, password):
+#    try:
+#        url = f"{SERVER_URL}/data"
+#        data = {"username": username, "password": password}
+#        response = requests.post(url, json=data)
+#        if response.status_code == 409:
+#            return False
+#        response.raise_for_status()
+#        try:
+#            result = response.json()
+#        except requests.exceptions.JSONDecodeError:
+#            print(f"Server response: {response.text}")
+#            return False
+#        return True
+#    except requests.exceptions.RequestException as e:
+#        return False
+
+
+def generate_voice(prompt, description):
     try:
-        url = f"{SERVER_URL}/data"
-        data = {"username": username, "password": password}
+        # Send request to generate voice and get job ID
+        url = f"{SERVER_URL}/generate_voice"
+        data = {"prompt": prompt, "description": description}
         response = requests.post(url, json=data)
-        if response.status_code == 409:
-            messagebox.showerror("Error", "Username already exists.")
-            return False
         response.raise_for_status()
-        try:
-            result = response.json()
-        except requests.exceptions.JSONDecodeError:
-            messagebox.showerror("Error", "Failed to decode server response.")
-            print(f"Server response: {response.text}")
-            return False
-        messagebox.showinfo("Success", f"User created successfully! ID: {result.get('id')}")
-        return True
+        job_id = response.json().get("job_id")
+
+        # Polling the job status
+        while True:
+            status_url = f"{SERVER_URL}/result/{job_id}"
+            status_response = requests.get(status_url)
+            if status_response.status_code == 200:
+                with open("AudioFiles/" + prompt + ".wav", "wb") as f:
+                    f.write(status_response.content)
+                return True
+            elif status_response.status_code == 202:
+                time.sleep(1)  # Wait a second before polling again
+            else:
+                print("Error", "Failed to retrieve the generated voice.")
+                return False
     except requests.exceptions.RequestException as e:
-        messagebox.showerror("Error", f"Failed to create user: {str(e)}")
+        print(None, "Error", f"Failed to generate voice: {str(e)}")
         return False
+
 
 def error_routes(app):  # Error handlers routes
     @app.errorhandler(404)
@@ -52,7 +78,7 @@ def error_routes(app):  # Error handlers routes
         return render_template("errors/500.html"), 500
 
 
-def general_routes(app,data_storage):  # This function stores all the general routes.
+def general_routes(app, data_storage):  # This function stores all the general routes.
     @app.route("/", methods=["GET", "POST"])  # The root router (welcome page).
     def index():
         return render_template("index.html")
@@ -69,9 +95,9 @@ def general_routes(app,data_storage):  # This function stores all the general ro
             gen_info = form.gen_info_field.data
             data = form.recording_upload.data
             profile = Profile(name, role, data_type, gen_info, data)
-            if not create_user(name, name):
-                flash("Profile creation failed")
-                return render_template("attack_pages/new_profile.html", form=form)
+            #if not create_user(name, name):
+            #    flash("Profile creation failed")
+            #    return render_template("attack_pages/new_profile.html", form=form)
             data_storage.add_profile(profile)
             # profile.addAttack(AttackFactory.create_attack("Voice", "campaign_name", "mimic_profile", "target_profile", "campaign_description", "campaign_unique_id"))
             flash("Profile created successfully")
@@ -254,16 +280,20 @@ def attack_generation_routes(app, data_storage):
         Addform = PromptAddForm(profile=prof)
         Deleteform = PromptDeleteForm(profile=prof)
         Deleteform.prompt_delete_field.choices = [(prompt.prompt_desc, prompt.prompt_desc)
-                                           for prompt in prof.getPrompts()]
+                                                  for prompt in prof.getPrompts()]
         if Addform.submit_add.data and Addform.validate_on_submit():
             desc = Addform.prompt_add_field.data
-            new_prompt = Prompt(prompt_desc=desc)  # add sound when clicking button
+            new_prompt = Prompt(prompt_desc=desc,filename=desc + ".wav")  # add sound when clicking button
+            if not generate_voice(desc, "sad voice"):
+                prs = prof.getPrompts()
+                return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform,
+                                       prompts=prs)
             prof.addPrompt(new_prompt)
             return flask_redirect(url_for('view_prompts', profile=prof.profile_name))
         if Deleteform.submit_delete.data and Deleteform.validate_on_submit():
             desc = Deleteform.prompt_delete_field.data
             prof.deletePrompt(desc)
-            return flask_redirect(url_for('view_prompts',profile=prof.profile_name))
+            return flask_redirect(url_for('view_prompts', profile=prof.profile_name))
         prs = prof.getPrompts()
         return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform, prompts=prs)
 
