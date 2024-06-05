@@ -2,7 +2,7 @@ import os
 import time
 import uuid
 
-from flask import redirect as flask_redirect
+from flask import redirect as flask_redirect, jsonify, session
 from werkzeug.utils import secure_filename
 from PyQt5.QtWidgets import QMessageBox
 from Server.Forms.general_forms import *
@@ -12,10 +12,14 @@ import Util
 from Server.data.prompt import Prompt
 from Server.data.Attacks import AttackFactory
 from Server.data.Profile import Profile
+from threading import Thread, Event
 
 import requests
 from tkinter import messagebox
 from dotenv import load_dotenv
+
+CloseCallEvent = Event()
+StopRecordEvent = Event()
 
 
 #load_dotenv()
@@ -170,25 +174,34 @@ def attack_generation_routes(app, data_storage):
             )
             data_storage.add_attack(attack)
             flash("Campaign created successfully using")
-            return flask_redirect(url_for('attack_dashboard_transition', profile=form.mimic_profile.data))
+            return flask_redirect(url_for('attack_dashboard_transition', profile=form.mimic_profile.data,
+                                          contact=form.target_name.data))
         return render_template('attack_pages/newattack.html', form=form)
 
     @app.route('/attack_dashboard_transition', methods=['GET'])
     def attack_dashboard_transition():
         profile_name = request.args.get("profile")
-        return render_template('attack_pages/attack_dashboard_transition.html', profile=profile_name)
+        contact_name = request.args.get("contact")
+        return render_template('attack_pages/attack_dashboard_transition.html', profile=profile_name,
+                               contact=contact_name)
 
     @app.route('/attack_dashboard', methods=['GET', 'POST'])
     def attack_dashboard():
         profile_name = request.args.get("profile")
+        contact_name = request.args.get("contact")
         profile = data_storage.get_profile(profile_name)
         form = AttackDashboardForm()
         form.prompt_field.choices = [(prompt.prompt_desc, prompt.prompt_desc)
                                      for prompt in profile.getPrompts()]
+        started = session.get("started_call")
+        if not started:
+            thread_call = Thread(target=Util.ExecuteCall, args=(contact_name, CloseCallEvent))
+            thread_call.start()
+            session["started_call"] = True
         if form.validate_on_submit():
             Util.play_audio_through_vbcable(app.config['UPLOAD_FOLDER'] + "\\" + form.prompt_field.data + ".wav")
-            return flask_redirect(url_for('attack_dashboard', profile=profile_name))
-        return render_template('attack_pages/attack_dashboard.html', form=form)
+            return flask_redirect(url_for('attack_dashboard', profile=profile_name, contact=contact_name))
+        return render_template('attack_pages/attack_dashboard.html', form=form, contact=contact_name)
 
     @app.route('/send_prompt', methods=['GET'])
     def send_prompt():
@@ -306,6 +319,12 @@ def attack_generation_routes(app, data_storage):
             return flask_redirect(url_for('view_prompts', profile=prof.profile_name))
         prs = prof.getPrompts()
         return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform, prompts=prs)
+
+    @app.route("/end_call", methods=["GET", "POST"])
+    def end_call():
+        CloseCallEvent.set()
+        session.pop("started_call",None)
+        return jsonify({})
 
 
 def execute_routes(app, data_storage):  # Function that executes all the routes.

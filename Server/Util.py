@@ -4,25 +4,13 @@ import wave
 import requests
 from dotenv import load_dotenv
 import os
+import pyautogui
+import time
+import app
 
 load_dotenv()
 
 SERVER_URL = os.getenv('SERVER_URL')
-
-
-def add_default_prompts(data_storage):
-    if not data_storage.get_prompts():
-        print("data storage has no prompts")
-        data_storage.add_prompt(Prompt(prompt_desc="Hello", is_deletable=False))
-        data_storage.add_prompt(Prompt(prompt_desc="Hi", is_deletable=False))
-        data_storage.add_prompt(Prompt(prompt_desc="Thank you", is_deletable=False))
-        data_storage.add_prompt(Prompt(prompt_desc="Bye", is_deletable=False))
-        data_storage.add_prompt(Prompt(prompt_desc="Sorry", is_deletable=False))
-        data_storage.add_prompt(Prompt(prompt_desc="Why?", is_deletable=False))
-        data_storage.add_prompt(Prompt(prompt_desc="What did you say?", is_deletable=False))
-        data_storage.add_prompt(Prompt(prompt_desc="I don't know", is_deletable=False))
-        data_storage.add_prompt(Prompt(prompt_desc="what are you talking about", is_deletable=False))
-
 
 def create_user(username, password):
     try:
@@ -120,4 +108,57 @@ def play_audio_through_vbcable(audio_file_path, device_name="CABLE Input"):
 
     # Close the audio file
     wf.close()
-    return True
+
+
+# Whatsapp open and close function
+
+def open_whatsapp():
+    pyautogui.press('winleft')
+    time.sleep(1)
+    pyautogui.write('WhatsApp')
+    time.sleep(2)
+    pyautogui.press('enter')
+
+
+def search_contact(contact_name):
+    # Click on the search bar (Ctrl + F)
+    pyautogui.hotkey('ctrl', 'f')
+    time.sleep(1)
+    # Type the contact name
+    pyautogui.write(contact_name, interval=0.1)
+    time.sleep(1)
+    # Press enter to select the contact
+    pyautogui.press('enter')
+    time.sleep(1)
+    contact_x = 300  # Adjust this value
+    contact_y = 200  # Adjust this value
+
+    # Click on the contact in the search results to open the chat
+    pyautogui.click(contact_x, contact_y)
+    time.sleep(2)  # Wait for the chat to open
+
+
+def start_call():
+    # Click on the call button (assuming the call button is in a consistent position relative to the window)
+    call_button_pos = pyautogui.locateCenterOnScreen('API/'
+                                                     'Photos/CallButton.png')  # Use an image of the call button
+    if call_button_pos:
+        pyautogui.click(call_button_pos)
+    else:
+        print("Call button not found. Please ensure the image is correct and visible on the screen.")
+
+
+def end_call():
+    end_call_button_pos = pyautogui.locateCenterOnScreen('API/Photos/EndCallButton.png')
+    if end_call_button_pos:
+        pyautogui.click(end_call_button_pos)
+    else:
+        print("End call button not found. Please ensure the image is correct and visible on the screen.")
+
+
+def ExecuteCall(contact_name, event):
+    open_whatsapp()
+    search_contact(contact_name)
+    start_call()
+    event.wait()
+    end_call()

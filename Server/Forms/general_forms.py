@@ -9,6 +9,7 @@ class CampaignForm(FlaskForm):
     campaign_name = StringField("Campaign Name", validators=[DataRequired()])
     mimic_profile = SelectField("Mimic Profile", validators=[DataRequired()])
     target_profile = SelectField("Target Profile", validators=[DataRequired()])
+    target_name = StringField("Whatsapp Name",validators=[DataRequired()])
     attack_type = SelectField(
         "Attack Type", choices=["Voice", "Video"], validators=[DataRequired()]
     )
