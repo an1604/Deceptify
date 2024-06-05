@@ -56,10 +56,14 @@ class Profile:
         self.addPrompt(Prompt(prompt_desc="Thank you", is_deletable=False))
         self.addPrompt(Prompt(prompt_desc="Bye", is_deletable=False))
         self.addPrompt(Prompt(prompt_desc="Sorry", is_deletable=False))
-        self.addPrompt(Prompt(prompt_desc="Why?", is_deletable=False))
-        self.addPrompt(Prompt(prompt_desc="What did you say?", is_deletable=False))
-        self.addPrompt(Prompt(prompt_desc="I don't know", is_deletable=False))
-        self.addPrompt(Prompt(prompt_desc="what are you talking about", is_deletable=False))
+        self.addPrompt(Prompt(prompt_desc="Why", is_deletable=False))
+        self.addPrompt(Prompt(prompt_desc="What did you say", is_deletable=False))
+        self.addPrompt(Prompt(prompt_desc="I dont know", is_deletable=False))
+        self.addPrompt(Prompt(prompt_desc="What are you talking about", is_deletable=False))
+        self.addPrompt(Prompt(prompt_desc="What", is_deletable=False))
+        self.addPrompt(Prompt(prompt_desc="Yes", is_deletable=False))
+        self.addPrompt(Prompt(prompt_desc="No", is_deletable=False))
+
 
     def deletePrompt(self, desc) -> None:
         prompt = None

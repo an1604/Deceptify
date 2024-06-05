@@ -17,10 +17,11 @@ import requests
 from tkinter import messagebox
 from dotenv import load_dotenv
 
-load_dotenv()
 
-SERVER_URL = os.getenv('SERVER_URL')
-print(f"Server URL: {SERVER_URL}")
+#load_dotenv()
+
+#SERVER_URL = os.getenv('SERVER_URL')
+#print(f"Server URL: {SERVER_URL}")
 
 
 #def create_user(username, password):
@@ -41,31 +42,31 @@ print(f"Server URL: {SERVER_URL}")
 #        return False
 
 
-def generate_voice(prompt, description):
-    try:
-        # Send request to generate voice and get job ID
-        url = f"{SERVER_URL}/generate_voice"
-        data = {"prompt": prompt, "description": description}
-        response = requests.post(url, json=data)
-        response.raise_for_status()
-        job_id = response.json().get("job_id")
-
-        # Polling the job status
-        while True:
-            status_url = f"{SERVER_URL}/result/{job_id}"
-            status_response = requests.get(status_url)
-            if status_response.status_code == 200:
-                with open("AudioFiles/" + prompt + ".wav", "wb") as f:
-                    f.write(status_response.content)
-                return True
-            elif status_response.status_code == 202:
-                time.sleep(1)  # Wait a second before polling again
-            else:
-                print("Error", "Failed to retrieve the generated voice.")
-                return False
-    except requests.exceptions.RequestException as e:
-        print(None, "Error", f"Failed to generate voice: {str(e)}")
-        return False
+#def generate_voice(prompt, description):
+#    try:
+#        # Send request to generate voice and get job ID
+#        url = f"{SERVER_URL}/generate_voice"
+#        data = {"prompt": prompt, "description": description}
+#        response = requests.post(url, json=data)
+#        response.raise_for_status()
+#        job_id = response.json().get("job_id")
+#
+#        # Polling the job status
+#        while True:
+#            status_url = f"{SERVER_URL}/result/{job_id}"
+#            status_response = requests.get(status_url)
+#            if status_response.status_code == 200:
+#                with open("AudioFiles/" + prompt + ".wav", "wb") as f:
+#                    f.write(status_response.content)
+#                return True
+#            elif status_response.status_code == 202:
+#                time.sleep(1)  # Wait a second before polling again
+#            else:
+#                print("Error", "Failed to retrieve the generated voice.")
+#                return False
+#    except requests.exceptions.RequestException as e:
+#        print(None, "Error", f"Failed to generate voice: {str(e)}")
+#        return False
 
 
 def error_routes(app):  # Error handlers routes
@@ -110,7 +111,6 @@ def general_routes(app, data_storage):  # This function stores all the general r
         print("HELLO")
         # tmp = [(profile.getName(), profile.getName()) for profile in data_storage.get_profiles()]
         tmp = data_storage.getAllProfileNames()
-        print(f"tmp: {tmp}")
         form.profile_list.choices = tmp
         if form.validate_on_submit():
             return flask_redirect(url_for("profile", profileo=form.profile_list.data))
@@ -119,7 +119,6 @@ def general_routes(app, data_storage):  # This function stores all the general r
     @app.route("/profile", methods=["GET", "POST"])
     def profile():
         profile = data_storage.get_profile(request.args.get("profileo"))
-        print(f"profile1111eeee2: {profile}")
         return render_template("profile.html", profileo=profile)
 
     @app.route("/contact", methods=["GET", "POST"])
@@ -171,19 +170,30 @@ def attack_generation_routes(app, data_storage):
             )
             data_storage.add_attack(attack)
             flash("Campaign created successfully using")
-            return flask_redirect(url_for('attack_dashboard_transition'))
+            return flask_redirect(url_for('attack_dashboard_transition', profile=form.mimic_profile.data))
         return render_template('attack_pages/newattack.html', form=form)
 
     @app.route('/attack_dashboard_transition', methods=['GET'])
     def attack_dashboard_transition():
-        return render_template('attack_pages/attack_dashboard_transition.html')
+        profile_name = request.args.get("profile")
+        return render_template('attack_pages/attack_dashboard_transition.html', profile=profile_name)
 
     @app.route('/attack_dashboard', methods=['GET', 'POST'])
     def attack_dashboard():
+        profile_name = request.args.get("profile")
+        profile = data_storage.get_profile(profile_name)
         form = AttackDashboardForm()
         form.prompt_field.choices = [(prompt.prompt_desc, prompt.prompt_desc)
-                                     for prompt in data_storage.get_prompts()]
+                                     for prompt in profile.getPrompts()]
+        if form.validate_on_submit():
+            Util.play_audio_through_vbcable(app.config['UPLOAD_FOLDER'] + "\\" + form.prompt_field.data + ".wav")
+            return flask_redirect(url_for('attack_dashboard', profile=profile_name))
         return render_template('attack_pages/attack_dashboard.html', form=form)
+
+    @app.route('/send_prompt', methods=['GET'])
+    def send_prompt():
+        prompt_path = request.args.get("prompt_path")
+        return Util.play_audio_through_vbcable(prompt_path)
 
     @app.route("/information_gathering", methods=["GET", "POST"])
     def information_gathering():
@@ -283,11 +293,11 @@ def attack_generation_routes(app, data_storage):
                                                   for prompt in prof.getPrompts()]
         if Addform.submit_add.data and Addform.validate_on_submit():
             desc = Addform.prompt_add_field.data
-            new_prompt = Prompt(prompt_desc=desc,filename=desc + ".wav")  # add sound when clicking button
-            if not generate_voice(desc, "sad voice"):
-                prs = prof.getPrompts()
-                return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform,
-                                       prompts=prs)
+            new_prompt = Prompt(prompt_desc=desc, filename=desc + ".wav")  # add sound when clicking button
+            #if not generate_voice(desc, "sad voice"):
+            #    prs = prof.getPrompts()
+            #    return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform,
+            #                           prompts=prs)
             prof.addPrompt(new_prompt)
             return flask_redirect(url_for('view_prompts', profile=prof.profile_name))
         if Deleteform.submit_delete.data and Deleteform.validate_on_submit():

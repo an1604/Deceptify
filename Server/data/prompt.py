@@ -15,7 +15,7 @@ class Prompt:
         self.prompt_desc = prompt_desc
         #self.prompt_profile = prompt_profile
         #self.audio_path = os.path.join(app.config['UPLOAD_FOLDER'], "Test.mp3")
-        self.filename = filename
+        self.filename = prompt_desc + ".wav"
         self.is_deletable = is_deletable
 
     def __repr__(self):
