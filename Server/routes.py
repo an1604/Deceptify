@@ -88,6 +88,19 @@ def general_routes(app, data_storage):  # This function stores all the general r
     def index():
         return render_template("index.html")
 
+    @app.route('/save_exit')
+    def save_exit():
+        # Save the data
+        data_storage.save_data()
+
+        # Shut down the server
+        # func = request.environ.get('werkzeug.server.shutdown')
+        # if func is None:
+        #     raise RuntimeError('Not running with the Werkzeug Server')
+        # func()
+
+        return 'Server shutting down...'
+
     @app.route("/new_profile", methods=["GET", "POST"])
     def new_profile():
         form = ProfileForm()

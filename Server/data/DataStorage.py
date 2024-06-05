@@ -1,14 +1,11 @@
-"""
-Acting like a session database,
-Stores all the current information of the client, new attacks, profiles, recordings, etc.
-After the session ends, this object will push all the information to the remote server to
-save that in the database.
-"""
 import base64
 import json
 import os
+import pickle
+from typing import Set, List, Optional, Type
+
 from Server.data.Profile import Profile
-from typing import Set, List
+
 
 class DataStorage:
     """
@@ -20,45 +17,19 @@ class DataStorage:
     def __init__(self):
         self.__dict__ = self._shared_state
         if not self._shared_state:
-            self.profiles = set()
-            self.prompts = set()
-            self.attacks = set()
+            self.profiles: Set[Profile] = set()
+            self.attacks: Set = set()
 
-    def add_prompt(self, prompt):
-        """
-        Add a prompt to the data storage.
-
-        Args:
-            prompt: The prompt to be added.
-        """
-        self.prompts.add(prompt)
-
-    def get_prompts(self):
-        """
-        Get all the prompts stored in the data storage.
-
-        Returns:
-            A set of prompts.
-        """
-        return self.prompts
-
-    def delete_prompt(self, desc):
-        prompt = None
-        for prt in self.prompts:
-            if prt.prompt_desc == desc:
-                prompt = prt
-        self.prompts.remove(prompt)
-
-    def add_profile(self, profile):
+    def add_profile(self, profile: Profile) -> None:
         """
         Add a profile to the data storage.
 
         Args:
-            profile: The profile to be added.
+            profile (Profile): The profile to be added.
         """
         self.profiles.add(profile)
 
-    def add_attack(self, new_attack):
+    def add_attack(self, new_attack) -> None:
         """
         Add an attack to the data storage.
         This also adds the attack to the target and victim profiles.
@@ -66,23 +37,22 @@ class DataStorage:
         Args:
             new_attack: The attack to be added.
         """
-
         target = new_attack.get_target()
         victim = new_attack.get_mimic_profile()
         target.addAttack(new_attack)
         victim.addAttack(new_attack)
         self.attacks.add(new_attack)
 
-    def get_attacks(self):
+    def get_attacks(self) -> Set:
         """
         Get all the attacks stored in the data storage.
 
         Returns:
-            A set of attacks.
+            Set: A set of attacks.
         """
         return self.attacks
 
-    def delete_attack(self, attackID):
+    def delete_attack(self, attackID) -> None:
         """
         Delete an attack from the data storage.
 
@@ -98,12 +68,11 @@ class DataStorage:
             self.attacks.remove(attack_to_remove)
 
     def get_AllProfiles(self) -> Set[Profile]:
-        print(self.profiles)
         """
         Get all the profiles stored in the data storage.
 
         Returns:
-            A set of profiles.
+            Set[Profile]: A set of profiles.
         """
         return self.profiles
 
@@ -112,53 +81,70 @@ class DataStorage:
         Get the profiles stored in the data storage according to role.
 
         Args:
-            attacker: A boolean indicating whether to get attacker profiles or victim profiles.
+            attacker (bool): A boolean indicating whether to get attacker profiles or victim profiles.
 
         Returns:
-            A set of profiles.
+            Set[Profile]: A set of profiles.
         """
         if attacker:
-            return [profile for profile in self.profiles if profile.role == "Attacker"]
+            return {profile for profile in self.profiles if profile.role == "Attacker"}
         else:
-            return [profile for profile in self.profiles if profile.role == "Victim"]
+            return {profile for profile in self.profiles if profile.role == "Victim"}
 
     def getAllProfileNames(self) -> List[str]:
         """
         Get the names of all the profiles stored in the data storage.
 
         Returns:
-            A list of profile names or if empty a message.
+            List[str]: A list of profile names or a message if empty.
         """
-        if len(self.profiles) == 0:
+        if not self.profiles:
             return ["No profiles available, time to create some!"]
         else:
             return [profile.getName() for profile in self.profiles]
 
-    def get_profile(self, profile_name) -> Profile | None:
+    def get_profile(self, profile_name: str) -> Optional[Profile]:
         """
         Get a profile from the data storage by its name.
 
         Args:
-            profile_name: The name of the profile.
+            profile_name (str): The name of the profile.
 
         Returns:
-            The profile object if found, None otherwise.
+            Optional[Profile]: The profile object if found, None otherwise.
         """
         for profile in self.profiles:
             if profile.getName() == profile_name:
                 return profile
         return None
 
-    def prepare_data_to_remote_server(self):
+    def prepare_data_to_remote_server(self) -> str:
         """
         Prepare the data before sending it to the remote server.
 
         Returns:
-            A JSON string containing the profiles and prompts data.
+            str: A JSON string containing the profile data.
         """
         profiles = [profile.to_json() for profile in self.profiles]
-        prompts = [prompt.to_json() for prompt in self.prompts]
-        return json.dumps({
-            'profiles': profiles,
-            'prompts': prompts
-        })
+        return json.dumps({'profiles': profiles})
+
+    def save_data(self) -> None:
+        """
+        Save the data object to a file.
+        """
+        with open('data.pkl', 'wb') as file:
+            pickle.dump(self, file)
+
+    @classmethod
+    def load_data(cls: Type['DataStorage']) -> 'DataStorage':
+        """
+        Load the data object from a file and return an instance.
+
+        Returns:
+            DataStorage: An instance of the DataStorage class.
+        """
+        if os.path.exists('data.pkl'):
+            with open('data.pkl', 'rb') as file:
+                loaded_data = pickle.load(file)
+                cls._shared_state.update(loaded_data.__dict__)
+        return cls()
