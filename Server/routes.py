@@ -14,7 +14,7 @@ from Server.data.prompt import Prompt
 from Server.data.Attacks import AttackFactory
 from Server.data.Profile import Profile
 from threading import Thread, Event
-
+from SpeechToText import SpeechToText
 import requests
 from tkinter import messagebox
 from dotenv import load_dotenv
@@ -89,6 +89,19 @@ def general_routes(app, data_storage):  # This function stores all the general r
     def index():
         return render_template("index.html")
 
+    @app.route('/save_exit')
+    def save_exit():
+        # Save the data
+        data_storage.save_data()
+
+        # Shut down the server
+        # func = request.environ.get('werkzeug.server.shutdown')
+        # if func is None:
+        #     raise RuntimeError('Not running with the Werkzeug Server')
+        # func()
+
+        return 'Server shutting down...'
+
     @app.route("/new_profile", methods=["GET", "POST"])
     def new_profile():
         form = ProfileForm()
@@ -96,17 +109,17 @@ def general_routes(app, data_storage):  # This function stores all the general r
             # omer 11/5/24 fixed typo of name_filed to name_field
             name = form.name_field.data
             # omer 11/5/24 changed type_ to role
-            role = form.role_field.data
-            data_type = form.data_type_selection.data
+            # role = form.role_field.data
+            # data_type = form.data_type_selection.data
             gen_info = form.gen_info_field.data
             data = form.recording_upload.data
             fc = data.read()
             data.seek(0)
-            profile = Profile(name, role, data_type, gen_info, data)
             filename = data.filename
             file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             data.save(file_path, len(fc))
             #Util.createvoice_profile("oded", name, ")
+            profile = Profile(name, gen_info, data)
             #if not create_user(name, name):
             #    flash("Profile creation failed")
             #    return render_template("attack_pages/new_profile.html", form=form)
@@ -204,6 +217,9 @@ def attack_generation_routes(app, data_storage):
         if not started:
             thread_call = Thread(target=Util.ExecuteCall, args=(contact_name, CloseCallEvent))
             thread_call.start()
+            # Create a new thread for the speech to text
+            # s2t = SpeechToText((Util.dateTimeName('_'.join([profile_name, contact_name, "voice_call"]))))
+            # s2t.start()
             session["started_call"] = True
             time.sleep(5)
         if form.validate_on_submit():
@@ -218,18 +234,19 @@ def attack_generation_routes(app, data_storage):
 
     @app.route("/information_gathering", methods=["GET", "POST"])
     def information_gathering():
-        form = InformationGatheringForm()
-        if form.validate_on_submit():
-            choice = form.selection.data.lower()
-            if "datasets" in choice:
-                return flask_redirect(url_for("collect_dataset"))
-            elif "recordings" in choice:
-                return flask_redirect(url_for("new_voice_attack"))
-            elif "video" in choice:
-                return flask_redirect(url_for("collect_video"))
-        return render_template(
-            "data_collection_pages/information_gathering.html", form=form
-        )
+        return flask_redirect(url_for("newattack"))
+        # form = InformationGatheringForm()
+        # if form.validate_on_submit():
+        #     choice = form.selection.data.lower()
+        #     if "datasets" in choice:
+        #         return flask_redirect(url_for("collect_dataset"))
+        #     elif "recordings" in choice:
+        #         return flask_redirect(url_for("new_voice_attack"))
+        #     elif "video" in choice:
+        #         return flask_redirect(url_for("collect_video"))
+        # return render_template(
+        #     "data_collection_pages/information_gathering.html", form=form
+        # )
 
     @app.route("/collect_video", methods=["GET", "POST"])
     def collect_video():

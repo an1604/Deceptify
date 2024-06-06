@@ -175,3 +175,19 @@ def ExecuteCall(contact_name, event):
     end_call()
 
 
+def dateTimeName(filename: str) -> str:
+    """
+    This function generates a string that represents the current date and time,
+    formatted according to a specific string format, and then appends a filename to it.
+
+    Parameters:
+    filename (str): The name of the file to be appended to the date and time string.
+
+    Returns:
+    str: A string representing the current date and time, followed by the filename.
+    The date and time are formatted as "day month year _ hour _ minute _ second _",
+    and all spaces are removed. For example, if the current date and time is
+    1st July 2021, 14:30:05, and the filename is "file.mp3", the output would be
+    "010721_143005_file.mp3".
+    """
+    return time.strftime("%d %m %y _ %H _ %M _ %S _", time.localtime()).replace(" ", "") + filename

@@ -1,7 +1,6 @@
 import time
 import uuid
 import queue
-
 import requests
 from flask import Flask, render_template, url_for, flash, request
 from flask_bootstrap import Bootstrap
@@ -9,6 +8,7 @@ import os
 from dotenv import load_dotenv
 from routes import execute_routes
 from data.DataStorage import DataStorage
+from flask import redirect
 
 load_dotenv()
 
@@ -48,6 +48,7 @@ def create_audio_file():
     return audio_dir_path
 
 
+
 def create_app():
     app = Flask(
         __name__
@@ -60,7 +61,7 @@ def create_app():
     app.config["UPLOAD_FOLDER"] = audio_file_path
     bootstrap = Bootstrap(app)
 
-    data_storage = DataStorage()
+    data_storage = DataStorage().load_data()
     execute_routes(app, data_storage)  # Executing the routes
 
     # TODO: UNCOMMENT THIS ROWS!
@@ -72,3 +73,7 @@ def create_app():
 
     app.run(debug=True, use_reloader=False)  # Running the application.
     return app
+
+
+if __name__ == "__main__":
+    create_app()

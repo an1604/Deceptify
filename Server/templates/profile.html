@@ -8,13 +8,14 @@
 
 {% block page_content %}
     <div>
-        <p>Role: {{ profileo.getRole() }}</p>
+        <h1>Profile name: {{profileo.getName()}}</h1>
         <p>General info: {{profileo.getGeneralInfo()}}</p>
         
-    
+        <p>Linked attacks: </p>
         {% for attack in profileo.get_attacks() %}
+
             <div style="display: flex;">
-                <p>Attacks: {{ attack.getName() }}</p>
+                <p>Campaign name: {{ attack.getName() }} Role: {{attack.get_role(profileo) }} </p>
                 <button type="button" class="Transcript" onclick="alert('Transcript!')">Transcript</button>
                 <button type="button" class="getRecording" onclick="alert('Recording!')">Recording</button>
                 <br>
