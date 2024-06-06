@@ -92,7 +92,7 @@ def general_routes(app, data_storage):  # This function stores all the general r
     @app.route('/save_exit')
     def save_exit():
         # Save the data
-        data_storage.save_data()
+        # data_storage.save_data()
 
         # Shut down the server
         # func = request.environ.get('werkzeug.server.shutdown')
@@ -100,7 +100,7 @@ def general_routes(app, data_storage):  # This function stores all the general r
         #     raise RuntimeError('Not running with the Werkzeug Server')
         # func()
 
-        return 'Server shutting down...'
+        return render_template("index.html")
 
     @app.route("/new_profile", methods=["GET", "POST"])
     def new_profile():
@@ -110,17 +110,15 @@ def general_routes(app, data_storage):  # This function stores all the general r
             name = form.name_field.data
             gen_info = form.gen_info_field.data
             data = form.recording_upload.data
+
             # Save the voice sample
             file_path = os.path.join(app.config["UPLOAD_FOLDER"], data.filename)
             data.save(file_path)
+
             # Pass the profile info and voice sample to server
             # Util.createvoice_profile(username="oded", profile_name=name, file_path=file_path)
-            profile = Profile(name, gen_info, data)
-            #if not create_user(name, name):
-            #    flash("Profile creation failed")
-            #    return render_template("attack_pages/new_profile.html", form=form)
-            data_storage.add_profile(profile)
-            # profile.addAttack(AttackFactory.create_attack("Voice", "campaign_name", "mimic_profile", "target_profile", "campaign_description", "campaign_unique_id"))
+
+            data_storage.add_profile(Profile(name, gen_info, str(file_path)))
             flash("Profile created successfully")
             return flask_redirect(url_for("index"))
         return render_template("attack_pages/new_profile.html", form=form)
