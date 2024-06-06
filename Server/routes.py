@@ -13,7 +13,7 @@ from Server.data.prompt import Prompt
 from Server.data.Attacks import AttackFactory
 from Server.data.Profile import Profile
 from threading import Thread, Event
-
+from SpeechToText import SpeechToText
 import requests
 from tkinter import messagebox
 from dotenv import load_dotenv
@@ -210,6 +210,9 @@ def attack_generation_routes(app, data_storage):
         if not started:
             thread_call = Thread(target=Util.ExecuteCall, args=(contact_name, CloseCallEvent))
             thread_call.start()
+            # Create a new thread for the speech to text
+            # s2t = SpeechToText((Util.dateTimeName('_'.join([profile_name, contact_name, "voice_call"]))))
+            # s2t.start()
             session["started_call"] = True
         if form.validate_on_submit():
             Util.play_audio_through_vbcable(app.config['UPLOAD_FOLDER'] + "\\" + form.prompt_field.data + ".wav")
