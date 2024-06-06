@@ -106,19 +106,15 @@ def general_routes(app, data_storage):  # This function stores all the general r
     def new_profile():
         form = ProfileForm()
         if form.validate_on_submit():
-            # omer 11/5/24 fixed typo of name_filed to name_field
+            # Get the data from the form
             name = form.name_field.data
-            # omer 11/5/24 changed type_ to role
-            # role = form.role_field.data
-            # data_type = form.data_type_selection.data
             gen_info = form.gen_info_field.data
             data = form.recording_upload.data
-            fc = data.read()
-            data.seek(0)
-            filename = data.filename
-            file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            data.save(file_path, len(fc))
-            #Util.createvoice_profile("oded", name, ")
+            # Save the voice sample
+            file_path = os.path.join(app.config["UPLOAD_FOLDER"], data.filename)
+            data.save(file_path)
+            # Pass the profile info and voice sample to server
+            Util.createvoice_profile(username="oded", profile_name=name, file_path=file_path)
             profile = Profile(name, gen_info, data)
             #if not create_user(name, name):
             #    flash("Profile creation failed")
