@@ -114,7 +114,7 @@ def general_routes(app, data_storage):  # This function stores all the general r
             file_path = os.path.join(app.config["UPLOAD_FOLDER"], data.filename)
             data.save(file_path)
             # Pass the profile info and voice sample to server
-            Util.createvoice_profile(username="oded", profile_name=name, file_path=file_path)
+            # Util.createvoice_profile(username="oded", profile_name=name, file_path=file_path)
             profile = Profile(name, gen_info, data)
             #if not create_user(name, name):
             #    flash("Profile creation failed")
