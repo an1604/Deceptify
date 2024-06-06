@@ -7,20 +7,16 @@ from Server.data.prompt import Prompt
 
 
 class Profile:
-    def __init__(self, profile_name: str, role: str, data_type: str, general_info: str, data) -> None:
+    def __init__(self, profile_name: str, general_info: str, data) -> None:
         """
         Initialize a Profile object.
 
         Args:
             profile_name (str): Name of the profile.
-            role (str): Role of the profile.
-            data_type (str): Dataset, record, video, or image.
             general_info (str): Some description about the profile.
             data: The actual data of the profile for training.
         """
         self.profile_name: str = profile_name
-        self.role: str = role
-        self.data_type: str = data_type
         self.general_info: str = general_info
         self.victimAttacks: Set = set()
         self.AttackerAttacks: Set = set()
@@ -36,16 +32,8 @@ class Profile:
             str: The name of the profile.
         """
         return self.profile_name
-
-    def getRole(self) -> str:
-        """
-        Get the role of the profile.
-
-        Returns:
-            str: The role of the profile.
-        """
-        return self.role
-
+    def get_data(self):
+        return self.data
     def getGeneralInfo(self) -> str:
         """
         Get the general information of the profile.
@@ -134,7 +122,7 @@ class Profile:
         Returns:
             str: The string representation of the profile.
         """
-        return f"Profile: {self.profile_name}, {self.role}, {self.data_type}, {self.general_info}, {self.data}, {self.get_attacks()}"
+        return f"Profile: {self.profile_name}, {self.general_info}, {self.data}, {self.get_attacks()}"
 
     def get_attacks(self) -> Set:
         """
@@ -154,8 +142,6 @@ class Profile:
         """
         return {
             "profile_name": self.profile_name,
-            "role": self.role,
-            "data_type": self.data_type,
             "general_info": self.general_info,
             "data": self.data,
         }
@@ -198,6 +184,4 @@ class Profile:
             json_profile["profile_name"],
             json_profile["role"],
             json_profile["data_type"],
-            json_profile["general_info"],
-            base64.b64decode(json_profile["data"])
         )

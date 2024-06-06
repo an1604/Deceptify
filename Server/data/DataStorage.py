@@ -76,20 +76,14 @@ class DataStorage:
         """
         return self.profiles
 
-    def get_profiles(self, attacker: bool = False) -> Set[Profile]:
+    def get_profiles(self) -> Set[Profile]:
         """
-        Get the profiles stored in the data storage according to role.
-
-        Args:
-            attacker (bool): A boolean indicating whether to get attacker profiles or victim profiles.
+        Get the profiles stored in the data storage.
 
         Returns:
             Set[Profile]: A set of profiles.
         """
-        if attacker:
-            return {profile for profile in self.profiles if profile.role == "Attacker"}
-        else:
-            return {profile for profile in self.profiles if profile.role == "Victim"}
+        return self.profiles
 
     def getAllProfileNames(self) -> List[str]:
         """

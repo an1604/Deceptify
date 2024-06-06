@@ -68,20 +68,20 @@ class ViewProfilesForm(FlaskForm):
 
 class ProfileForm(FlaskForm):
     name_field = StringField("Profile Name", validators=[DataRequired()])
-    role_field = SelectField(
-        label="Role",
-        choices=[("Victim", "Victim"), ("Attacker", "Attacker"), ("Other", "Other")],
-        validators=[DataRequired()],
-    )
-    data_type_selection = SelectField(
-        label="Which type of information do you want to upload?",
-        choices=[
-            ("DataSets", "DataSets"),
-            ("Recordings", "Recordings"),
-            ("Video", "Video"),
-        ],
-        validators=[DataRequired()],
-    )
+    # role_field = SelectField(
+    #     label="Role",
+    #     choices=[("Victim", "Victim"), ("Attacker", "Attacker"), ("Other", "Other")],
+    #     validators=[DataRequired()],
+    # )
+    # data_type_selection = SelectField(
+    #     label="Which type of information do you want to upload?",
+    #     choices=[
+    #         ("DataSets", "DataSets"),
+    #         ("Recordings", "Recordings"),
+    #         ("Video", "Video"),
+    #     ],
+    #     validators=[DataRequired()],
+    # )
     gen_info_field = StringField(
         "General Information",
         description="Enter any general information here",

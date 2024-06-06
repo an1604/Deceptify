@@ -3,6 +3,7 @@ import random
 import time
 import speech_recognition as sr
 
+
 class SpeechToText:
     """
     A class used to convert speech to text and save the conversation.

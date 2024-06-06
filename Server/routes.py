@@ -108,15 +108,15 @@ def general_routes(app, data_storage):  # This function stores all the general r
             # omer 11/5/24 fixed typo of name_filed to name_field
             name = form.name_field.data
             # omer 11/5/24 changed type_ to role
-            role = form.role_field.data
-            data_type = form.data_type_selection.data
+            # role = form.role_field.data
+            # data_type = form.data_type_selection.data
             gen_info = form.gen_info_field.data
             data = form.recording_upload.data
-            profile = Profile(name, role, data_type, gen_info, data)
+            pro = Profile(name, gen_info, data)
             #if not create_user(name, name):
             #    flash("Profile creation failed")
             #    return render_template("attack_pages/new_profile.html", form=form)
-            data_storage.add_profile(profile)
+            data_storage.add_profile(pro)
             # profile.addAttack(AttackFactory.create_attack("Voice", "campaign_name", "mimic_profile", "target_profile", "campaign_description", "campaign_unique_id"))
             flash("Profile created successfully")
             return flask_redirect(url_for("index"))
@@ -226,18 +226,19 @@ def attack_generation_routes(app, data_storage):
 
     @app.route("/information_gathering", methods=["GET", "POST"])
     def information_gathering():
-        form = InformationGatheringForm()
-        if form.validate_on_submit():
-            choice = form.selection.data.lower()
-            if "datasets" in choice:
-                return flask_redirect(url_for("collect_dataset"))
-            elif "recordings" in choice:
-                return flask_redirect(url_for("new_voice_attack"))
-            elif "video" in choice:
-                return flask_redirect(url_for("collect_video"))
-        return render_template(
-            "data_collection_pages/information_gathering.html", form=form
-        )
+        return flask_redirect(url_for("newattack"))
+        # form = InformationGatheringForm()
+        # if form.validate_on_submit():
+        #     choice = form.selection.data.lower()
+        #     if "datasets" in choice:
+        #         return flask_redirect(url_for("collect_dataset"))
+        #     elif "recordings" in choice:
+        #         return flask_redirect(url_for("new_voice_attack"))
+        #     elif "video" in choice:
+        #         return flask_redirect(url_for("collect_video"))
+        # return render_template(
+        #     "data_collection_pages/information_gathering.html", form=form
+        # )
 
     @app.route("/collect_video", methods=["GET", "POST"])
     def collect_video():
