@@ -12,6 +12,7 @@ load_dotenv()
 
 SERVER_URL = os.getenv('SERVER_URL')
 
+
 def create_user(username, password):
     try:
         url = f"{SERVER_URL}/data"
@@ -28,6 +29,16 @@ def create_user(username, password):
         return True
     except requests.exceptions.RequestException as e:
         return False
+
+
+def createvoice_profile(username, profile_name, file_path):
+    url = f"{SERVER_URL}/voice_profile"
+    with open(file_path, 'rb') as f:
+        files = {'file': f}
+    data = {'username': username, 'profile_name': profile_name}
+    response = requests.post(url, files={'file': file_path}, data=data)
+    response.raise_for_status()
+    return response.json()
 
 
 def generate_voice(prompt, description):
@@ -162,3 +173,5 @@ def ExecuteCall(contact_name, event):
     start_call()
     event.wait()
     end_call()
+
+

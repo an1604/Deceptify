@@ -1,3 +1,4 @@
+import io
 import os
 import time
 import uuid
@@ -99,7 +100,13 @@ def general_routes(app, data_storage):  # This function stores all the general r
             data_type = form.data_type_selection.data
             gen_info = form.gen_info_field.data
             data = form.recording_upload.data
+            fc = data.read()
+            data.seek(0)
             profile = Profile(name, role, data_type, gen_info, data)
+            filename = data.filename
+            file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            data.save(file_path, len(fc))
+            #Util.createvoice_profile("oded", name, ")
             #if not create_user(name, name):
             #    flash("Profile creation failed")
             #    return render_template("attack_pages/new_profile.html", form=form)
@@ -198,6 +205,7 @@ def attack_generation_routes(app, data_storage):
             thread_call = Thread(target=Util.ExecuteCall, args=(contact_name, CloseCallEvent))
             thread_call.start()
             session["started_call"] = True
+            time.sleep(5)
         if form.validate_on_submit():
             Util.play_audio_through_vbcable(app.config['UPLOAD_FOLDER'] + "\\" + form.prompt_field.data + ".wav")
             return flask_redirect(url_for('attack_dashboard', profile=profile_name, contact=contact_name))
@@ -323,7 +331,7 @@ def attack_generation_routes(app, data_storage):
     @app.route("/end_call", methods=["GET", "POST"])
     def end_call():
         CloseCallEvent.set()
-        session.pop("started_call",None)
+        session.pop("started_call", None)
         return jsonify({})
 
 
