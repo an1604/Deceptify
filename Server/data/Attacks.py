@@ -9,14 +9,14 @@ class AttackFactory:
 
     @staticmethod
     def create_attack(
-        attack_type: str,
-        campaign_name: str,
-        mimic_profile: Profile,
-        target: Profile,
-        description: str,
-        attack_id: int,
-        recordings=None,
-        transcript=None,
+            attack_type: str,
+            campaign_name: str,
+            mimic_profile: Profile,
+            target: Profile,
+            description: str,
+            attack_id: int,
+            recordings=None,
+            transcript=None,
     ):
         """
         Create an attack object based on the specified attack type.
@@ -84,8 +84,10 @@ class Attack:
 
     def get_mimic_profile(self) -> Profile:
         return self.mimic_profile
+
     def getName(self):
         return self.campaign_name
+
     def getID(self):
         return self.id
 
@@ -99,7 +101,7 @@ class Attack:
         Returns:
             str: The role of the profile. Possible values are "Attacker" or "Victim".
         """
-        if Profile == self.mimic_profile:
+        if profile == self.mimic_profile:
             return "Attacker"
         elif profile == self.target:
             return "Victim"
@@ -189,22 +191,26 @@ class VoiceAttack(Attack):
     """
 
     def __init__(
-        self,
-        campaign_name,
-        mimic_profile,
-        target,
-        description,
-        camp_id,
-        recordings,
-        transcript=None,
+            self,
+            campaign_name,
+            mimic_profile,
+            target,
+            description,
+            camp_id,
+            recordings=None,
+            transcript=None,
     ):
         super().__init__(campaign_name, mimic_profile, target, description, camp_id)
         self.recordings = recordings
         self.transcript = transcript
+        self.mimic_profile.addAttack(self)
+        self.target.addAttack(self)
+        # print(f'VoiceAttack: {self.campaign_name} {self.mimic_profile} {self.target} {self.description} {self.id} {self.recordings} {self.transcript}')
 
     def to_dict(self):
         super_dict = super().to_dict()
-        super_dict["recordings"] = self.recordings
+        if self.recordings:
+            super_dict["recordings"] = self.recordings
         if self.transcript:
             super_dict["transcript"] = self.transcript
         return super_dict
@@ -276,14 +282,14 @@ class VideoAttack(Attack):
     """
 
     def __init__(
-        self,
-        campaign_name,
-        mimic_profile,
-        target,
-        description,
-        camp_id,
-        video_recordings,
-        transcript=None,
+            self,
+            campaign_name,
+            mimic_profile,
+            target,
+            description,
+            camp_id,
+            video_recordings,
+            transcript=None,
     ):
         super().__init__(campaign_name, mimic_profile, target, description, camp_id)
         self.video_recordings = video_recordings
@@ -291,7 +297,8 @@ class VideoAttack(Attack):
 
     def to_dict(self):
         super_dict = super().to_dict()
-        super_dict["recordings"] = self.video_recordings
+        if self.video_recordings:
+            super_dict["recordings"] = self.video_recordings
         if self.transcript:
             super_dict["transcript"] = self.transcript
         return super_dict

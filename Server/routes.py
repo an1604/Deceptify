@@ -5,7 +5,6 @@ import uuid
 
 from flask import redirect as flask_redirect, jsonify, session
 from werkzeug.utils import secure_filename
-from PyQt5.QtWidgets import QMessageBox
 from Server.Forms.general_forms import *
 from Server.Forms.upload_data_forms import *
 from flask import render_template, url_for, flash, request, send_from_directory
@@ -15,15 +14,13 @@ from Server.data.Attacks import AttackFactory
 from Server.data.Profile import Profile
 from threading import Thread, Event
 from SpeechToText import SpeechToText
-import requests
-from tkinter import messagebox
 from dotenv import load_dotenv
 
 CloseCallEvent = Event()
 StopRecordEvent = Event()
 
 
-#load_dotenv()
+# load_dotenv()
 
 #SERVER_URL = os.getenv('SERVER_URL')
 #print(f"Server URL: {SERVER_URL}")
@@ -92,15 +89,18 @@ def general_routes(app, data_storage):  # This function stores all the general r
     @app.route('/save_exit')
     def save_exit():
         # Save the data
-        # data_storage.save_data()
+        data_storage.save_data()
 
-        # Shut down the server
-        # func = request.environ.get('werkzeug.server.shutdown')
-        # if func is None:
+        # Shutdown the server
+        # TODO: Fix the server shutdown tmp redirect to index for now
+        # shutdown_function = request.environ.get('werkzeug.server.shutdown')
+        # if shutdown_function is None:
         #     raise RuntimeError('Not running with the Werkzeug Server')
-        # func()
+        # shutdown_function()
+        # return 'Server shutting down...'
+        session['message'] = 'Session saved!'
+        return index()
 
-        return render_template("index.html")
 
     @app.route("/new_profile", methods=["GET", "POST"])
     def new_profile():
@@ -171,10 +171,8 @@ def attack_generation_routes(app, data_storage):
         form.target_profile.choices = profNames
         if form.validate_on_submit():
             campaign_name = form.campaign_name.data
-            mimic_profile = form.mimic_profile.data
-            target_profile = form.target_profile.data
-            mimic_profile = data_storage.get_profile(mimic_profile)
-            target_profile = data_storage.get_profile(target_profile)
+            mimic_profile = data_storage.get_profile(form.mimic_profile.data)
+            target_profile = data_storage.get_profile(form.target_profile.data)
             campaign_description = form.campaign_description.data
             attack_type = form.attack_type.data
             campaign_unique_id = int(uuid.uuid4())
@@ -187,6 +185,7 @@ def attack_generation_routes(app, data_storage):
                 campaign_unique_id,
             )
             data_storage.add_attack(attack)
+
             flash("Campaign created successfully using")
             return flask_redirect(url_for('attack_dashboard_transition', profile=form.mimic_profile.data,
                                           contact=form.target_name.data))
