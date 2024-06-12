@@ -7,6 +7,9 @@ import os
 import pyautogui
 import time
 import app
+import json
+import speech_recognition as sr
+
 
 load_dotenv()
 
@@ -213,6 +216,28 @@ CHANNELS = 1
 RATE = 44100  
 CHUNK = 1024  
 
+
+def transcribe_audio_to_json(wav_file_path, json_file_path):
+    # Trying to transcribe the conversation after the record generated (one shot style transcribing)
+    recognizer = sr.Recognizer()
+    with sr.AudioFile(wav_file_path) as audio_file:
+        recognizer.adjust_for_ambient_noise(audio_file)
+        audio_data = recognizer.record(audio_file)
+    
+    try:
+        transcription = recognizer.recognize_google(audio_data)
+        print(f"Transcription: {transcription}")
+        with open(json_file_path, 'w') as json_file:
+            json.dump({"transcription": transcription}, json_file)
+        print(f"Transcription saved to {json_file_path}")
+        
+    except sr.UnknownValueError:
+        print("Google Web Speech API could not understand the audio")
+    except sr.RequestError as e:
+        print(f"Could not request results from Google Web Speech API; {e}")
+
+
+
 def record_call(stopped):
     audio = pyaudio.PyAudio()
     stream = audio.open(format=FORMAT,
@@ -233,8 +258,13 @@ def record_call(stopped):
         RECORDS_DIR = 'attack_records'
         if not os.path.exists(RECORDS_DIR):
             os.makedirs(RECORDS_DIR)
-
-        WAVE_OUTPUT_FILENAME = os.path.join(RECORDS_DIR, f'output-{time.now()}.wav')
+        
+        # Initialize the file names for both transcript and record.
+        filename= f'output-{time.now()}'
+        
+        # Saving both JSON and WAV in the same name, in the same directory.
+        JSON_OUTPUT_FILENAME = os.path.join(RECORDS_DIR, f"{filename}.json")
+        WAVE_OUTPUT_FILENAME = os.path.join(RECORDS_DIR, f'{filename}.wav')
         with open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
             wf.setnchannels(CHANNELS)
             wf.setsampwidth(audio.get_sample_size(FORMAT))
@@ -242,6 +272,7 @@ def record_call(stopped):
             wf.writeframes(b''.join(frames))
 
             print(f"{WAVE_OUTPUT_FILENAME} succssfully saved!")
+            transcribe_audio_to_json(WAVE_OUTPUT_FILENAME,JSON_OUTPUT_FILENAME)
         #TODO: SENT THE RESULT TO THE REMOTE SERVER TO INSPECT THE RESULT!
 
 
