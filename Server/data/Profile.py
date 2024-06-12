@@ -29,8 +29,7 @@ class Profile:
 
         # Generate voice for each default prompt
         for prompt in self.prompts:
-            with open("AudioFiles/" + prompt.filename, "wb") as f:
-                f.write(Util.generate_voice("gur", self.profile_name, prompt.prompt_desc))
+                Util.generate_voice("gur", self.profile_name, prompt.prompt_desc)
 
 
 
