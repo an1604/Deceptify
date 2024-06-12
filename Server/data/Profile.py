@@ -3,6 +3,7 @@ import json
 from flask import session, current_app as app
 from typing import Optional, Set, Union, List
 
+from Server import Util
 from Server.data.prompt import Prompt
 
 
@@ -21,8 +22,16 @@ class Profile:
         self.Attacks: List = list()
         self.prompts: Set[Prompt] = set()
         self.data_path: str = data_path
-        # self.data: str = base64.b64encode(data_path.read()).decode('utf-8')  # Embed the data to make it JSON serializable.
         self.setDefaultPrompts()
+
+        # # Create a voice profile on the server
+        # Util.createvoice_profile("test", profile_name, data_path)
+
+        # # Generate voice for each default prompt
+        # for prompt in self.prompts:
+        #     description = f"Profile: {self.profile_name}, Prompt: {prompt.prompt_desc}"
+        #     Util.generate_voice(prompt.prompt_desc, description)
+
 
     def getName(self) -> str:
         """
