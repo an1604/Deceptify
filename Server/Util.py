@@ -73,6 +73,17 @@ def create_user(username, password):
 
 
 def createvoice_profile(username, profile_name, file_path):
+    """
+    Create a new voice profile for the given user.
+
+    Parameters:
+    username (str): The username of the user.
+    profile_name (str): The name of the new voice profile.
+    file_path (str): The path to the audio file for the new voice profile.
+
+    Returns:
+    bytes: The server's response content.
+    """
     url = f"{SERVER_URL}/voice_profile"
     with open(file_path, 'rb') as f:
         files = {'file': f}
@@ -83,6 +94,17 @@ def createvoice_profile(username, profile_name, file_path):
 
 
 def generate_voice(username, profile_name, prompt):
+    """
+    Generate a voice clip for the given user and voice profile.
+
+    Parameters:
+    username (str): The username of the user.
+    profile_name (str): The name of the voice profile.
+    prompt (str): The text to be spoken in the voice clip.
+
+    Returns:
+    dict: The server's response content as a JSON object.
+    """
     url = f"{SERVER_URL}/generate_voice"
     data = {'username': username, 'profile_name': profile_name, 'prompt': prompt}
     response = requests.post(url, json=data)
@@ -91,6 +113,17 @@ def generate_voice(username, profile_name, prompt):
 
 
 def get_voice_profile(username, profile_name, prompt_filename='profile.wav'):
+    """
+    Get the voice profile for the given user.
+
+    Parameters:
+    username (str): The username of the user.
+    profile_name (str): The name of the voice profile.
+    prompt_filename (str, optional): The filename of the voice profile. Defaults to 'profile.wav'.
+
+    Returns:
+    str: The path to the downloaded voice profile file.
+    """
     url = f"{SERVER_URL}/voice_profile"
     params = {'username': username, 'profile_name': profile_name, 'prompt_filename': prompt_filename}
     response = requests.get(url, params=params)
