@@ -9,6 +9,7 @@ from Server.Forms.general_forms import *
 from Server.Forms.upload_data_forms import *
 from flask import render_template, url_for, flash, request, send_from_directory
 import Util
+from Util import *
 from Server.data.prompt import Prompt
 from Server.data.Attacks import AttackFactory
 from Server.data.Profile import Profile
@@ -226,7 +227,7 @@ def attack_generation_routes(app, data_storage):
         if not started:
             thread_call = Thread(target=Util.ExecuteCall, args=(contact_name, CloseCallEvent))
             thread_call.start()
-            recorder_thread = Thread(target=record_call, args=(lambda: session.get("stopped_call", False),))
+            recorder_thread = Thread(target= record_call, args=(lambda: session.get("stopped_call", False),))
             
             # Create a new thread for the speech to text
             # s2t = SpeechToText((Util.dateTimeName('_'.join([profile_name, contact_name, "voice_call"]))))
