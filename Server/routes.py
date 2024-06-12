@@ -324,7 +324,7 @@ def attack_generation_routes(app, data_storage):
                                                   for prompt in prof.getPrompts()]
         if Addform.submit_add.data and Addform.validate_on_submit():
             desc = Addform.prompt_add_field.data
-            new_prompt = Prompt(prompt_desc=desc, filename=desc + ".wav")  # add sound when clicking button
+            new_prompt = Prompt(prompt_desc=desc)  # add sound when clicking button
             #if not generate_voice(desc, "sad voice"):
             #    prs = prof.getPrompts()
             #    return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform,

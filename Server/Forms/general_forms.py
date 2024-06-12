@@ -106,7 +106,7 @@ class ProfileForm(FlaskForm):
 
 
 def validate_add_prompt(form, field):
-    prompt = field.data_path
+    prompt = field.data
     for prt in form.profile.getPrompts():
         if prompt == prt.prompt_desc:
             raise ValidationError('This prompt already exist')
@@ -123,7 +123,7 @@ class PromptAddForm(FlaskForm):
 
 
 def validate_delete_prompt(form, field):
-    prompt = field.data_path
+    prompt = field.data
     for prt in form.profile.getPrompts():
         if prompt == prt.prompt_desc:
             if not prt.is_deletable:

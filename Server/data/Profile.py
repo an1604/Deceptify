@@ -24,7 +24,7 @@ class Profile:
         self.data_path: str = data_path
         self.setDefaultPrompts()
 
-        # # Create a voice profile on the server
+        # Create a voice profile on the server
         # Util.createvoice_profile("test", profile_name, data_path)
         #
         # # Generate voice for each default prompt
