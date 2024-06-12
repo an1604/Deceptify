@@ -131,6 +131,9 @@ def general_routes(app, data_storage):  # This function stores all the general r
         tmp = data_storage.getAllProfileNames()
         form.profile_list.choices = tmp
         if form.validate_on_submit():
+            if form.profile_list.data == "No profiles available, time to create some!":
+                flash("No profiles available, time to create some!")
+                return flask_redirect(url_for("new_profile"))
             return flask_redirect(url_for("profile", profileo=form.profile_list.data))
         return render_template("profileview.html", form=form)
 
