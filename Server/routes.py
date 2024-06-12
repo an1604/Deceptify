@@ -340,7 +340,7 @@ def attack_generation_routes(app, data_storage):
         if Addform.submit_add.data and Addform.validate_on_submit():
             desc = Addform.prompt_add_field.data
             response = Util.generate_voice("oded", prof.profile_name, desc)
-            get_voice_profile("oded", prof.profile_name,desc, app, response["file"])
+            Util.get_voice_profile("oded", prof.profile_name, desc, response["file"])
             #new_prompt = Prompt(prompt_desc=desc, filename=desc + ".wav")  # add sound when clicking button
             new_prompt = Prompt(prompt_desc=desc)  # add sound when clicking button
             #if not generate_voice(desc, "sad voice"):

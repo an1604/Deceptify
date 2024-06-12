@@ -25,13 +25,12 @@ class Profile:
         self.setDefaultPrompts()
 
         # Create a voice profile on the server
-        Util.createvoice_profile("gur", profile_name, data_path)
+        Util.createvoice_profile("oded", profile_name, data_path)
 
         # Generate voice for each default prompt
         for prompt in self.prompts:
-            Util.generate_voice("gur", self.profile_name, prompt.prompt_desc)
-            with open("AudioFiles/" + prompt.filename, "wb") as f:
-                f.write(Util.get_voice_profile("gur", self.profile_name))
+            response = Util.generate_voice("oded", self.profile_name, prompt.prompt_desc)
+            Util.get_voice_profile("oded",self.profile_name, prompt.prompt_desc,response['file'])
 
 
 
@@ -112,9 +111,9 @@ class Profile:
         Set default prompts for the profile.
         """
         default_prompts = [
-            "Hello", "Hi", "Thank you", "Bye", "Sorry", "Why",
-            "What did you say", "I dont know", "What are you talking about",
-            "What", "Yes", "No"
+            "Hello how are you doing", "Thank you", "See you later", "I am sorry", "Why are you asking",
+            "What did you say", "I do not know", "What are you talking about",
+            "Yes i agree", "No i do not agree", "Yes", "No"
         ]
         for prompt_desc in default_prompts:
             self.addPrompt(Prompt(prompt_desc=prompt_desc, is_deletable=False))
