@@ -25,12 +25,13 @@ class Profile:
         self.setDefaultPrompts()
 
         # Create a voice profile on the server
-        # Util.createvoice_profile("test", profile_name, data_path)
-        #
-        # # Generate voice for each default prompt
-        # for prompt in self.prompts:
-        #     with open("AudioFiles/" + prompt.filename, "wb") as f:
-        #         f.write(Util.generate_voice("test", self.profile_name, prompt.prompt_desc))
+        Util.createvoice_profile("gur", profile_name, data_path)
+
+        # Generate voice for each default prompt
+        for prompt in self.prompts:
+            Util.generate_voice("gur", self.profile_name, prompt.prompt_desc)
+            with open("AudioFiles/" + prompt.filename, "wb") as f:
+                f.write(Util.get_voice_profile("gur", self.profile_name))
 
 
 
