@@ -5,6 +5,8 @@ import uuid
 
 from flask import redirect as flask_redirect, jsonify, session
 from werkzeug.utils import secure_filename
+
+from Server.CallRecorder import CallRecorder
 from Server.Forms.general_forms import *
 from Server.Forms.upload_data_forms import *
 from flask import render_template, url_for, flash, request, send_from_directory
@@ -26,62 +28,7 @@ StopRecordEvent = Event()
 load_dotenv()
 
 SERVER_URL = os.getenv('SERVER_URL')
-#print(f"Server URL: {SERVER_URL}")
 
-
-#def create_user(username, password):
-#    try:
-#        url = f"{SERVER_URL}/data"
-#        data = {"username": username, "password": password}
-#        response = requests.post(url, json=data)
-#        if response.status_code == 409:
-#            return False
-#        response.raise_for_status()
-#        try:
-#            result = response.json()
-#        except requests.exceptions.JSONDecodeError:
-#            print(f"Server response: {response.text}")
-#            return False
-#        return True
-#    except requests.exceptions.RequestException as e:
-#        return False
-
-
-#def generate_voice(prompt, description):
-#    try:
-#        # Send request to generate voice and get job ID
-#        url = f"{SERVER_URL}/generate_voice"
-#        data = {"prompt": prompt, "description": description}
-#        response = requests.post(url, json=data)
-#        response.raise_for_status()
-#        job_id = response.json().get("job_id")
-#
-#        # Polling the job status
-#        while True:
-#            status_url = f"{SERVER_URL}/result/{job_id}"
-#            status_response = requests.get(status_url)
-#            if status_response.status_code == 200:
-#                with open("AudioFiles/" + prompt + ".wav", "wb") as f:
-#                    f.write(status_response.content)
-#                return True
-#            elif status_response.status_code == 202:
-#                time.sleep(1)  # Wait a second before polling again
-#            else:
-#                print("Error", "Failed to retrieve the generated voice.")
-#                return False
-#    except requests.exceptions.RequestException as e:
-#        print(None, "Error", f"Failed to generate voice: {str(e)}")
-#        return False
-
-def get_voice_profile(username, profile_name, prompt, app, prompt_filename):
-    url = f"{SERVER_URL}/voice_profile"
-    params = {'username': username, 'profile_name': profile_name, 'prompt_filename': prompt_filename}
-    response = requests.get(url, params=params)
-    response.raise_for_status()
-    file_path = app.config['UPLOAD_FOLDER'] + '\\' + prompt + '.wav'
-    with open(file_path, 'wb') as f:
-        f.write(response.content)
-    return file_path
 
 
 def error_routes(app):  # Error handlers routes
@@ -228,7 +175,15 @@ def attack_generation_routes(app, data_storage):
             thread_call = Thread(target=Util.ExecuteCall, args=(contact_name, CloseCallEvent))
             thread_call.start()
             recorder_thread = Thread(target= record_call, args=(lambda: session.get("stopped_call", False),))
-            
+
+            # # Omer's call recording NEED TO BE TESTED ON WINDOWS
+            #
+            # recorder = CallRecorder()
+            # recording_thread = Thread(target=recorder.start_recording)
+            # recording_thread.start()
+            # # When you want to stop recording, call:
+            # # recorder.stop_recording()
+
             # Create a new thread for the speech to text
             # s2t = SpeechToText((Util.dateTimeName('_'.join([profile_name, contact_name, "voice_call"]))))
             # s2t.start()
