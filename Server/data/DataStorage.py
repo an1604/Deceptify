@@ -37,11 +37,12 @@ class DataStorage:
         Args:
             new_attack: The attack to be added.
         """
-        target = new_attack.get_target()
-        victim = new_attack.get_mimic_profile()
-        target.addAttack(new_attack)
-        victim.addAttack(new_attack)
+        # target = new_attack.get_target()
+        # victim = new_attack.get_mimic_profile()
+        # target.addAttack(new_attack)
+        # victim.addAttack(new_attack)
         self.attacks.add(new_attack)
+        print(f'dataStorage attacks: {self.attacks}')
 
     def get_attacks(self) -> Set:
         """

@@ -1,28 +1,38 @@
 import base64
 import json
 from flask import session, current_app as app
-from typing import Optional, Set, Union
+from typing import Optional, Set, Union, List
 
+from Server import Util
 from Server.data.prompt import Prompt
 
 
 class Profile:
-    def __init__(self, profile_name: str, general_info: str, data) -> None:
+    def __init__(self, profile_name: str, general_info: str, data_path: str) -> None:
         """
         Initialize a Profile object.
 
         Args:
             profile_name (str): Name of the profile.
             general_info (str): Some description about the profile.
-            data: The actual data of the profile for training.
+            data_path (str): Path to the data file.
         """
         self.profile_name: str = profile_name
         self.general_info: str = general_info
-        self.victimAttacks: Set = set()
-        self.AttackerAttacks: Set = set()
+        self.Attacks: List = list()
         self.prompts: Set[Prompt] = set()
-        self.data: str = base64.b64encode(data.read()).decode('utf-8')  # Embed the data to make it JSON serializable.
+        self.data_path: str = data_path
         self.setDefaultPrompts()
+
+        # Create a voice profile on the server
+        # Util.createvoice_profile("test", profile_name, data_path)
+        #
+        # # Generate voice for each default prompt
+        # for prompt in self.prompts:
+        #     with open("AudioFiles/" + prompt.filename, "wb") as f:
+        #         f.write(Util.generate_voice("test", self.profile_name, prompt.prompt_desc))
+
+
 
     def getName(self) -> str:
         """
@@ -32,8 +42,15 @@ class Profile:
             str: The name of the profile.
         """
         return self.profile_name
+
     def get_data(self):
-        return self.data
+        """
+        Get the path to the profile data.
+
+        :returns: The path to the profile data.
+        """
+        return self.data_path
+
     def getGeneralInfo(self) -> str:
         """
         Get the general information of the profile.
@@ -50,10 +67,11 @@ class Profile:
         Args:
             attack: The attack to be added.
         """
-        if attack.get_role(self) == "Attacker":
-            self.AttackerAttacks.add(attack)
-        else:
-            self.victimAttacks.add(attack)
+        # self.Attacks.add(attack)
+        print("addAttack->Profile")
+        print({**attack.to_dict(), "role": attack.get_role(self)})
+        # self.Attacks.add(attack.to_dict().update({"role": attack.get_role(self)}))
+        self.Attacks.append({**attack.to_dict(), "role": attack.get_role(self)})
 
     def getPrompt(self, prompt_desc: str) -> Optional[Prompt]:
         """
@@ -122,16 +140,17 @@ class Profile:
         Returns:
             str: The string representation of the profile.
         """
-        return f"Profile: {self.profile_name}, {self.general_info}, {self.data}, {self.get_attacks()}"
+        return f"Profile: {self.profile_name}, {self.general_info}, {self.data_path}, {self.get_attacks()}"
 
-    def get_attacks(self) -> Set:
+    def get_attacks(self) -> List:
         """
         Get all attacks associated with the profile.
 
         Returns:
             Set: A set of all attacks.
         """
-        return self.AttackerAttacks.union(self.victimAttacks)
+        # return self.AttackerAttacks.union(self.victimAttacks)
+        return self.Attacks
 
     def to_dict(self) -> dict:
         """
@@ -143,7 +162,7 @@ class Profile:
         return {
             "profile_name": self.profile_name,
             "general_info": self.general_info,
-            "data": self.data,
+            "data": self.data_path,
         }
 
     def to_json(self) -> str:
@@ -182,6 +201,6 @@ class Profile:
         """
         return Profile(
             json_profile["profile_name"],
-            json_profile["role"],
-            json_profile["data_type"],
+            json_profile["general_info"],
+            json_profile["data_path"],
         )

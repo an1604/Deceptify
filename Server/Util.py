@@ -13,6 +13,10 @@ load_dotenv()
 SERVER_URL = os.getenv('SERVER_URL')
 
 
+
+
+
+
 def create_user(username, password):
     try:
         url = f"{SERVER_URL}/data"
@@ -31,12 +35,79 @@ def create_user(username, password):
         return False
 
 
+# def createvoice_profile(username, profile_name, file_path):
+#     url = f"{SERVER_URL}/voice_profile"
+#     with open(file_path, 'rb') as f:
+#         files = {'file': f}
+#     data = {'username': username, 'profile_name': profile_name}
+#     response = requests.post(url, files={'file': file_path}, data=data)
+#     response.raise_for_status()
+#     return response.json()
+
+
+# def generate_voice(prompt, description):
+#     try:
+#         # Send request to generate voice and get job ID
+#         url = f"{SERVER_URL}/generate_voice"
+#         data = {"prompt": prompt, "description": description}
+#         response = requests.post(url, json=data)
+#         response.raise_for_status()
+#         job_id = response.json().get("job_id")
+#
+#         # Polling the job status
+#         while True:
+#             status_url = f"{SERVER_URL}/result/{job_id}"
+#             status_response = requests.get(status_url)
+#             if status_response.status_code == 200:
+#                 with open("AudioFiles/" + prompt + ".wav", "wb") as f:
+#                     f.write(status_response.content)
+#                 return True
+#             elif status_response.status_code == 202:
+#                 time.sleep(1)  # Wait a second before polling again
+#             else:
+#                 print("Error", "Failed to retrieve the generated voice.")
+#                 return False
+#     except requests.exceptions.RequestException as e:
+#         print(None, "Error", f"Failed to generate voice: {str(e)}")
+#         return False
+
+
 def createvoice_profile(username, profile_name, file_path):
+    """
+    Create a new voice profile for the given user.
+
+    Parameters:
+    username (str): The username of the user.
+    profile_name (str): The name of the new voice profile.
+    file_path (str): The path to the audio file for the new voice profile.
+
+    Returns:
+    bytes: The server's response content.
+    """
     url = f"{SERVER_URL}/voice_profile"
     with open(file_path, 'rb') as f:
         files = {'file': f}
-    data = {'username': username, 'profile_name': profile_name}
-    response = requests.post(url, files={'file': file_path}, data=data)
+        data = {'username': username, 'profile_name': profile_name}
+        response = requests.post(url, files=files, data=data)
+        response.raise_for_status()
+        return response.content
+
+
+def generate_voice(username, profile_name, prompt):
+    """
+    Generate a voice clip for the given user and voice profile.
+
+    Parameters:
+    username (str): The username of the user.
+    profile_name (str): The name of the voice profile.
+    prompt (str): The text to be spoken in the voice clip.
+
+    Returns:
+    dict: The server's response content as a JSON object.
+    """
+    url = f"{SERVER_URL}/generate_voice"
+    data = {'username': username, 'profile_name': profile_name, 'prompt': prompt}
+    response = requests.post(url, json=data)
     response.raise_for_status()
     return response.json()
 
@@ -58,32 +129,26 @@ def get_voice_profile(username, profile_name,prompt, prompt_filename='profile.wa
         f.write(response.content)
     return file_path
 
-def generate_voice(prompt, description):
-    try:
-        # Send request to generate voice and get job ID
-        url = f"{SERVER_URL}/generate_voice"
-        data = {"prompt": prompt, "description": description}
-        response = requests.post(url, json=data)
-        response.raise_for_status()
-        job_id = response.json().get("job_id")
+def get_voice_profile(username, profile_name, prompt_filename='profile.wav'):
+    """
+    Get the voice profile for the given user.
 
-        # Polling the job status
-        while True:
-            status_url = f"{SERVER_URL}/result/{job_id}"
-            status_response = requests.get(status_url)
-            if status_response.status_code == 200:
-                with open("AudioFiles/" + prompt + ".wav", "wb") as f:
-                    f.write(status_response.content)
-                return True
-            elif status_response.status_code == 202:
-                time.sleep(1)  # Wait a second before polling again
-            else:
-                print("Error", "Failed to retrieve the generated voice.")
-                return False
-    except requests.exceptions.RequestException as e:
-        print(None, "Error", f"Failed to generate voice: {str(e)}")
-        return False
+    Parameters:
+    username (str): The username of the user.
+    profile_name (str): The name of the voice profile.
+    prompt_filename (str, optional): The filename of the voice profile. Defaults to 'profile.wav'.
 
+    Returns:
+    str: The path to the downloaded voice profile file.
+    """
+    url = f"{SERVER_URL}/voice_profile"
+    params = {'username': username, 'profile_name': profile_name, 'prompt_filename': prompt_filename}
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    file_path = f"{username}{profile_name}{prompt_filename}"
+    with open(file_path, 'wb') as f:
+        f.write(response.content)
+    return file_path
 
 def get_device_index(device_name):
     p = pyaudio.PyAudio()

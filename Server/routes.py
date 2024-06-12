@@ -5,7 +5,6 @@ import uuid
 
 from flask import redirect as flask_redirect, jsonify, session
 from werkzeug.utils import secure_filename
-from PyQt5.QtWidgets import QMessageBox
 from Server.Forms.general_forms import *
 from Server.Forms.upload_data_forms import *
 from flask import render_template, url_for, flash, request, send_from_directory
@@ -104,13 +103,16 @@ def general_routes(app, data_storage):  # This function stores all the general r
         # Save the data
         data_storage.save_data()
 
-        # Shut down the server
-        # func = request.environ.get('werkzeug.server.shutdown')
-        # if func is None:
+        # Shutdown the server
+        # TODO: Fix the server shutdown tmp redirect to index for now
+        # shutdown_function = request.environ.get('werkzeug.server.shutdown')
+        # if shutdown_function is None:
         #     raise RuntimeError('Not running with the Werkzeug Server')
-        # func()
+        # shutdown_function()
+        # return 'Server shutting down...'
+        session['message'] = 'Session saved!'
+        return index()
 
-        return 'Server shutting down...'
 
     @app.route("/new_profile", methods=["GET", "POST"])
     def new_profile():
@@ -120,17 +122,15 @@ def general_routes(app, data_storage):  # This function stores all the general r
             name = form.name_field.data
             gen_info = form.gen_info_field.data
             data = form.recording_upload.data
+
             # Save the voice sample
             file_path = os.path.join(app.config["UPLOAD_FOLDER"], data.filename)
             data.save(file_path)
+
             # Pass the profile info and voice sample to server
-            Util.createvoice_profile(username="oded", profile_name=name, file_path=file_path)
-            profile = Profile(name, gen_info, data)
-            #if not create_user(name, name):
-            #    flash("Profile creation failed")
-            #    return render_template("attack_pages/new_profile.html", form=form)
-            data_storage.add_profile(profile)
-            # profile.addAttack(AttackFactory.create_attack("Voice", "campaign_name", "mimic_profile", "target_profile", "campaign_description", "campaign_unique_id"))
+            # Util.createvoice_profile(username="oded", profile_name=name, file_path=file_path)
+
+            data_storage.add_profile(Profile(name, gen_info, str(file_path)))
             flash("Profile created successfully")
             return flask_redirect(url_for("index"))
         return render_template("attack_pages/new_profile.html", form=form)
@@ -143,6 +143,9 @@ def general_routes(app, data_storage):  # This function stores all the general r
         tmp = data_storage.getAllProfileNames()
         form.profile_list.choices = tmp
         if form.validate_on_submit():
+            if form.profile_list.data == "No profiles available, time to create some!":
+                flash("No profiles available, time to create some!")
+                return flask_redirect(url_for("new_profile"))
             return flask_redirect(url_for("profile", profileo=form.profile_list.data))
         return render_template("profileview.html", form=form)
 
@@ -183,10 +186,8 @@ def attack_generation_routes(app, data_storage):
         form.target_profile.choices = profNames
         if form.validate_on_submit():
             campaign_name = form.campaign_name.data
-            mimic_profile = form.mimic_profile.data
-            target_profile = form.target_profile.data
-            mimic_profile = data_storage.get_profile(mimic_profile)
-            target_profile = data_storage.get_profile(target_profile)
+            mimic_profile = data_storage.get_profile(form.mimic_profile.data)
+            target_profile = data_storage.get_profile(form.target_profile.data)
             campaign_description = form.campaign_description.data
             attack_type = form.attack_type.data
             campaign_unique_id = int(uuid.uuid4())
@@ -199,6 +200,7 @@ def attack_generation_routes(app, data_storage):
                 campaign_unique_id,
             )
             data_storage.add_attack(attack)
+
             flash("Campaign created successfully using")
             return flask_redirect(url_for('attack_dashboard_transition', profile=form.mimic_profile.data,
                                           contact=form.target_name.data))
@@ -339,7 +341,8 @@ def attack_generation_routes(app, data_storage):
             desc = Addform.prompt_add_field.data
             Util.generate_voice("oded",prof.profile_name,desc)
             get_voice_profile("oded",prof.profile_name,desc,app)
-            new_prompt = Prompt(prompt_desc=desc, filename=desc + ".wav")  # add sound when clicking button
+            #new_prompt = Prompt(prompt_desc=desc, filename=desc + ".wav")  # add sound when clicking button
+            new_prompt = Prompt(prompt_desc=desc)  # add sound when clicking button
             #if not generate_voice(desc, "sad voice"):
             #    prs = prof.getPrompts()
             #    return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform,
