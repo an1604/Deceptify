@@ -90,7 +90,7 @@ def createvoice_profile(username, profile_name, file_path):
         data = {'username': username, 'profile_name': profile_name}
         response = requests.post(url, files=files, data=data)
         response.raise_for_status()
-        return response.content
+        return response.json
 
 
 def generate_voice(username, profile_name, prompt):
