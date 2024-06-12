@@ -13,10 +13,6 @@ load_dotenv()
 SERVER_URL = os.getenv('SERVER_URL')
 
 
-
-
-
-
 def create_user(username, password):
     try:
         url = f"{SERVER_URL}/data"
@@ -111,6 +107,7 @@ def generate_voice(username, profile_name, prompt):
     response.raise_for_status()
     return response.json()
 
+
 def generate_voice(username, profile_name, prompt):
     url = f"{SERVER_URL}/generate_voice"
     data = {'username': username, 'profile_name': profile_name, 'prompt': prompt}
@@ -119,7 +116,7 @@ def generate_voice(username, profile_name, prompt):
     return response.json()
 
 
-def get_voice_profile(username, profile_name,prompt, prompt_filename='profile.wav'):
+def get_voice_profile(username, profile_name, prompt, prompt_filename='prompt_2.wav'):
     url = f"{SERVER_URL}/voice_profile"
     params = {'username': username, 'profile_name': profile_name, 'prompt_filename': prompt_filename}
     response = requests.get(url, params=params)
@@ -128,6 +125,7 @@ def get_voice_profile(username, profile_name,prompt, prompt_filename='profile.wa
     with open(file_path, 'wb') as f:
         f.write(response.content)
     return file_path
+
 
 def get_voice_profile(username, profile_name, prompt_filename='profile.wav'):
     """
@@ -149,6 +147,7 @@ def get_voice_profile(username, profile_name, prompt_filename='profile.wav'):
     with open(file_path, 'wb') as f:
         f.write(response.content)
     return file_path
+
 
 def get_device_index(device_name):
     p = pyaudio.PyAudio()

@@ -72,12 +72,12 @@ SERVER_URL = os.getenv('SERVER_URL')
 #        print(None, "Error", f"Failed to generate voice: {str(e)}")
 #        return False
 
-def get_voice_profile(username, profile_name, prompt,app, prompt_filename='profile.wav'):
+def get_voice_profile(username, profile_name, prompt, app, prompt_filename):
     url = f"{SERVER_URL}/voice_profile"
     params = {'username': username, 'profile_name': profile_name, 'prompt_filename': prompt_filename}
     response = requests.get(url, params=params)
     response.raise_for_status()
-    file_path = app.config['UPLOAD_FOLDER'] + '\\' + prompt + ".wav"
+    file_path = app.config['UPLOAD_FOLDER'] + '\\' + prompt + '.wav'
     with open(file_path, 'wb') as f:
         f.write(response.content)
     return file_path
@@ -128,7 +128,7 @@ def general_routes(app, data_storage):  # This function stores all the general r
             data.save(file_path)
 
             # Pass the profile info and voice sample to server
-            # Util.createvoice_profile(username="oded", profile_name=name, file_path=file_path)
+            Util.createvoice_profile(username="oded", profile_name=name, file_path=file_path)
 
             data_storage.add_profile(Profile(name, gen_info, str(file_path)))
             flash("Profile created successfully")
@@ -339,8 +339,8 @@ def attack_generation_routes(app, data_storage):
                                                   for prompt in prof.getPrompts()]
         if Addform.submit_add.data and Addform.validate_on_submit():
             desc = Addform.prompt_add_field.data
-            Util.generate_voice("oded",prof.profile_name,desc)
-            get_voice_profile("oded",prof.profile_name,desc,app)
+            response = Util.generate_voice("oded", prof.profile_name, desc)
+            get_voice_profile("oded", prof.profile_name,desc, app, response["file"])
             #new_prompt = Prompt(prompt_desc=desc, filename=desc + ".wav")  # add sound when clicking button
             new_prompt = Prompt(prompt_desc=desc)  # add sound when clicking button
             #if not generate_voice(desc, "sad voice"):
