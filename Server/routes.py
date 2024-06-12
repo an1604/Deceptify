@@ -23,9 +23,9 @@ CloseCallEvent = Event()
 StopRecordEvent = Event()
 
 
-#load_dotenv()
+load_dotenv()
 
-#SERVER_URL = os.getenv('SERVER_URL')
+SERVER_URL = os.getenv('SERVER_URL')
 #print(f"Server URL: {SERVER_URL}")
 
 
@@ -73,6 +73,16 @@ StopRecordEvent = Event()
 #        print(None, "Error", f"Failed to generate voice: {str(e)}")
 #        return False
 
+def get_voice_profile(username, profile_name, prompt,app, prompt_filename='profile.wav'):
+    url = f"{SERVER_URL}/voice_profile"
+    params = {'username': username, 'profile_name': profile_name, 'prompt_filename': prompt_filename}
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    file_path = app.config['UPLOAD_FOLDER'] + '\\' + prompt + ".wav"
+    with open(file_path, 'wb') as f:
+        f.write(response.content)
+    return file_path
+
 
 def error_routes(app):  # Error handlers routes
     @app.errorhandler(404)
@@ -114,7 +124,7 @@ def general_routes(app, data_storage):  # This function stores all the general r
             file_path = os.path.join(app.config["UPLOAD_FOLDER"], data.filename)
             data.save(file_path)
             # Pass the profile info and voice sample to server
-            # Util.createvoice_profile(username="oded", profile_name=name, file_path=file_path)
+            Util.createvoice_profile(username="oded", profile_name=name, file_path=file_path)
             profile = Profile(name, gen_info, data)
             #if not create_user(name, name):
             #    flash("Profile creation failed")
@@ -327,6 +337,8 @@ def attack_generation_routes(app, data_storage):
                                                   for prompt in prof.getPrompts()]
         if Addform.submit_add.data and Addform.validate_on_submit():
             desc = Addform.prompt_add_field.data
+            Util.generate_voice("oded",prof.profile_name,desc)
+            get_voice_profile("oded",prof.profile_name,desc,app)
             new_prompt = Prompt(prompt_desc=desc, filename=desc + ".wav")  # add sound when clicking button
             #if not generate_voice(desc, "sad voice"):
             #    prs = prof.getPrompts()

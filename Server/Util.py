@@ -40,6 +40,23 @@ def createvoice_profile(username, profile_name, file_path):
     response.raise_for_status()
     return response.json()
 
+def generate_voice(username, profile_name, prompt):
+    url = f"{SERVER_URL}/generate_voice"
+    data = {'username': username, 'profile_name': profile_name, 'prompt': prompt}
+    response = requests.post(url, json=data)
+    response.raise_for_status()
+    return response.json()
+
+
+def get_voice_profile(username, profile_name,prompt, prompt_filename='profile.wav'):
+    url = f"{SERVER_URL}/voice_profile"
+    params = {'username': username, 'profile_name': profile_name, 'prompt_filename': prompt_filename}
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    file_path = app.config['UPLOAD_FOLDER'] + '\\' + prompt + ".wav"
+    with open(file_path, 'wb') as f:
+        f.write(response.content)
+    return file_path
 
 def generate_voice(prompt, description):
     try:
