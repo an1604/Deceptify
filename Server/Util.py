@@ -140,7 +140,7 @@ def play_audio_through_vbcable(audio_file_path, device_name="CABLE Input"):
 def open_whatsapp():
     pyautogui.press('winleft')
     time.sleep(1)
-    pyautogui.write('WhatsApp')
+    pyautogui.write('WHATSAPP')
     time.sleep(2)
     pyautogui.press('enter')
 
@@ -185,8 +185,8 @@ def ExecuteCall(contact_name, event):
     open_whatsapp()
     search_contact(contact_name)
     start_call()
-    event.wait()
-    end_call()
+    #event.wait()
+    #end_call()
 
 
 def dateTimeName(filename: str) -> str:

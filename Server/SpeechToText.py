@@ -51,7 +51,7 @@ class SpeechToText:
         try:
             msg = recognizer.recognize_google(audio)
             print("Speech Recognition Agent thinks you said " + msg)
-            self.conversation['target'][time.time()] = msg
+            self.conversation['user'][time.time()] = msg
         except sr.UnknownValueError:
             print("Google Speech Recognition could not understand audio")
         except sr.RequestError as e:
