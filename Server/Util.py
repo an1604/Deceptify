@@ -205,3 +205,45 @@ def dateTimeName(filename: str) -> str:
     "010721_143005_file.mp3".
     """
     return time.strftime("%d %m %y _ %H _ %M _ %S _", time.localtime()).replace(" ", "") + filename
+
+# Aviv- record the input stream
+# Chceck if it works!
+FORMAT = pyaudio.paInt16  
+CHANNELS = 1  
+RATE = 44100  
+CHUNK = 1024  
+
+def record_call(stopped):
+    audio = pyaudio.PyAudio()
+    stream = audio.open(format=FORMAT,
+                        channels=CHANNELS,
+                        rate=RATE,
+                        input=True,
+                        frames_per_buffer=CHUNK)
+    frames = []
+    try:
+        while not stopped():
+            frames.append(stream.read(CHUNK))
+    finally:
+        stream.stop_stream()
+        stream.close()
+        audio.terminate()
+
+        # Save the record in a unique directory.
+        RECORDS_DIR = 'attack_records'
+        if not os.path.exists(RECORDS_DIR):
+            os.makedirs(RECORDS_DIR)
+
+        WAVE_OUTPUT_FILENAME = os.path.join(RECORDS_DIR, f'output-{time.now()}.wav')
+        with open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
+            wf.setnchannels(CHANNELS)
+            wf.setsampwidth(audio.get_sample_size(FORMAT))
+            wf.setframerate(RATE)
+            wf.writeframes(b''.join(frames))
+
+            print(f"{WAVE_OUTPUT_FILENAME} succssfully saved!")
+        #TODO: SENT THE RESULT TO THE REMOTE SERVER TO INSPECT THE RESULT!
+
+
+
+    

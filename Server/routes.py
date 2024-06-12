@@ -222,14 +222,20 @@ def attack_generation_routes(app, data_storage):
         form.prompt_field.choices = [(prompt.prompt_desc, prompt.prompt_desc)
                                      for prompt in profile.getPrompts()]
         started = session.get("started_call")
+        stopped = session.get("stopped_call")
         if not started:
             thread_call = Thread(target=Util.ExecuteCall, args=(contact_name, CloseCallEvent))
             thread_call.start()
+            recorder_thread = Thread(target=record_call, args=(lambda: session.get("stopped_call", False),))
+            
             # Create a new thread for the speech to text
             # s2t = SpeechToText((Util.dateTimeName('_'.join([profile_name, contact_name, "voice_call"]))))
             # s2t.start()
+            
             session["started_call"] = True
+            session['stopped_call'] = False
             time.sleep(5)
+        
         if form.validate_on_submit():
             Util.play_audio_through_vbcable(app.config['UPLOAD_FOLDER'] + "\\" + form.prompt_field.data + ".wav")
             return flask_redirect(url_for('attack_dashboard', profile=profile_name, contact=contact_name))
@@ -358,6 +364,7 @@ def attack_generation_routes(app, data_storage):
 
     @app.route("/end_call", methods=["GET", "POST"])
     def end_call():
+        session['stopped_call'] = True # Set the flag to true for the record function catch it.
         CloseCallEvent.set()
         session.pop("started_call", None)
         return jsonify({})
