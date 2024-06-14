@@ -174,7 +174,8 @@ def attack_generation_routes(app, data_storage):
         if not started:
             thread_call = Thread(target=Util.ExecuteCall, args=(contact_name, CloseCallEvent))
             thread_call.start()
-            recorder_thread = Thread(target= record_call, args=(lambda: session.get("stopped_call", False),))
+            recorder_thread = Thread(target=Util.record_call, args=stopped)
+            #recorder_thread.start()
 
             # # Omer's call recording NEED TO BE TESTED ON WINDOWS
             #
@@ -193,7 +194,8 @@ def attack_generation_routes(app, data_storage):
             time.sleep(5)
         
         if form.validate_on_submit():
-            Util.play_audio_through_vbcable(app.config['UPLOAD_FOLDER'] + "\\" + form.prompt_field.data + ".wav")
+            Util.play_audio_through_vbcable(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                                            form.prompt_field.data + ".wav")
             return flask_redirect(url_for('attack_dashboard', profile=profile_name, contact=contact_name))
         return render_template('attack_pages/attack_dashboard.html', form=form, contact=contact_name)
 
@@ -304,7 +306,7 @@ def attack_generation_routes(app, data_storage):
             response = Util.generate_voice("oded", prof.profile_name, desc)
             Util.get_voice_profile("oded", prof.profile_name, desc, response["file"])
             #new_prompt = Prompt(prompt_desc=desc, filename=desc + ".wav")  # add sound when clicking button
-            new_prompt = Prompt(prompt_desc=desc)  # add sound when clicking button
+            new_prompt = Prompt(prompt_desc=desc, prompt_profile=prof.profile_name)  # add sound when clicking button
             #if not generate_voice(desc, "sad voice"):
             #    prs = prof.getPrompts()
             #    return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform,

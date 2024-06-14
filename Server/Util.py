@@ -10,7 +10,6 @@ import app
 import json
 import speech_recognition as sr
 
-
 load_dotenv()
 
 SERVER_URL = os.getenv('SERVER_URL')
@@ -79,7 +78,7 @@ def get_voice_profile(username, profile_name, prompt, prompt_filename):
     params = {'username': username, 'profile_name': profile_name, 'prompt_filename': prompt_filename}
     response = requests.get(url, params=params)
     response.raise_for_status()
-    file_path = 'AudioFiles' + '\\' + prompt + ".wav"
+    file_path = 'AudioFiles' + '\\' + profile_name + "-" + prompt + ".wav"
     with open(file_path, 'wb') as f:
         f.write(response.content)
     return file_path
@@ -209,12 +208,13 @@ def dateTimeName(filename: str) -> str:
     """
     return time.strftime("%d %m %y _ %H _ %M _ %S _", time.localtime()).replace(" ", "") + filename
 
+
 # Aviv- record the input stream
 # Chceck if it works!
-FORMAT = pyaudio.paInt16  
-CHANNELS = 1  
-RATE = 44100  
-CHUNK = 1024  
+FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 44100
+CHUNK = 1024
 
 
 def transcribe_audio_to_json(wav_file_path, json_file_path):
@@ -223,19 +223,18 @@ def transcribe_audio_to_json(wav_file_path, json_file_path):
     with sr.AudioFile(wav_file_path) as audio_file:
         recognizer.adjust_for_ambient_noise(audio_file)
         audio_data = recognizer.record(audio_file)
-    
+
     try:
         transcription = recognizer.recognize_google(audio_data)
         print(f"Transcription: {transcription}")
         with open(json_file_path, 'w') as json_file:
             json.dump({"transcription": transcription}, json_file)
         print(f"Transcription saved to {json_file_path}")
-        
+
     except sr.UnknownValueError:
         print("Google Web Speech API could not understand the audio")
     except sr.RequestError as e:
         print(f"Could not request results from Google Web Speech API; {e}")
-
 
 
 def record_call(stopped):
@@ -258,10 +257,10 @@ def record_call(stopped):
         RECORDS_DIR = 'attack_records'
         if not os.path.exists(RECORDS_DIR):
             os.makedirs(RECORDS_DIR)
-        
+
         # Initialize the file names for both transcript and record.
-        filename= f'output-{time.now()}'
-        
+        filename = f'output-{time.now()}'
+
         # Saving both JSON and WAV in the same name, in the same directory.
         JSON_OUTPUT_FILENAME = os.path.join(RECORDS_DIR, f"{filename}.json")
         WAVE_OUTPUT_FILENAME = os.path.join(RECORDS_DIR, f'{filename}.wav')
@@ -272,9 +271,5 @@ def record_call(stopped):
             wf.writeframes(b''.join(frames))
 
             print(f"{WAVE_OUTPUT_FILENAME} succssfully saved!")
-            transcribe_audio_to_json(WAVE_OUTPUT_FILENAME,JSON_OUTPUT_FILENAME)
-        #TODO: SENT THE RESULT TO THE REMOTE SERVER TO INSPECT THE RESULT!
-
-
-
-    
+            transcribe_audio_to_json(WAVE_OUTPUT_FILENAME, JSON_OUTPUT_FILENAME)
+        #ODO: SENT THE RESULT TO THE REMOTE SERVER TO INSPECT THE RESULT!
