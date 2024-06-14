@@ -112,11 +112,11 @@ class Profile:
         """
         default_prompts = [
             "Hello how are you doing", "Thank you", "See you later", "I am sorry", "Why are you asking",
-            "What did you say", "I do not know", "What are you talking about",
+            "What did you say", "I don't know", "What are you talking about",
             "Yes i agree", "No i do not agree", "Yes", "No"
         ]
         for prompt_desc in default_prompts:
-            self.addPrompt(Prompt(prompt_desc=prompt_desc, is_deletable=False))
+            self.addPrompt(Prompt(prompt_desc=prompt_desc,prompt_profile=self.profile_name, is_deletable=False))
 
     def deletePrompt(self, desc: str) -> None:
         """

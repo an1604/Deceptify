@@ -6,9 +6,11 @@ from dotenv import load_dotenv
 import os
 import pyautogui
 import time
+from datetime import datetime
 import app
 import json
 import speech_recognition as sr
+from flask import session
 
 load_dotenv()
 
@@ -99,7 +101,7 @@ def get_device_index(device_name):
 def play_audio_through_vbcable(audio_file_path, device_name="CABLE Input"):
     # Open the audio file
     wf = wave.open(audio_file_path, 'rb')
-    playback_name = "CABLE Input"
+    playback_name = "CABLE Output"
     # Instantiate PyAudio
     p = pyaudio.PyAudio()
     device_index = get_device_index(device_name)
@@ -187,8 +189,8 @@ def ExecuteCall(contact_name, event):
     open_whatsapp()
     search_contact(contact_name)
     start_call()
-    #event.wait()
-    #end_call()
+    # event.wait()
+    # end_call()
 
 
 def dateTimeName(filename: str) -> str:
@@ -212,7 +214,7 @@ def dateTimeName(filename: str) -> str:
 # Aviv- record the input stream
 # Chceck if it works!
 FORMAT = pyaudio.paInt16
-CHANNELS = 1
+CHANNELS = 2
 RATE = 44100
 CHUNK = 1024
 
@@ -237,19 +239,29 @@ def transcribe_audio_to_json(wav_file_path, json_file_path):
         print(f"Could not request results from Google Web Speech API; {e}")
 
 
-def record_call(stopped):
+def record_call(event):
+    print("Recording...")
+    time.sleep(10)
+    # stopped = session['stopped call']
+    # print(stopped + "-1")
+    playback_name = "CABLE Output"
+    device_index = get_device_index(playback_name)
     audio = pyaudio.PyAudio()
     stream = audio.open(format=FORMAT,
                         channels=CHANNELS,
                         rate=RATE,
                         input=True,
-                        frames_per_buffer=CHUNK)
+                        frames_per_buffer=CHUNK,
+                        input_device_index=device_index)
+
     frames = []
     try:
-        while not stopped():
+        while not event.is_set():
             frames.append(stream.read(CHUNK))
+            # stopped = session['stopped call']
     finally:
         stream.stop_stream()
+        print("stopped recording...")
         stream.close()
         audio.terminate()
 
@@ -259,12 +271,13 @@ def record_call(stopped):
             os.makedirs(RECORDS_DIR)
 
         # Initialize the file names for both transcript and record.
-        filename = f'output-{time.now()}'
+        filename = f'output-{datetime.now()}'.replace(':', '_')
 
         # Saving both JSON and WAV in the same name, in the same directory.
         JSON_OUTPUT_FILENAME = os.path.join(RECORDS_DIR, f"{filename}.json")
         WAVE_OUTPUT_FILENAME = os.path.join(RECORDS_DIR, f'{filename}.wav')
-        with open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
+        print(WAVE_OUTPUT_FILENAME)
+        with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
             wf.setnchannels(CHANNELS)
             wf.setsampwidth(audio.get_sample_size(FORMAT))
             wf.setframerate(RATE)
@@ -272,4 +285,4 @@ def record_call(stopped):
 
             print(f"{WAVE_OUTPUT_FILENAME} succssfully saved!")
             transcribe_audio_to_json(WAVE_OUTPUT_FILENAME, JSON_OUTPUT_FILENAME)
-        #ODO: SENT THE RESULT TO THE REMOTE SERVER TO INSPECT THE RESULT!
+        # ODO: SENT THE RESULT TO THE REMOTE SERVER TO INSPECT THE RESULT!

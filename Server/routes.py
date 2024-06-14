@@ -2,6 +2,7 @@ import io
 import os
 import time
 import uuid
+from flask import copy_current_request_context
 
 from flask import redirect as flask_redirect, jsonify, session
 from werkzeug.utils import secure_filename
@@ -24,11 +25,9 @@ from dotenv import load_dotenv
 CloseCallEvent = Event()
 StopRecordEvent = Event()
 
-
 load_dotenv()
 
 SERVER_URL = os.getenv('SERVER_URL')
-
 
 
 def error_routes(app):  # Error handlers routes
@@ -60,7 +59,6 @@ def general_routes(app, data_storage):  # This function stores all the general r
         # return 'Server shutting down...'
         session['message'] = 'Session saved!'
         return index()
-
 
     @app.route("/new_profile", methods=["GET", "POST"])
     def new_profile():
@@ -163,19 +161,20 @@ def attack_generation_routes(app, data_storage):
 
     @app.route('/attack_dashboard', methods=['GET', 'POST'])
     def attack_dashboard():
+
         profile_name = request.args.get("profile")
         contact_name = request.args.get("contact")
         profile = data_storage.get_profile(profile_name)
         form = AttackDashboardForm()
         form.prompt_field.choices = [(prompt.prompt_desc, prompt.prompt_desc)
                                      for prompt in profile.getPrompts()]
+
         started = session.get("started_call")
-        stopped = session.get("stopped_call")
         if not started:
             thread_call = Thread(target=Util.ExecuteCall, args=(contact_name, CloseCallEvent))
             thread_call.start()
-            recorder_thread = Thread(target=Util.record_call, args=stopped)
-            #recorder_thread.start()
+            recorder_thread = Thread(target=Util.record_call, args=(StopRecordEvent,))
+            recorder_thread.start()
 
             # # Omer's call recording NEED TO BE TESTED ON WINDOWS
             #
@@ -188,11 +187,9 @@ def attack_generation_routes(app, data_storage):
             # Create a new thread for the speech to text
             # s2t = SpeechToText((Util.dateTimeName('_'.join([profile_name, contact_name, "voice_call"]))))
             # s2t.start()
-            
+
             session["started_call"] = True
             session['stopped_call'] = False
-            time.sleep(5)
-        
         if form.validate_on_submit():
             Util.play_audio_through_vbcable(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
                                             form.prompt_field.data + ".wav")
@@ -305,9 +302,9 @@ def attack_generation_routes(app, data_storage):
             desc = Addform.prompt_add_field.data
             response = Util.generate_voice("oded", prof.profile_name, desc)
             Util.get_voice_profile("oded", prof.profile_name, desc, response["file"])
-            #new_prompt = Prompt(prompt_desc=desc, filename=desc + ".wav")  # add sound when clicking button
+            # new_prompt = Prompt(prompt_desc=desc, filename=desc + ".wav")  # add sound when clicking button
             new_prompt = Prompt(prompt_desc=desc, prompt_profile=prof.profile_name)  # add sound when clicking button
-            #if not generate_voice(desc, "sad voice"):
+            # if not generate_voice(desc, "sad voice"):
             #    prs = prof.getPrompts()
             #    return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform,
             #                           prompts=prs)
@@ -322,8 +319,9 @@ def attack_generation_routes(app, data_storage):
 
     @app.route("/end_call", methods=["GET", "POST"])
     def end_call():
-        session['stopped_call'] = True # Set the flag to true for the record function catch it.
+        session['stopped_call'] = True  # Set the flag to true for the record function catch it.
         CloseCallEvent.set()
+        StopRecordEvent.set()
         session.pop("started_call", None)
         return jsonify({})
 
