@@ -1,0 +1,14 @@
+{% import "_macros.html" as macros %}
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Deceptify- newattack{%endblock%}
+
+
+{% block page_content %}
+<div class="page-header">
+    <h1>New Attack</h1>
+</div>
+{{ wtf.quick_form(form) }}
+{%endblock%}
+

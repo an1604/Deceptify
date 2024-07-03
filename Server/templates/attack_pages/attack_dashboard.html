@@ -1,0 +1,48 @@
+{% import "_macros.html" as macros %}
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+
+{% block title %}
+<head>
+    <meta charset="UTF-8">
+    <title>Deceptify-AttackDashboard</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+{% endblock%}
+
+
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Pick prompt</h1>
+</div>
+{{ wtf.quick_form(form) }}
+<br>
+<div class="button-container">
+    <button id="end_call" onclick=EndCall() >End call</button>
+</div>
+{%endblock%}
+{% block scripts %}
+<script>
+    const end_call_button = document.getElementById('end_call');
+    function EndCall(){
+        end_call_button.disabled = true;
+        $.ajax({
+            type:'POST',
+            url:'/end_call',
+        }).done(function (data){
+            window.close()
+        })
+    }
+    function StartRec() {
+
+    }
+
+    function EndRec() {
+
+    }
+
+</script>
+{%endblock%}

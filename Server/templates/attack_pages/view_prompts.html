@@ -1,0 +1,44 @@
+{% import "_macros.html" as macros %}
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+{% block page_content %}
+<div class="page-header">
+    <h1>View prompts</h1>
+</div>
+{% if prompts %}
+<h2>Prompts</h2>
+<div>
+    {% for prompt in prompts %}
+    <button type="button" class="playButton" data-filepath="{{ url_for('serve_mp3',filename=prompt.filename) }}">{{prompt.prompt_desc}}</button>
+    <br>
+    <br>
+    {% endfor %}
+</div>
+{% endif %}
+{{ wtf.quick_form(Addform) }}
+<br>
+{% if prompts %}
+{{ wtf.quick_form(Deleteform) }}
+{% endif %}
+<audio id="audioPlayer" controls style="display: none;">
+    <source id="audioSource" src="" type="audio/mpeg">
+    Your browser does not support the audio element.
+</audio>
+{%endblock%}
+
+{% block scripts %}
+<script>
+    document.querySelectorAll('.playButton').forEach(button => {
+        button.addEventListener('click', function() {
+            var audio = document.getElementById('audioPlayer');
+            var source = document.getElementById('audioSource');
+            var filepath = this.getAttribute('data-filepath');
+            source.src = filepath;
+            audio.load(); // Reload the audio element to recognize the new source
+            audio.play();
+        });
+    });
+</script>
+{% endblock %}
