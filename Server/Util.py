@@ -189,8 +189,8 @@ def ExecuteCall(contact_name, event):
     open_whatsapp()
     search_contact(contact_name)
     start_call()
-    # event.wait()
-    # end_call()
+    #event.wait()
+    #end_call()
 
 
 def dateTimeName(filename: str) -> str:
@@ -239,7 +239,7 @@ def transcribe_audio_to_json(wav_file_path, json_file_path):
         print(f"Could not request results from Google Web Speech API; {e}")
 
 
-def record_call(event):
+def record_call(event, fname):
     print("Recording...")
     time.sleep(10)
     # stopped = session['stopped call']
@@ -271,7 +271,7 @@ def record_call(event):
             os.makedirs(RECORDS_DIR)
 
         # Initialize the file names for both transcript and record.
-        filename = f'output-{datetime.now()}'.replace(':', '_')
+        filename = fname
 
         # Saving both JSON and WAV in the same name, in the same directory.
         JSON_OUTPUT_FILENAME = os.path.join(RECORDS_DIR, f"{filename}.json")
