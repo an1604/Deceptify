@@ -173,7 +173,8 @@ def attack_generation_routes(app, data_storage):
         if not started:
             thread_call = Thread(target=Util.ExecuteCall, args=(contact_name, CloseCallEvent))
             thread_call.start()
-            recorder_thread = Thread(target=Util.record_call, args=(StopRecordEvent,))
+            recorder_thread = Thread(target=Util.record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
+                                                                    "-Target-" + contact_name))
             recorder_thread.start()
 
             # # Omer's call recording NEED TO BE TESTED ON WINDOWS
