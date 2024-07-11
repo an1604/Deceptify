@@ -36,13 +36,11 @@
             window.close()
         })
     }
-    function StartRec() {
-
-    }
-
-    function EndRec() {
-
-    }
+    window.addEventListener('unload', function () {
+    // Perform actions when the window is closed
+        if(!end_call_button.disabled)
+            navigator.sendBeacon('/end_call');
+    });
 
 </script>
 {%endblock%}

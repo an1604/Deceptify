@@ -320,6 +320,7 @@ def attack_generation_routes(app, data_storage):
 
     @app.route("/end_call", methods=["GET", "POST"])
     def end_call():
+        print("close_window")
         session['stopped_call'] = True  # Set the flag to true for the record function catch it.
         CloseCallEvent.set()
         StopRecordEvent.set()
