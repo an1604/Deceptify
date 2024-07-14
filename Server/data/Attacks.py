@@ -1,7 +1,8 @@
 import json
-from data.Profile import Profile
+from profile import Profile
 
 
+# TODO: fix when saving to pkl file and getting from pkl file
 class AttackFactory:
     """
     A factory class for creating attack objects based on the specified attack type.
@@ -14,6 +15,7 @@ class AttackFactory:
             mimic_profile: Profile,
             target: Profile,
             description: str,
+            attack_purpose: str,
             attack_id: int,
             recordings=None,
             transcript=None,
@@ -27,7 +29,8 @@ class AttackFactory:
         - mimic_profile (Profile): The profile of the attacker.
         - target (Profile): The profile of the target.
         - description (str): A description of the attack.
-        - camp_id (int): The ID of the campaign.
+        - attack_purpose (str): The purpose of the attack
+        - attack_id (int): The ID of the campaign.
         - recordings (list, optional): A list of recordings for the attack. Defaults to None.
         - transcript (str, optional): The transcript of the attack. Defaults to None.
 
@@ -47,6 +50,7 @@ class AttackFactory:
                 mimic_profile,
                 target,
                 description,
+                attack_purpose,
                 attack_id,
                 recordings,
                 transcript,
@@ -57,6 +61,7 @@ class AttackFactory:
                 mimic_profile,
                 target,
                 description,
+                attack_purpose,
                 attack_id,
                 recordings,
                 transcript,
@@ -72,12 +77,15 @@ class Attack:
     Base class for all attack types.
     """
 
-    def __init__(self, campaign_name, mimic_profile, target, description, camp_id):
+    def __init__(self, campaign_name, mimic_profile, target, description, attack_purpose, camp_id):
         self.campaign_name = campaign_name
         self.mimic_profile = mimic_profile
         self.target = target
         self.description = description
+        self.attack_purpose = attack_purpose
         self.id = camp_id
+        self.recordings = None
+        self.transcript = None
 
     def get_target(self) -> Profile:
         return self.target
@@ -87,6 +95,9 @@ class Attack:
 
     def getName(self):
         return self.campaign_name
+
+    def getPurpose(self):
+        return self.attack_purpose
 
     def getID(self):
         return self.id
@@ -106,6 +117,14 @@ class Attack:
         elif profile == self.target:
             return "Victim"
 
+    def setRec(self):
+        self.recordings = ("Attacker-" + self.mimic_profile.getName() + "-Target-"
+                           + self.target.getGeneralInfo() + ".wav")
+
+    def setTranscript(self):
+        self.transcript = ("Attacker-" + self.mimic_profile.getName() + "-Target-"
+                           + self.target.getGeneralInfo() + ".json")
+
     def to_dict(self):
         """
         Convert the attack object to a dictionary.
@@ -118,6 +137,7 @@ class Attack:
             "mimic_profile": self.mimic_profile,
             "target": self.target,
             "description": self.description,
+            "purpose": self.attack_purpose,
             "id": self.id,
         }
 
@@ -145,8 +165,9 @@ class Attack:
         mimic_profile = data["mimic_profile"]
         target = data["target"]
         description = data["description"]
+        attack_purpose = data["purpose"]
         camp_id = data["id"]
-        return Attack(campaign_name, mimic_profile, target, description, camp_id)
+        return Attack(campaign_name, mimic_profile, target, description, attack_purpose, camp_id)
 
     @staticmethod
     def from_json(json_data):
@@ -168,6 +189,7 @@ class Attack:
                 self.mimic_profile,
                 self.target,
                 self.description,
+                self.attack_purpose,
                 self.id,
             )
         )
@@ -180,8 +202,9 @@ class Attack:
             self.mimic_profile,
             self.target,
             self.description,
+            self.attack_purpose,
             self.id,
-        ) == (other.campaign_name, other.mimic_profile, other.target, other.description)
+        ) == (other.campaign_name, other.mimic_profile, other.target, other.description, other.attack_purpose, other.id)
 
 
 # TODO: CONTINUE THIS VOICEATTACK IMPLEMENTATION.
@@ -196,15 +219,17 @@ class VoiceAttack(Attack):
             mimic_profile,
             target,
             description,
+            attack_purpose,
             camp_id,
             recordings=None,
             transcript=None,
     ):
-        super().__init__(campaign_name, mimic_profile, target, description, camp_id)
+        super().__init__(campaign_name, mimic_profile, target, description, attack_purpose,  camp_id)
         self.recordings = recordings
         self.transcript = transcript
         self.mimic_profile.addAttack(self)
         self.target.addAttack(self)
+        self.attack_purpose = attack_purpose
         # print(f'VoiceAttack: {self.campaign_name} {self.mimic_profile} {self.target} {self.description} {self.id} {self.recordings} {self.transcript}')
 
     def to_dict(self):
@@ -224,6 +249,7 @@ class VoiceAttack(Attack):
         mimic_profile = data["mimic_profile"]
         target = data["target"]
         description = data["description"]
+        attack_purpose = data["purpose"]
         camp_id = data["id"]
         recordings = data["recordings"]
         transcript = data["transcript"]
@@ -232,6 +258,7 @@ class VoiceAttack(Attack):
             mimic_profile,
             target,
             description,
+            attack_purpose,
             camp_id,
             recordings,
             transcript,
@@ -248,6 +275,7 @@ class VoiceAttack(Attack):
                 self.mimic_profile,
                 self.target,
                 self.description,
+                self.attack_purpose,
                 self.id,
                 self.recordings,
                 self.transcript,
@@ -262,6 +290,7 @@ class VoiceAttack(Attack):
             self.mimic_profile,
             self.target,
             self.description,
+            self.attack_purpose,
             self.id,
             self.transcript,
             self.recordings,
@@ -270,6 +299,8 @@ class VoiceAttack(Attack):
             other.mimic_profile,
             other.target,
             other.description,
+            other.attack_purpose,
+            other.id,
             other.transcript,
             other.recordings,
         )
@@ -287,11 +318,12 @@ class VideoAttack(Attack):
             mimic_profile,
             target,
             description,
+            attack_purpose,
             camp_id,
-            video_recordings,
+            video_recordings=None,
             transcript=None,
     ):
-        super().__init__(campaign_name, mimic_profile, target, description, camp_id)
+        super().__init__(campaign_name, mimic_profile, target, description, attack_purpose, camp_id)
         self.video_recordings = video_recordings
         self.transcript = transcript
 
@@ -312,6 +344,7 @@ class VideoAttack(Attack):
         mimic_profile = data["mimic_profile"]
         target = data["target"]
         description = data["description"]
+        attack_purpose = data["purpose"]
         camp_id = data["id"]
         recordings = data["recordings"]
         transcript = data["transcript"]
@@ -320,6 +353,7 @@ class VideoAttack(Attack):
             mimic_profile,
             target,
             description,
+            attack_purpose,
             camp_id,
             recordings,
             transcript,
@@ -336,6 +370,7 @@ class VideoAttack(Attack):
                 self.mimic_profile,
                 self.target,
                 self.description,
+                self.attack_purpose,
                 self.id,
                 self.video_recordings,
                 self.transcript,
@@ -350,6 +385,7 @@ class VideoAttack(Attack):
             self.mimic_profile,
             self.target,
             self.description,
+            self.attack_purpose,
             self.id,
             self.transcript,
             self.video_recordings,
@@ -358,6 +394,8 @@ class VideoAttack(Attack):
             other.mimic_profile,
             other.target,
             other.description,
+            other.attack_purpose,
+            other.id,
             other.transcript,
             other.video_recordings,
         )
