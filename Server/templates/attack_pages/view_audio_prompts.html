@@ -34,8 +34,7 @@
         button.addEventListener('click', function() {
             var audio = document.getElementById('audioPlayer');
             var source = document.getElementById('audioSource');
-            var filepath = this.getAttribute('data-filepath');
-            source.src = filepath;
+            source.src = this.getAttribute('data-filepath');
             audio.load(); // Reload the audio element to recognize the new source
             audio.play();
         });

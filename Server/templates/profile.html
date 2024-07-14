@@ -15,14 +15,18 @@
         {% for attack in profileo.get_attacks() %}
 
             <div style="display: flex;">
-                <p>Campaign name: {{ attack["campaign_name"] }} Role: {{attack["role"] }} </p>
+                <p>Campaign name: {{ attack["campaign_name"] }} Role: {{attack["role"] }} Purpose: {{ attack["purpose"] }} </p>
                 <button type="button" class="Transcript" onclick="alert('Transcript!')">Transcript</button>
                 <button type="button" class="getRecording" onclick="alert('Recording!')">Recording</button>
                 <br>
             </div>
         {% endfor %}
         <ul class="posts">
-            <li><a href="{{url_for('view_prompts',profile=profileo.profile_name)}}">View prompts</a></li>
+            <li><a href="{{url_for('view_audio_prompts',profile=profileo.profile_name)}}">View audio prompts</a></li>
+            {% if profileo.get_video_data() is not none %}
+            <li><a href="{{url_for('view_video_prompts',profile=profileo.profile_name)}}">View video prompts</a></li>
+            {% endif %}
+
         </ul>
     </div>
 {% endblock %}
