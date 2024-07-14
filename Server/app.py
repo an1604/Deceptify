@@ -48,6 +48,14 @@ def create_audio_file():
     return audio_dir_path
 
 
+def create_video_file():
+    project_dir = os.path.dirname(os.path.realpath(__file__))
+    audio_dir = "VideoFiles"
+    video_dir_path = os.path.join(project_dir, audio_dir)
+    if not os.path.exists(video_dir_path):
+        os.makedirs(video_dir_path)
+    return video_dir_path
+
 
 def create_app():
     app = Flask(
@@ -58,7 +66,9 @@ def create_app():
     app.config["SECRET_KEY"] = "hard to guess string"
 
     audio_file_path = create_audio_file()
+    video_file_path = create_video_file()
     app.config["UPLOAD_FOLDER"] = audio_file_path
+    app.config["VIDEO_UPLOAD_FOLDER"] = video_file_path
     bootstrap = Bootstrap(app)
 
     data_storage = DataStorage().load_data()
