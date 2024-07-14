@@ -56,6 +56,11 @@ def createvoice_profile(username, profile_name, file_path):
         return response.json
 
 
+def createvideo_profile(username, profile_name, audio_file_path, video_file_path):
+    return None
+    # TODO: add the video profile creation from the server
+
+
 def generate_voice(username, profile_name, prompt):
     """
     Generate a voice clip for the given user and voice profile.

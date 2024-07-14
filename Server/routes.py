@@ -68,15 +68,23 @@ def general_routes(app, data_storage):  # This function stores all the general r
             name = form.name_field.data
             gen_info = form.gen_info_field.data
             data = form.recording_upload.data
+            video = form.Image_upload.data
+            if video == "":
+                video = None
 
             # Save the voice sample
             file_path = os.path.join(app.config["UPLOAD_FOLDER"], data.filename)
             data.save(file_path)
+            if video is not None:
+                video_path = os.path.join(app.config["VIDEO_UPLOAD_FOLDER"], video.filename)
+                video.save(video_path)
+                data_storage.add_profile(Profile(name, gen_info, str(file_path), video_data_path=str(video_path)))
 
-            # Pass the profile info and voice sample to server
-            Util.createvoice_profile(username="oded", profile_name=name, file_path=file_path)
+            else:
+                # Pass the profile info and voice sample to server
+                Util.createvoice_profile(username="oded", profile_name=name, file_path=file_path)
+                data_storage.add_profile(Profile(name, gen_info, str(file_path)))
 
-            data_storage.add_profile(Profile(name, gen_info, str(file_path)))
             flash("Profile created successfully")
             return flask_redirect(url_for("index"))
         return render_template("attack_pages/new_profile.html", form=form)
@@ -121,6 +129,10 @@ def general_routes(app, data_storage):  # This function stores all the general r
     def serve_mp3(filename):
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+    @app.route('/video/<path:filename>')  # Serve the video files statically
+    def serve_video(filename):
+        return send_from_directory(app.config['VIDEO_UPLOAD_FOLDER'], filename)
+
 
 def attack_generation_routes(app, data_storage):
     @app.route("/newattack", methods=["GET", "POST"])  # The new chat route.
@@ -136,6 +148,7 @@ def attack_generation_routes(app, data_storage):
             target_profile = data_storage.get_profile(form.target_profile.data)
             campaign_description = form.campaign_description.data
             attack_type = form.attack_type.data
+            attack_purpose = form.attack_purpose.data
             campaign_unique_id = int(uuid.uuid4())
             attack = AttackFactory.create_attack(
                 attack_type,
@@ -143,6 +156,7 @@ def attack_generation_routes(app, data_storage):
                 mimic_profile,
                 target_profile,
                 campaign_description,
+                attack_purpose,
                 campaign_unique_id,
             )
             data_storage.add_attack(attack)
@@ -292,8 +306,8 @@ def attack_generation_routes(app, data_storage):
         file.save(full_file_name)
         return "<h1>File saved</h1>"
 
-    @app.route("/view_prompts", methods=["GET", "POST"])
-    def view_prompts():
+    @app.route("/view_audio_prompts", methods=["GET", "POST"])
+    def view_audio_prompts():
         prof = data_storage.get_profile(request.args.get("profile"))
         Addform = PromptAddForm(profile=prof)
         Deleteform = PromptDeleteForm(profile=prof)
@@ -303,20 +317,45 @@ def attack_generation_routes(app, data_storage):
             desc = Addform.prompt_add_field.data
             response = Util.generate_voice("oded", prof.profile_name, desc)
             Util.get_voice_profile("oded", prof.profile_name, desc, response["file"])
-            # new_prompt = Prompt(prompt_desc=desc, filename=desc + ".wav")  # add sound when clicking button
-            new_prompt = Prompt(prompt_desc=desc, prompt_profile=prof.profile_name)  # add sound when clicking button
-            # if not generate_voice(desc, "sad voice"):
-            #    prs = prof.getPrompts()
-            #    return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform,
-            #                           prompts=prs)
+            new_prompt = Prompt(prompt_desc=desc, prompt_profile=prof.profile_name)
             prof.addPrompt(new_prompt)
-            return flask_redirect(url_for('view_prompts', profile=prof.profile_name))
+            return flask_redirect(url_for('view_audio_prompts', profile=prof.profile_name))
         if Deleteform.submit_delete.data and Deleteform.validate_on_submit():
             desc = Deleteform.prompt_delete_field.data
             prof.deletePrompt(desc)
-            return flask_redirect(url_for('view_prompts', profile=prof.profile_name))
-        prs = prof.getPrompts()
-        return render_template('attack_pages/view_prompts.html', Addform=Addform, Deleteform=Deleteform, prompts=prs)
+            return flask_redirect(url_for('view_audio_prompts', profile=prof.profile_name))
+        return render_template('attack_pages/view_audio_prompts.html', Addform=Addform,
+                               Deleteform=Deleteform, prompts=prof.getPrompts())
+
+    @app.route("/view_video_prompts", methods=["GET", "POST"])
+    def view_video_prompts():
+        prof = data_storage.get_profile(request.args.get("profile"))
+        Addform = PromptAddForm(profile=prof)
+        Deleteform = PromptDeleteForm(profile=prof)
+        video_prompts = set()
+        for prompt in prof.getPrompts():
+            if prompt.is_video:
+                video_prompts.add(prompt)
+        Deleteform.prompt_delete_field.choices = [(prompt.prompt_desc, prompt.prompt_desc)
+                                                  for prompt in video_prompts]
+        # TODO: fix the problem where a video prompt cant be added because there exists a voice prompt
+        if Addform.submit_add.data and Addform.validate_on_submit():
+            desc = Addform.prompt_add_field.data
+            # TODO: replace voice with video generation
+            # response = Util.generate_voice("oded", prof.profile_name, desc)
+            # Util.get_voice_profile("oded", prof.profile_name, desc, response["file"])
+
+            new_prompt = Prompt(prompt_desc=desc, prompt_profile=prof.profile_name, is_video=True)
+            prof.addPrompt(new_prompt)
+            return flask_redirect(url_for('view_video_prompts', profile=prof.profile_name))
+
+        # TODO: fix problem where a prompt is deleted on audio and video when deleting video
+        if Deleteform.submit_delete.data and Deleteform.validate_on_submit():
+            desc = Deleteform.prompt_delete_field.data
+            prof.deletePrompt(desc)
+            return flask_redirect(url_for('view_video_prompts', profile=prof.profile_name))
+        return render_template('attack_pages/view_video_prompts.html', Addform=Addform,
+                               Deleteform=Deleteform, prompts=video_prompts)
 
     @app.route("/end_call", methods=["GET", "POST"])
     def end_call():
