@@ -69,7 +69,7 @@ def general_routes(app, data_storage):  # This function stores all the general r
             gen_info = form.gen_info_field.data
             data = form.recording_upload.data
             video = form.Image_upload.data
-            if video == "":
+            if video.filename == "":
                 video = None
 
             # Save the voice sample
@@ -185,6 +185,9 @@ def attack_generation_routes(app, data_storage):
 
         started = session.get("started_call")
         if not started:
+            # TODO: make video attack in case of video profile. the function will provide default video with obs
+            # if profile.video_data_path is not None:
+
             thread_call = Thread(target=Util.ExecuteCall, args=(contact_name, CloseCallEvent))
             thread_call.start()
             recorder_thread = Thread(target=Util.record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
@@ -206,9 +209,14 @@ def attack_generation_routes(app, data_storage):
             session["started_call"] = True
             session['stopped_call'] = False
         if form.validate_on_submit():
-            Util.play_audio_through_vbcable(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-                                            form.prompt_field.data + ".wav")
-            return flask_redirect(url_for('attack_dashboard', profile=profile_name, contact=contact_name))
+            if profile.video_data_path is not None:
+                # TODO: add the video attack function using obs. this will change video to custom video and return it
+                #  back to the default video after
+                return flask_redirect(url_for('attack_dashboard', profile=profile_name, contact=contact_name))
+            else:
+                Util.play_audio_through_vbcable(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                                                form.prompt_field.data + ".wav")
+                return flask_redirect(url_for('attack_dashboard', profile=profile_name, contact=contact_name))
         return render_template('attack_pages/attack_dashboard.html', form=form, contact=contact_name)
 
     @app.route('/send_prompt', methods=['GET'])
