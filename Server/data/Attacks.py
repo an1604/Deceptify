@@ -86,6 +86,8 @@ class Attack:
         self.id = camp_id
         self.recordings = None
         self.transcript = None
+        self.setRec()
+        self.setTranscript()
 
     def get_target(self) -> Profile:
         return self.target
@@ -95,6 +97,9 @@ class Attack:
 
     def getName(self):
         return self.campaign_name
+
+    def getDesc(self):
+        return self.description
 
     def getPurpose(self):
         return self.attack_purpose

@@ -26,20 +26,33 @@
 {%endblock%}
 {% block scripts %}
 <script>
+
+    let isReload = false;
+
+    // Set the flag when the form is submitted
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function() {
+            isReload = true;
+        });
+    });
+
     const end_call_button = document.getElementById('end_call');
     function EndCall(){
         end_call_button.disabled = true;
         $.ajax({
-            type:'POST',
-            url:'/end_call',
-        }).done(function (data){
-            window.close()
-        })
+            type: 'POST',
+            url: '/end_call',
+        }).done(function(data) {
+            window.close();
+        });
     }
+
     window.addEventListener('unload', function () {
-    // Perform actions when the window is closed
-        if(!end_call_button.disabled)
+        // Perform actions when the window is closed
+        if (!isReload && !end_call_button.disabled) {
             navigator.sendBeacon('/end_call');
+        }
     });
 
 </script>

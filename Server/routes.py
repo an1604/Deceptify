@@ -4,7 +4,7 @@ import time
 import uuid
 from flask import copy_current_request_context
 
-from flask import redirect as flask_redirect, jsonify, session
+from flask import redirect as flask_redirect, jsonify, session, send_file
 from werkzeug.utils import secure_filename
 
 from Server.CallRecorder import CallRecorder
@@ -108,6 +108,24 @@ def general_routes(app, data_storage):  # This function stores all the general r
         profile = data_storage.get_profile(request.args.get("profileo"))
         return render_template("profile.html", profileo=profile)
 
+    @app.route("/transcript/<attack_id>")
+    def transcript(attack_id):
+        attack = data_storage.get_attack(attack_id)
+        json_file_path = (app.config['ATTACK_RECS'] + "\\" + "Attacker-" + attack.get_mimic_profile().getName()
+                          + "-Target-" + attack.getDesc() + ".json")
+        with open(json_file_path, 'r') as file:
+            data = json.load(file)
+            print(data)
+        return data
+
+    @app.route("/recording/<attack_id>")
+    def recording(attack_id):
+        attack = data_storage.get_attack(attack_id)
+        print(attack.get_target())
+        file_path = (app.config['ATTACK_RECS'] + "\\" + "Attacker-" + attack.get_mimic_profile().getName() + "-Target-"
+                     + attack.getID() + ".wav")
+        return send_file(file_path)
+
     @app.route("/contact", methods=["GET", "POST"])
     def contact():
         email = None
@@ -146,7 +164,7 @@ def attack_generation_routes(app, data_storage):
             campaign_name = form.campaign_name.data
             mimic_profile = data_storage.get_profile(form.mimic_profile.data)
             target_profile = data_storage.get_profile(form.target_profile.data)
-            campaign_description = form.campaign_description.data
+            campaign_description = form.target_name.data
             attack_type = form.attack_type.data
             attack_purpose = form.attack_purpose.data
             campaign_unique_id = int(uuid.uuid4())
