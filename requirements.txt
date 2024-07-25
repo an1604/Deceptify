@@ -30,7 +30,7 @@ PyRect==0.2.0
 PyScreeze==0.1.30
 python-dotenv==1.0.1
 pytweening==1.2.0
-requests==2.32.2
+requests==2.32.3
 rubicon-objc==0.4.9
 SoundCard==0.4.3
 SpeechRecognition==3.10.4
