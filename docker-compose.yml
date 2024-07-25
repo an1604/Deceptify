@@ -23,6 +23,7 @@ services:
       - private_network
 
   deceptify_client:
+    image: avivnat13/deceptify-client:latest
     build:
       context: .
       dockerfile: Dockerfile
