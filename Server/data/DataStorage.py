@@ -5,6 +5,7 @@ import pickle
 from typing import Set, List, Optional, Type
 
 from Server.data.Profile import Profile
+from Server.data.Attacks import Attack
 
 
 class DataStorage:
@@ -111,6 +112,13 @@ class DataStorage:
         for profile in self.profiles:
             if profile.getName() == profile_name:
                 return profile
+        return None
+
+    def get_attack(self,attack_id) -> Optional[Attack]:
+
+        for attack in self.attacks:
+            if attack.getID() == int(attack_id):
+                return attack
         return None
 
     def prepare_data_to_remote_server(self) -> str:

@@ -7,32 +7,37 @@ from Server import Util
 from Server.data.prompt import Prompt
 
 
+# TODO: fix when saving to pkl file and getting from pkl file
 class Profile:
-    def __init__(self, profile_name: str, general_info: str, data_path: str) -> None:
+    def __init__(self, profile_name: str, general_info: str, audio_data_path: str, video_data_path: str = None) -> None:
         """
         Initialize a Profile object.
 
         Args:
             profile_name (str): Name of the profile.
             general_info (str): Some description about the profile.
-            data_path (str): Path to the data file.
+            audio_data_path (str): Path to the audio file.
+            video_data_path (str): Path to the video file.
         """
         self.profile_name: str = profile_name
         self.general_info: str = general_info
         self.Attacks: List = list()
         self.prompts: Set[Prompt] = set()
-        self.data_path: str = data_path
+        self.audio_data_path: str = audio_data_path
+        self.video_data_path: str = video_data_path
         self.setDefaultPrompts()
-
+        self.defaultVideo = self.profile_name + ".mp4"  # in case of using video profile this will be used
         # Create a voice profile on the server
-        Util.createvoice_profile("oded", profile_name, data_path)
+        if video_data_path is None:
+            Util.createvoice_profile("oded", profile_name, audio_data_path)
+            for prompt in self.prompts:
+                response = Util.generate_voice("oded", self.profile_name, prompt.prompt_desc)
+                Util.get_voice_profile("oded", self.profile_name, prompt.prompt_desc, response['file'])
+        else:
+            Util.createvideo_profile("oded", profile_name, audio_data_path, video_data_path)
+            # TODO: add the video generation of the prompts from the server
 
         # Generate voice for each default prompt
-        for prompt in self.prompts:
-            response = Util.generate_voice("oded", self.profile_name, prompt.prompt_desc)
-            Util.get_voice_profile("oded",self.profile_name, prompt.prompt_desc,response['file'])
-
-
 
     def getName(self) -> str:
         """
@@ -43,13 +48,21 @@ class Profile:
         """
         return self.profile_name
 
-    def get_data(self):
+    def get_audio_data(self):
         """
-        Get the path to the profile data.
+        Get the path to the profile audio data.
 
-        :returns: The path to the profile data.
+        :returns: The path to the profile audio data.
         """
-        return self.data_path
+        return self.audio_data_path
+
+    def get_video_data(self):
+        """
+        Get the path to the profile video data.
+
+        :returns: The path to the profile video data.
+        """
+        return self.video_data_path
 
     def getGeneralInfo(self) -> str:
         """
@@ -111,12 +124,17 @@ class Profile:
         Set default prompts for the profile.
         """
         default_prompts = [
-            "Hello how are you doing", "Thank you", "See you later", "I am sorry", "Why are you asking",
-            "What did you say", "I don't know", "What are you talking about",
+            "Hello how are you doing","I am good thank you", "Thank you", "See you later",
+            "What did you say", "I don't know", "Can you repeat that",
             "Yes i agree", "No i do not agree", "Yes", "No"
         ]
-        for prompt_desc in default_prompts:
-            self.addPrompt(Prompt(prompt_desc=prompt_desc,prompt_profile=self.profile_name, is_deletable=False))
+        if self.video_data_path is None:
+            for prompt_desc in default_prompts:
+                self.addPrompt(Prompt(prompt_desc=prompt_desc, prompt_profile=self.profile_name, is_deletable=False))
+        else:
+            for prompt_desc in default_prompts:
+                self.addPrompt(Prompt(prompt_desc=prompt_desc, prompt_profile=self.profile_name, is_video=True,
+                                      is_deletable=False))
 
     def deletePrompt(self, desc: str) -> None:
         """
@@ -140,7 +158,8 @@ class Profile:
         Returns:
             str: The string representation of the profile.
         """
-        return f"Profile: {self.profile_name}, {self.general_info}, {self.data_path}, {self.get_attacks()}"
+        return (f"Profile: {self.profile_name}, {self.general_info}, {self.audio_data_path},"
+                f" {self.video_data_path}, {self.get_attacks()}")
 
     def get_attacks(self) -> List:
         """
@@ -162,7 +181,7 @@ class Profile:
         return {
             "profile_name": self.profile_name,
             "general_info": self.general_info,
-            "data": self.data_path,
+            "data": self.audio_data_path,
         }
 
     def to_json(self) -> str:
