@@ -1,6 +1,5 @@
 import pyaudio
 import wave
-import numpy as np
 
 
 def get_device_index(device_name):
