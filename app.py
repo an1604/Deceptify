@@ -14,27 +14,6 @@ remote_server_ip = os.getenv("REMOTE_SERVER_IP")
 remote_server_port = os.getenv("REMOTE_SERVER_PORT")
 updates_queue = queue.Queue()  # Queue for handling updates from the remote server.
 data = None  # The data parameter keeps the last update from the remoter server.
-db = None
-
-
-def check_for_updates():  # This function will run in the background to communicate with the remote server.
-    global updates_queue, data
-    print("Checking for updates (in the background)...")
-    while True:
-        try:
-            time.sleep(10)  # Waits 10 seconds before each request.
-            url = f"http://{remote_server_ip}:{remote_server_port}/updates"  # TODO: CHANGE THE URL ACCORDING TO OUT NEEDS.
-            headers = {  # TODO: ADJUST THE HEADERS.
-                "Content-Type": "application/json",
-                "Secret_key": os.getenv("SECRET_KEY"),
-                "User_id": os.getenv("USER_ID"),
-            }
-            response = requests.post(url, headers=headers)
-            if response.status_code == 200:
-                data = response.json()  # Updating the data parameter.
-                updates_queue.put(data)  # Put in the Q also.
-        except Exception as e:
-            print(e)
 
 
 def create_audio_file():

@@ -28,3 +28,6 @@ urllib3
 visitor
 Werkzeug
 WTForms
+scrapegraphai
+opencv-python
+pyvirtualcam
