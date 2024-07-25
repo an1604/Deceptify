@@ -1,7 +1,0 @@
-1) Create a page of information gathering for datasets, records, etc. (DONE)
-2) Create a create-profile router: for letting the client create an attacker profile or victim profile. (DONE)
-3) Create a page (route) for the scraper to search data.
-4) Create a selection of scenarios and generate transcripts for each one.
-5) Create selection of target information to extract (id,email,home address...).
-6) Create fillers.
-7) Integrate a full conversation process, using the T2Voice and speech-to-text and generate transcript.
