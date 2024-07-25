@@ -10,9 +10,6 @@ from Server.data.DataStorage import DataStorage
 
 load_dotenv()
 
-remote_server_ip = os.getenv("REMOTE_SERVER_IP")
-remote_server_port = os.getenv("REMOTE_SERVER_PORT")
-updates_queue = queue.Queue()  # Queue for handling updates from the remote server.
 data = None  # The data parameter keeps the last update from the remoter server.
 
 
