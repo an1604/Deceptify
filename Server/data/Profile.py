@@ -34,7 +34,11 @@ class Profile:
                 response = Util.generate_voice("oded", self.profile_name, prompt.prompt_desc)
                 Util.get_voice_profile("oded", self.profile_name, prompt.prompt_desc, response['file'])
         else:
-            Util.createvideo_profile("oded", profile_name, audio_data_path, video_data_path)
+            Util.createvoice_profile("oded", profile_name, audio_data_path)
+            for prompt in self.prompts:
+                response = Util.generate_voice("oded", self.profile_name, prompt.prompt_desc)
+                Util.get_voice_profile("oded", self.profile_name, prompt.prompt_desc, response['file'])
+            # Util.createvideo_profile("oded", profile_name, audio_data_path, video_data_path)
             # TODO: add the video generation of the prompts from the server
 
         # Generate voice for each default prompt

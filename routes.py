@@ -2,7 +2,7 @@ import uuid
 
 from flask import redirect as flask_redirect, jsonify, session, send_file
 from werkzeug.utils import secure_filename
-
+from Server.CamScript import RunVideo
 from Server.Forms.general_forms import *
 from Server.Forms.upload_data_forms import *
 from flask import render_template, url_for, flash, request, send_from_directory
@@ -16,11 +16,13 @@ from Server.speechToText import SRtest
 
 CloseCallEvent = Event()
 StopRecordEvent = Event()
+CutVideoEvent = Event()
 GetAnswerEvent = Event()
 
 load_dotenv()
 
 SERVER_URL = os.getenv('SERVER_URL')
+cam_thread = None
 
 
 def error_routes(app):  # Error handlers routes
@@ -71,6 +73,7 @@ def general_routes(app, data_storage):  # This function stores all the general r
             if video is not None:
                 video_path = os.path.join(app.config["VIDEO_UPLOAD_FOLDER"], video.filename)
                 video.save(video_path)
+                createvoice_profile(username="oded", profile_name=name, file_path=file_path)
                 data_storage.add_profile(Profile(name, gen_info, str(file_path), video_data_path=str(video_path)))
 
             else:
@@ -181,12 +184,14 @@ def attack_generation_routes(app, data_storage):
     def attack_dashboard_transition():
         profile_name = request.args.get("profile")
         contact_name = request.args.get("contact")
+        if session.get("started_call"):
+            session.pop("started_call")
         return render_template('attack_pages/attack_dashboard_transition.html', profile=profile_name,
                                contact=contact_name)
 
     @app.route('/attack_dashboard', methods=['GET', 'POST'])
     def attack_dashboard():
-
+        global cam_thread
         profile_name = request.args.get("profile")
         contact_name = request.args.get("contact")
         profile = data_storage.get_profile(profile_name)
@@ -196,17 +201,20 @@ def attack_generation_routes(app, data_storage):
 
         started = session.get("started_call")
         if not started:
-            # TODO: make video attack in case of video profile. the function will provide default video with obs
+            if profile.video_data_path is not None:
+                cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
+                                                           ".mp4", True, CutVideoEvent))
+                cam_thread.start()
             # if profile.video_data_path is not None:
 
-            s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name))
-            s2t_thread.start()
+            #    s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name))
+            #    s2t_thread.start()
             # thread_call = Thread(target=ExecuteCall, args=(contact_name, CloseCallEvent))
             # thread_call.start()
-            recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
-                                                               "-Target-" + contact_name))
-            s2t_thread.join()
-            StopRecordEvent.set()
+            #    recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
+            #                                                      "-Target-" + contact_name))
+            #    s2t_thread.join()
+            #    StopRecordEvent.set()
 
             # # Omer's call recording NEED TO BE TESTED ON WINDOWS
             #
@@ -224,8 +232,17 @@ def attack_generation_routes(app, data_storage):
             session['stopped_call'] = False
         if form.validate_on_submit():
             if profile.video_data_path is not None:
-                # TODO: add the video attack function using obs. this will change video to custom video and return it
-                #  back to the default video after
+                CutVideoEvent.set()
+                cam_thread.join()
+                cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
+                                                           "-" + form.prompt_field.data + ".mp4", False, CutVideoEvent))
+                cam_thread.start()
+                play_audio_through_vbcable(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                                           form.prompt_field.data + ".wav")
+                cam_thread.join()
+                cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
+                                                           ".mp4", True, CutVideoEvent))
+                cam_thread.start()
                 return flask_redirect(url_for('attack_dashboard', profile=profile_name, contact=contact_name))
             else:
                 play_audio_through_vbcable(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
@@ -385,6 +402,7 @@ def attack_generation_routes(app, data_storage):
         session['stopped_call'] = True  # Set the flag to true for the record function catch it.
         CloseCallEvent.set()
         StopRecordEvent.set()
+        CutVideoEvent.set()
         session.pop("started_call", None)
         return jsonify({})
 
