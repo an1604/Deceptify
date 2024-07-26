@@ -1,8 +1,13 @@
+import base64
+import os
+import urllib
 import uuid
 
-from flask import redirect as flask_redirect, jsonify, session, send_file
+from flask import redirect as flask_redirect
+from flask import jsonify, session, send_file, abort
 from werkzeug.utils import secure_filename
 
+from zoom_req import *
 from Server.Forms.general_forms import *
 from Server.Forms.upload_data_forms import *
 from flask import render_template, url_for, flash, request, send_from_directory
@@ -13,14 +18,23 @@ from Server.data.Profile import Profile
 from threading import Thread, Event
 from dotenv import load_dotenv
 from Server.speechToText import SRtest
+import requests
+
+load_dotenv()
 
 CloseCallEvent = Event()
 StopRecordEvent = Event()
 GetAnswerEvent = Event()
 
 load_dotenv()
-
-SERVER_URL = os.getenv('SERVER_URL')
+# Credentials For Zoom API
+ZOOM_CLIENT_ID = os.getenv('ZOOM_CLIENT_ID')
+ZOOM_CLIENT_SECRET = os.getenv('ZOOM_CLIENT_SECRET')
+ZOOM_ACCOUNT_ID = os.getenv('ZOOM_ACCOUNT_ID')
+AUTH_URL = os.getenv('ZOOM_AUTH_URL')
+REDIRECT_URI = os.getenv('REDIRECT_URI')
+TOKEN_URL = os.getenv('TOKEN_URL')
+BASE_ZOOM_URL = os.getenv('BASE_ZOOM_API_REQ_URL')
 
 
 def error_routes(app):  # Error handlers routes
@@ -134,7 +148,9 @@ def general_routes(app, data_storage):  # This function stores all the general r
 
     @app.route("/dashboard", methods=["GET", "POST"])
     def dashboard():
-        return render_template("dashboard.html")
+        encoded_start_url = request.args.get('start_url')
+        start_url = urllib.parse.unquote(encoded_start_url)
+        return render_template("dashboard.html", start_url=start_url)
 
     @app.route('/mp3/<path:filename>')  # Serve the MP3 files statically
     def serve_mp3(filename):
@@ -143,6 +159,62 @@ def general_routes(app, data_storage):  # This function stores all the general r
     @app.route('/video/<path:filename>')  # Serve the video files statically
     def serve_video(filename):
         return send_from_directory(app.config['VIDEO_UPLOAD_FOLDER'], filename)
+
+    @app.route('/zoom_authorization')
+    def zoom_authorization():
+        auth_url = f'{AUTH_URL}?response_type=code&client_id={ZOOM_CLIENT_ID}&redirect_uri={REDIRECT_URI}'
+        return flask_redirect(auth_url)
+
+    @app.route('/zoom')
+    def zoom():
+        code = request.args.get('code')
+        if code:
+            data = {
+                'grant_type': 'authorization_code',
+                'code': code,
+                'redirect_uri': REDIRECT_URI
+            }
+            credentials = f'{ZOOM_CLIENT_ID}:{ZOOM_CLIENT_SECRET}'
+            encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
+            headers = {
+                'Authorization': f'Basic {encoded_credentials}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+            response = requests.post(TOKEN_URL, data=data, headers=headers)
+            if response.status_code == 200:
+                response_data = response.json()
+                refresh_token = response_data.get('refresh_token')
+                access_token = response_data.get('access_token')
+
+                session['zoom_access_credentials'] = {
+                    'refresh_token': refresh_token,
+                    'access_token': access_token
+                }
+                return flask_redirect(url_for('generate_zoom_record'))
+            else:
+                return jsonify({'error': 'Failed to retrieve tokens'}), response.status_code
+        else:
+            return jsonify({'error': 'No code parameter provided'}), 400
+
+    @app.route('/generate_zoom_record', methods=["GET", "POST"])
+    def generate_zoom_record():
+        form = ZoomMeetingForm()
+        if 'zoom_access_credentials' in session:
+            access_token = session['zoom_access_credentials'].get('access_token')
+            print(access_token)
+            if form.validate_on_submit():
+                headers, data = generate_data_for_new_meeting(access_token=access_token,
+                                                              meeting_name=form.meeting_name.data,
+                                                              year=form.year.data, month=form.month.data,
+                                                              day=form.day.data,
+                                                              hour=form.hour.data, second=form.second.data,
+                                                              minute=form.minute.data)
+                start_url = create_new_meeting(headers=headers, data=data)
+                encoded_start_url = urllib.parse.quote(start_url)
+                print(start_url)
+                return flask_redirect(url_for('dashboard', start_url=encoded_start_url))
+            return render_template('generate_zoom_meeting.html', form=form)
+        return abort(404)  # Aborting if we got no access token
 
 
 def attack_generation_routes(app, data_storage):

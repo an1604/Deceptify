@@ -1,16 +1,11 @@
-from data.prompt import Prompt
 import pyaudio
 import wave
 import requests
 from dotenv import load_dotenv
 import os
-# import pyautogui
 import time
-from datetime import datetime
-import app
 import json
 import speech_recognition as sr
-from flask import session
 
 load_dotenv()
 
@@ -146,7 +141,6 @@ def play_audio_through_vbcable(audio_file_path, device_name="CABLE Input"):
 
 # Whatsapp open and close function
 
-'''
 def open_whatsapp():
     pyautogui.press('winleft')
     time.sleep(1)
@@ -195,9 +189,8 @@ def ExecuteCall(contact_name, event):
     open_whatsapp()
     search_contact(contact_name)
     start_call()
-    #event.wait()
-    #end_call()
-'''
+    # event.wait()
+    # end_call()
 
 
 def dateTimeName(filename: str) -> str:
