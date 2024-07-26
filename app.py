@@ -1,6 +1,3 @@
-import time
-import queue
-import requests
 from flask import Flask
 from flask_bootstrap import Bootstrap
 import os
