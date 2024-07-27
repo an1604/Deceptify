@@ -1,6 +1,8 @@
 import os.path
 import uuid
-
+import base64
+import os
+import urllib
 from flask import redirect as flask_redirect, jsonify, session, send_file
 from werkzeug.utils import secure_filename
 
@@ -240,7 +242,7 @@ def attack_generation_routes(app, data_storage):
                 filename = secure_filename(file.filename)
                 file_path = os.path.join(wavs_filepath, filename)
                 file.save(file_path)
-            create_csv(wavs_filepath,profile_directory)
+            create_csv(wavs_filepath, profile_directory)
             return flask_redirect(url_for("newattack"))
         return render_template("data_collection_pages/upload_voice_file.html", form=form)
 

@@ -1,4 +1,3 @@
-from Server.data.prompt import Prompt
 import pyaudio
 import wave
 import requests
