@@ -6,7 +6,7 @@ from flask_bootstrap import Bootstrap
 import os
 from dotenv import load_dotenv
 from routes import execute_routes
-from Server.data.DataStorage import DataStorage
+from Server.data.DataStorage import Data
 
 load_dotenv()
 
@@ -58,7 +58,7 @@ def create_app():
     app.config["ATTACK_RECS"] = create_attack_file()
     bootstrap = Bootstrap(app)
 
-    data_storage = DataStorage().load_data()
+    data_storage = Data().get_data_object()
     execute_routes(app, data_storage)  # Executing the routes
     app.run(debug=True, use_reloader=True)  # Running the application.
     return app
