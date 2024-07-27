@@ -12,6 +12,30 @@ load_dotenv()
 SERVER_URL = os.getenv('SERVER_URL')
 
 
+def create_wavs_directory_for_dataset(upload_folder, profile_name="user"):
+    profile_directory = os.path.join(upload_folder, profile_name)
+    wavs_path = os.path.join(profile_directory, "wavs")
+    if not os.path.exists(profile_directory):
+        os.makedirs(profile_directory, exist_ok=True)
+        os.makedirs(wavs_path, exist_ok=True)
+    return wavs_path, profile_directory
+
+
+def create_csv(wavs_filepath, profile_directory):
+    files_and_transcribe = []  # List of tuples (filename, transcribe)
+    for file in os.listdir(wavs_filepath):
+        if file.lower().endswith('.wav'):
+            path = os.path.join(wavs_filepath, file)
+            transcript = transcribe_audio(wav_file_path=path, json_file_path=None, return_as_string=True)
+            files_and_transcribe.append((file, transcript))
+
+    with open(os.path.join(profile_directory, 'metadata.csv'), 'w') as f:
+        for path, transcript in files_and_transcribe:
+            line = f"{path}|{transcript}"
+            f.write(line + "\n")
+    print("File metadata created")
+
+
 def create_user(username, password):
     try:
         url = f"{SERVER_URL}/data"
@@ -211,16 +235,13 @@ def dateTimeName(filename: str) -> str:
     return time.strftime("%d %m %y _ %H _ %M _ %S _", time.localtime()).replace(" ", "") + filename
 
 
-# Aviv- record the input stream
-# Chceck if it works!
 FORMAT = pyaudio.paInt16
 CHANNELS = 2
 RATE = 44100
 CHUNK = 1024
 
 
-def transcribe_audio_to_json(wav_file_path, json_file_path):
-    # Trying to transcribe the conversation after the record generated (one shot style transcribing)
+def transcribe_audio(wav_file_path, json_file_path=None, return_as_string=False):
     recognizer = sr.Recognizer()
     with sr.AudioFile(wav_file_path) as audio_file:
         recognizer.adjust_for_ambient_noise(audio_file)
@@ -229,9 +250,12 @@ def transcribe_audio_to_json(wav_file_path, json_file_path):
     try:
         transcription = recognizer.recognize_google(audio_data)
         print(f"Transcription: {transcription}")
-        with open(json_file_path, 'w') as json_file:
-            json.dump({"transcription": transcription}, json_file)
-        print(f"Transcription saved to {json_file_path}")
+        if not return_as_string and json_file_path:
+            with open(json_file_path, 'w') as json_file:
+                json.dump({"transcription": transcription}, json_file)
+            print(f"Transcription saved to {json_file_path}")
+        else:
+            return transcription
 
     except sr.UnknownValueError:
         print("Google Web Speech API could not understand the audio")
@@ -284,5 +308,5 @@ def record_call(event, fname):
             wf.writeframes(b''.join(frames))
 
             print(f"{WAVE_OUTPUT_FILENAME} succssfully saved!")
-            transcribe_audio_to_json(WAVE_OUTPUT_FILENAME, JSON_OUTPUT_FILENAME)
+            transcribe_audio(WAVE_OUTPUT_FILENAME, JSON_OUTPUT_FILENAME)
         # ODO: SENT THE RESULT TO THE REMOTE SERVER TO INSPECT THE RESULT!
