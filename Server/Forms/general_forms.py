@@ -201,3 +201,9 @@ class LoginForm(FlaskForm):
 class Submit_2FA(FlaskForm):
     password = PasswordField("One time password", validators=[DataRequired()])
     submit = SubmitField("Login")
+
+
+# THIS IS A TEST FOR COMMUNICATION BETWEEN THE CONTAINERS
+class MessageForm(FlaskForm):
+    message = StringField('Message', validators=[DataRequired()])
+    submit = SubmitField('Send')

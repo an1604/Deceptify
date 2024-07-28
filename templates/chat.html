@@ -1,0 +1,16 @@
+{% import "_macros.html" as macros %}
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Deceptify- Chat with LLM{% endblock %}
+
+
+{% block page_content %}
+    <div class="page-header">
+        <h1>Chat with LLM</h1>
+    </div>
+    <div>
+        {{ wtf.quick_form(form) }}
+    </div>
+    <div><p>{{ chat }}</p></div>
+{% endblock %}

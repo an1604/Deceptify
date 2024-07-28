@@ -1,3 +1,4 @@
+import base64
 import os.path
 import os
 import urllib
@@ -7,6 +8,7 @@ from flask import redirect as flask_redirect
 from flask import jsonify, session, send_file, abort
 from werkzeug.utils import secure_filename
 
+from Server.LLM.llm import Llm
 from zoom_req import *
 from Server.Forms.general_forms import *
 from Server.Forms.upload_data_forms import *
@@ -48,6 +50,20 @@ def error_routes(app):  # Error handlers routes
 
 
 def general_routes(app, data_storage):  # This function stores all the general routes.
+    llm = Llm()
+    chat_history = []
+
+    @app.route('/chat', methods=['GET', 'POST'])
+    def chat():
+        form = MessageForm()
+        if form.validate_on_submit():
+            msg = form.message.data
+            chat_history.append({'user': msg})
+            answer = llm.get_answer(msg)
+            chat_history.append({'model': answer})
+            return render_template('chat.html', form=form, chat=jsonify(chat_history))
+        return render_template('chat.html', form=form, chat=jsonify(chat) if len(chat_history) > 0 else None)
+
     @app.route("/", methods=["GET", "POST"])  # The root router (welcome page).
     def index():
         return render_template("index.html")

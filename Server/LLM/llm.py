@@ -7,11 +7,11 @@ REMEMBER: keep your answers as short as you can, maximum one line in any case.
 Query: {} 
 """
 
-# model_name = 'http://ollama:11434/'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
-model_name = 'llama3'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
+model_name = 'http://ollama:11434/'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
+# model_name = 'llama3'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
 
-# machine = 'ollama'  # REPLACE IT TO LOCALHOST IF YOU RUN LOCALLY
-machine = 'localhost'  # REPLACE IT TO LOCALHOST IF YOU RUN LOCALLY
+machine = 'ollama'  # REPLACE IT TO LOCALHOST IF YOU RUN LOCALLY
+# machine = 'localhost'  # REPLACE IT TO LOCALHOST IF YOU RUN LOCALLY
 
 # Scraper configurations
 graph_config = {
@@ -62,9 +62,3 @@ class Llm(object):
         result = self.scraper.run()
         print(result)
         return result
-
-
-if __name__ == '__main__':
-    llm = Llm()
-    # llm.scrape()
-    llm.get_answer("what is 1 + 4")
