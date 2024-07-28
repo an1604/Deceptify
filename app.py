@@ -4,7 +4,6 @@ import os
 from dotenv import load_dotenv
 from routes import execute_routes
 from Server.data.DataStorage import Data
-from flask_login import LoginManager
 
 load_dotenv()
 
