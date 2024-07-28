@@ -7,7 +7,7 @@ REMEMBER: keep your answers as short as you can, maximum one line in any case.
 Query: {} 
 """
 
-model = 'http://ollama:11434/'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
+model = 'http://ollama:11434'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
 # model_name = 'llama3'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
 
 machine = 'ollama'  # REPLACE IT TO LOCALHOST IF YOU RUN LOCALLY
@@ -32,7 +32,7 @@ graph_config = {
 class Llm(object):
     def __init__(self):
         self.llm = Ollama(base_url=model,
-                          model="llama2-uncensored")
+                          model="llama3")
         self.scraper = None
 
     def get_answer(self, prompt, event=None):
