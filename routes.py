@@ -132,7 +132,7 @@ def general_routes(app, data_storage):  # This function stores all the general r
     @app.route("/dashboard", methods=["GET", "POST"])
     def dashboard():
         encoded_start_url = request.args.get('start_url')
-        start_url = urllib.parse.unquote(encoded_start_url)
+        start_url = encoded_start_url if encoded_start_url else None
         return render_template("dashboard.html", start_url=start_url)
 
     @app.route('/mp3/<path:filename>')  # Serve the MP3 files statically
@@ -387,7 +387,12 @@ def attack_generation_routes(app, data_storage):
         return jsonify({})
 
 
+def auth_routes(app, data_storage):
+    pass
+
+
 def execute_routes(app, data_storage):  # Function that executes all the routes.
+    auth_routes(app, data_storage)
     general_routes(app, data_storage)  # General pages navigation
     attack_generation_routes(app, data_storage)  # Attack generation pages navigation
     error_routes(app)  # Errors pages navigation
