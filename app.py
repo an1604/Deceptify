@@ -54,7 +54,7 @@ def create_app():
 
     data_storage = Data().get_data_object()
     execute_routes(app, data_storage)  # Executing the routes
-    app.run(debug=True, use_reloader=True)  # Running the application.
+    app.run(debug=True, use_reloader=True, host='0.0.0.0')  # Running the application.
     return app
 
 
