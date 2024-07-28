@@ -9,8 +9,8 @@ from flask_login import LoginManager
 load_dotenv()
 
 data = None  # The data parameter keeps the last update from the remoter server.
-login_manager = LoginManager()
-login_manager.login_view = 'login'
+# login_manager = LoginManager()
+# login_manager.login_view = 'login'
 
 
 def create_audio_file():
@@ -54,7 +54,7 @@ def create_app():
     app.config["VIDEO_UPLOAD_FOLDER"] = video_file_path
     app.config["ATTACK_RECS"] = create_attack_file()
     bootstrap = Bootstrap(app)
-    login_manager.init_app(app)  # Initialize login manager for user authentication.
+    # login_manager.init_app(app)  # Initialize login manager for user authentication.
 
     data_storage = Data().get_data_object()
     execute_routes(app, data_storage)  # Executing the routes
