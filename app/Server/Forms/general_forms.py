@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import StringField, SubmitField, FileField, PasswordField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Email, ValidationError
-from Server.data.DataStorage import DataStorage
+from app.Server.data.DataStorage import Data
 
 
 class CampaignForm(FlaskForm):
@@ -45,7 +45,7 @@ class CampaignForm(FlaskForm):
 class ViewAttacksForm(FlaskForm):
     attack_list = SelectField(
         label="Select Attack",
-        choices=DataStorage.get_attacks,
+        choices=Data().get_data_object().get_attacks,
         validators=[DataRequired()]
     )
     submit = SubmitField("View Info")
@@ -110,20 +110,6 @@ class ProfileForm(FlaskForm):
         label="Profile Name",
         validators=[DataRequired()]
     )
-    # role_field = SelectField(
-    #     label="Role",
-    #     choices=[("Victim", "Victim"), ("Attacker", "Attacker"), ("Other", "Other")],
-    #     validators=[DataRequired()],
-    # )
-    # data_type_selection = SelectField(
-    #     label="Which type of information do you want to upload?",
-    #     choices=[
-    #         ("DataSets", "DataSets"),
-    #         ("Recordings", "Recordings"),
-    #         ("Video", "Video"),
-    #     ],
-    #     validators=[DataRequired()],
-    # )
     gen_info_field = StringField(
         "Whatsapp name",
         description="Enter profile whatsapp name",
@@ -191,3 +177,13 @@ class PromptDeleteForm(FlaskForm):
         # Extract the extra argument
         self.profile = kwargs.pop('profile', None)
         super(PromptDeleteForm, self).__init__(*args, **kwargs)
+
+
+class LoginForm(FlaskForm):
+    email = StringField(label="Email", validators=[Email()])
+    submit = SubmitField("Login")
+
+
+class AuthenticationForm(FlaskForm):
+    code = StringField(label='Your code here:', validators=[DataRequired()])
+    submit = SubmitField('Submit')

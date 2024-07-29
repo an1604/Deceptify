@@ -1,21 +1,19 @@
 import os.path
 import uuid
-import base64
-import os
-import urllib
 from flask import redirect as flask_redirect, jsonify, session, send_file
 from werkzeug.utils import secure_filename
+from flask_login import login_required, current_user
 
-from Server.Forms.general_forms import *
-from Server.Forms.upload_data_forms import *
+from app.Server.Forms.general_forms import *
+from app.Server.Forms.upload_data_forms import *
 from flask import render_template, url_for, flash, request, send_from_directory
-from Server.Util import *
-from Server.data.prompt import Prompt
-from Server.data.Attacks import AttackFactory
-from Server.data.Profile import Profile
+from app.Server.Util import *
+from app.Server.data.prompt import Prompt
+from app.Server.data.Attacks import AttackFactory
+from app.Server.data.Profile import Profile
 from threading import Thread, Event
 from dotenv import load_dotenv
-from Server.speechToText import SRtest
+from app.Server.speechToText import SRtest
 
 CloseCallEvent = Event()
 StopRecordEvent = Event()
@@ -36,19 +34,22 @@ def error_routes(app):  # Error handlers routes
         return render_template("errors/500.html"), 500
 
 
-def general_routes(app, data_storage):  # This function stores all the general routes.
-    @app.route("/", methods=["GET", "POST"])  # The root router (welcome page).
+def general_routes(main, data_storage):  # This function stores all the general routes.
+    @main.route("/", methods=["GET", "POST"])  # The root router (welcome page).
     def index():
+        print(current_user.is_authenticated)
         return render_template("index.html")
 
-    @app.route('/save_exit')
+    @main.route('/save_exit')
+    @login_required
     def save_exit():
         # Save the data
         data_storage.save_data()
         session['message'] = 'Session saved!'
         return index()
 
-    @app.route("/new_profile", methods=["GET", "POST"])
+    @main.route("/new_profile", methods=["GET", "POST"])
+    @login_required
     def new_profile():
         form = ProfileForm()
         if form.validate_on_submit():
@@ -61,10 +62,10 @@ def general_routes(app, data_storage):  # This function stores all the general r
                 video = None
 
             # Save the voice sample
-            file_path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(data.filename))
+            file_path = os.path.join(main.config["UPLOAD_FOLDER"], secure_filename(data.filename))
             data.save(file_path)
             if video is not None:
-                video_path = os.path.join(app.config["VIDEO_UPLOAD_FOLDER"], secure_filename(video.filename))
+                video_path = os.path.join(main.config["VIDEO_UPLOAD_FOLDER"], secure_filename(video.filename))
                 video.save(video_path)
                 data_storage.add_profile(Profile(name, gen_info, str(file_path), video_data_path=str(video_path)))
             else:
@@ -72,10 +73,11 @@ def general_routes(app, data_storage):  # This function stores all the general r
                 data_storage.add_profile(Profile(name, gen_info, str(file_path)))
 
             flash("Profile created successfully")
-            return flask_redirect(url_for("index"))
+            return flask_redirect(url_for("main.index"))
         return render_template("attack_pages/new_profile.html", form=form)
 
-    @app.route("/profileview", methods=["GET", "POST"])
+    @main.route("/profileview", methods=["GET", "POST"])
+    @login_required
     def profileview():
         form = ViewProfilesForm()
         tmp = data_storage.getAllProfileNames()
@@ -83,56 +85,62 @@ def general_routes(app, data_storage):  # This function stores all the general r
         if form.validate_on_submit():
             if form.profile_list.data == "No profiles available, time to create some!":
                 flash("No profiles available, time to create some!")
-                return flask_redirect(url_for("new_profile"))
-            return flask_redirect(url_for("profile", profileo=form.profile_list.data))
+                return flask_redirect(url_for("main.new_profile"))
+            return flask_redirect(url_for("main.profile", profileo=form.profile_list.data))
         return render_template("profileview.html", form=form)
 
-    @app.route("/profile", methods=["GET", "POST"])
+    @main.route("/profile", methods=["GET", "POST"])
+    @login_required
     def profile():
         profile = data_storage.get_profile(request.args.get("profileo"))
         return render_template("profile.html", profileo=profile)
 
-    @app.route("/transcript/<attack_id>")
+    @main.route("/transcript/<attack_id>")
     def transcript(attack_id):
         attack = data_storage.get_attack(attack_id)
-        json_file_path = os.path.join(app.config['ATTACK_RECS'],
+        json_file_path = os.path.join(main.config['ATTACK_RECS'],
                                       f"Attacker-{attack.get_mimic_profile().getName()}-Target-{attack.getDesc()}.json")
         with open(json_file_path, 'r') as file:
             data = json.load(file)
         return data
 
-    @app.route("/recording/<attack_id>")
+    @main.route("/recording/<attack_id>")
+    @login_required
     def recording(attack_id):
         attack = data_storage.get_attack(attack_id)
-        file_path = os.path.join(app.config['ATTACK_RECS'],
+        file_path = os.path.join(main.config['ATTACK_RECS'],
                                  f"Attacker-{attack.get_mimic_profile().getName()}-Target-{attack.getID()}.wav")
         return send_file(file_path)
 
-    @app.route("/contact", methods=["GET", "POST"])
+    @main.route("/contact", methods=["GET", "POST"])
     def contact():
         form = ContactForm()
         if form.validate_on_submit():
             email = form.email.data
             contact_field = form.contact_field.data
             passwd = form.passwd.data
-            return flask_redirect(url_for("index"))
+            return flask_redirect(url_for("main.index"))
         return render_template("contact.html", form=form)
 
-    @app.route("/dashboard", methods=["GET", "POST"])
+    @main.route("/dashboard", methods=["GET", "POST"])
+    @login_required
     def dashboard():
         return render_template("dashboard.html")
 
-    @app.route('/mp3/<path:filename>')  # Serve the MP3 files statically
+    @main.route('/mp3/<path:filename>')  # Serve the MP3 files statically
+    @login_required
     def serve_mp3(filename):
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+        return send_from_directory(main.config['UPLOAD_FOLDER'], filename)
 
-    @app.route('/video/<path:filename>')  # Serve the video files statically
+    @main.route('/video/<path:filename>')  # Serve the video files statically
+    @login_required
     def serve_video(filename):
-        return send_from_directory(app.config['VIDEO_UPLOAD_FOLDER'], filename)
+        return send_from_directory(main.config['VIDEO_UPLOAD_FOLDER'], filename)
 
 
-def attack_generation_routes(app, data_storage):
-    @app.route("/newattack", methods=["GET", "POST"])  # The new chat route.
+def attack_generation_routes(main, data_storage):
+    @main.route("/newattack", methods=["GET", "POST"])  # The new chat route.
+    @login_required
     def newattack():
         form = CampaignForm()
         profNames = data_storage.getAllProfileNames()
@@ -159,17 +167,20 @@ def attack_generation_routes(app, data_storage):
 
             flash("Campaign created successfully using")
             return flask_redirect(
-                url_for('attack_dashboard_transition', profile=form.mimic_profile.data, contact=form.target_name.data))
+                url_for('main.attack_dashboard_transition', profile=form.mimic_profile.data,
+                        contact=form.target_name.data))
         return render_template('attack_pages/newattack.html', form=form)
 
-    @app.route('/attack_dashboard_transition', methods=['GET'])
+    @main.route('/attack_dashboard_transition', methods=['GET'])
+    @login_required
     def attack_dashboard_transition():
         profile_name = request.args.get("profile")
         contact_name = request.args.get("contact")
         return render_template('attack_pages/attack_dashboard_transition.html', profile=profile_name,
                                contact=contact_name)
 
-    @app.route('/attack_dashboard', methods=['GET', 'POST'])
+    @main.route('/attack_dashboard', methods=['GET', 'POST'])
+    @login_required
     def attack_dashboard():
         profile_name = request.args.get("profile")
         contact_name = request.args.get("contact")
@@ -179,7 +190,7 @@ def attack_generation_routes(app, data_storage):
 
         started = session.get("started_call")
         if not started:
-            s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name))
+            s2t_thread = Thread(target=SRtest.startConv, args=(main.config, profile_name))
             s2t_thread.start()
             recorder_thread = Thread(target=record_call,
                                      args=(StopRecordEvent, f"Attacker-{profile_name}-Target-{contact_name}"))
@@ -190,69 +201,77 @@ def attack_generation_routes(app, data_storage):
             session['stopped_call'] = False
         if form.validate_on_submit():
             if profile.video_data_path is not None:
-                return flask_redirect(url_for('attack_dashboard', profile=profile_name, contact=contact_name))
+                return flask_redirect(url_for('main.attack_dashboard', profile=profile_name, contact=contact_name))
             else:
                 play_audio_through_vbcable(
-                    os.path.join(app.config['UPLOAD_FOLDER'], f"{profile_name}-{form.prompt_field.data}.wav"))
-                return flask_redirect(url_for('attack_dashboard', profile=profile_name, contact=contact_name))
+                    os.path.join(main.config['UPLOAD_FOLDER'], f"{profile_name}-{form.prompt_field.data}.wav"))
+                return flask_redirect(url_for('main.attack_dashboard', profile=profile_name, contact=contact_name))
         return render_template('attack_pages/attack_dashboard.html', form=form, contact=contact_name)
 
-    @app.route('/send_prompt', methods=['GET'])
+    @main.route('/send_prompt', methods=['GET'])
+    @login_required
     def send_prompt():
         prompt_path = request.args.get("prompt_path")
         return play_audio_through_vbcable(prompt_path)
 
-    @app.route("/information_gathering", methods=["GET", "POST"])
+    @main.route("/information_gathering", methods=["GET", "POST"])
+    @login_required
     def information_gathering():
-        return flask_redirect(url_for("newattack"))
+        return flask_redirect(url_for("main.newattack"))
 
-    @app.route("/collect_video", methods=["GET", "POST"])
+    @main.route("/collect_video", methods=["GET", "POST"])
+    @login_required
     def collect_video():
         form = VideoUploadForm()
         if form.validate_on_submit():
             video = form.video_field.data
-            return flask_redirect(url_for("newattack"))
+            return flask_redirect(url_for("main.newattack"))
         return render_template("data_collection_pages/collect_video.html", form=form)
 
-    @app.route("/collect_dataset", methods=["GET", "POST"])
+    @main.route("/collect_dataset", methods=["GET", "POST"])
+    @login_required
     def collect_dataset():
         form = DataSetUploadForm()
         if form.validate_on_submit():
             dataset = form.file_field.data
-            return flask_redirect(url_for("newattack"))
+            return flask_redirect(url_for("main.newattack"))
         return render_template("data_collection_pages/collect_dataset.html", form=form)
 
-    @app.route("/new_voice_attack", methods=["GET", "POST"])  # New voice attack page.
+    @main.route("/new_voice_attack", methods=["GET", "POST"])  # New voice attack page.
+    @login_required
     def new_voice_attack():
         form = VoiceChoiceForm()
         if form.validate_on_submit():
             choice = form.selection.data
             if "upload" in choice.lower():
-                return flask_redirect(url_for("upload_voice_file"))
+                return flask_redirect(url_for("main.upload_voice_file"))
             else:
-                return flask_redirect(url_for("record_voice"))
+                return flask_redirect(url_for("main.record_voice"))
         return render_template("attack_pages/new_voice_attack.html", form=form)
 
-    @app.route("/upload_voice_file", methods=["GET", "POST"])
+    @main.route("/upload_voice_file", methods=["GET", "POST"])
+    @login_required
     def upload_voice_file():
         form = VoiceUploadForm()
         if form.validate_on_submit():
-            wavs_filepath, profile_directory = create_wavs_directory_for_dataset(app.config['UPLOAD_FOLDER'])
+            wavs_filepath, profile_directory = create_wavs_directory_for_dataset(main.config['UPLOAD_FOLDER'])
             for file in form.files.data:
                 filename = secure_filename(file.filename)
                 file_path = os.path.join(wavs_filepath, filename)
                 file.save(file_path)
             create_csv(wavs_filepath, profile_directory)
-            return flask_redirect(url_for("newattack"))
+            return flask_redirect(url_for("main.newattack"))
         return render_template("data_collection_pages/upload_voice_file.html", form=form)
 
-    @app.route(
+    @main.route(
         "/record_voice", methods=["GET", "POST"]
     )  # Route for record a new voice file.
+    @login_required
     def record_voice():
         return render_template("data_collection_pages/record_voice.html")
 
-    @app.route("/save-record", methods=["GET", "POST"])
+    @main.route("/save-record", methods=["GET", "POST"])
+    @login_required
     def save_record():
         if "file" not in request.files:
             flash("No file part")
@@ -262,11 +281,12 @@ def attack_generation_routes(app, data_storage):
             flash("No selected file")
             return flask_redirect(request.url)
         file_name = str(uuid.uuid4()) + ".mp3"
-        full_file_name = os.path.join(app.config["UPLOAD_FOLDER"], file_name)
+        full_file_name = os.path.join(main.config["UPLOAD_FOLDER"], file_name)
         file.save(full_file_name)
         return "<h1>File saved</h1>"
 
-    @app.route("/view_audio_prompts", methods=["GET", "POST"])
+    @main.route("/view_audio_prompts", methods=["GET", "POST"])
+    @login_required
     def view_audio_prompts():
         prof = data_storage.get_profile(request.args.get("profile"))
         Addform = PromptAddForm(profile=prof)
@@ -279,15 +299,16 @@ def attack_generation_routes(app, data_storage):
             get_voice_profile("oded", prof.profile_name, desc, response["file"])
             new_prompt = Prompt(prompt_desc=desc, prompt_profile=prof.profile_name)
             prof.addPrompt(new_prompt)
-            return flask_redirect(url_for('view_audio_prompts', profile=prof.profile_name))
+            return flask_redirect(url_for('main.view_audio_prompts', profile=prof.profile_name))
         if Deleteform.submit_delete.data and Deleteform.validate_on_submit():
             desc = Deleteform.prompt_delete_field.data
             prof.deletePrompt(desc)
-            return flask_redirect(url_for('view_audio_prompts', profile=prof.profile_name))
+            return flask_redirect(url_for('main.view_audio_prompts', profile=prof.profile_name))
         return render_template('attack_pages/view_audio_prompts.html', Addform=Addform, Deleteform=Deleteform,
                                prompts=prof.getPrompts())
 
-    @app.route("/view_video_prompts", methods=["GET", "POST"])
+    @main.route("/view_video_prompts", methods=["GET", "POST"])
+    @login_required
     def view_video_prompts():
         prof = data_storage.get_profile(request.args.get("profile"))
         Addform = PromptAddForm(profile=prof)
@@ -301,15 +322,16 @@ def attack_generation_routes(app, data_storage):
             desc = Addform.prompt_add_field.data
             new_prompt = Prompt(prompt_desc=desc, prompt_profile=prof.profile_name, is_video=True)
             prof.addPrompt(new_prompt)
-            return flask_redirect(url_for('view_video_prompts', profile=prof.profile_name))
+            return flask_redirect(url_for('main.view_video_prompts', profile=prof.profile_name))
         if Deleteform.submit_delete.data and Deleteform.validate_on_submit():
             desc = Deleteform.prompt_delete_field.data
             prof.deletePrompt(desc)
-            return flask_redirect(url_for('view_video_prompts', profile=prof.profile_name))
+            return flask_redirect(url_for('main.view_video_prompts', profile=prof.profile_name))
         return render_template('attack_pages/view_video_prompts.html', Addform=Addform, Deleteform=Deleteform,
                                prompts=video_prompts)
 
-    @app.route("/end_call", methods=["GET", "POST"])
+    @main.route("/end_call", methods=["GET", "POST"])
+    @login_required
     def end_call():
         session['stopped_call'] = True
         CloseCallEvent.set()
@@ -318,7 +340,7 @@ def attack_generation_routes(app, data_storage):
         return jsonify({})
 
 
-def execute_routes(app, data_storage):  # Function that executes all the routes.
-    general_routes(app, data_storage)  # General pages navigation
-    attack_generation_routes(app, data_storage)  # Attack generation pages navigation
-    error_routes(app)  # Errors pages navigation
+def execute_routes(main, data_storage):  # Function that executes all the routes.
+    general_routes(main, data_storage)  # General pages navigation
+    attack_generation_routes(main, data_storage)  # Attack generation pages navigation
+    error_routes(main)  # Errors pages navigation

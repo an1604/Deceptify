@@ -1,3 +1,5 @@
+import socket
+
 import pyaudio
 import wave
 import requests
@@ -311,4 +313,25 @@ def record_call(event, fname):
 
             print(f"{WAVE_OUTPUT_FILENAME} succssfully saved!")
             transcribe_audio(WAVE_OUTPUT_FILENAME, JSON_OUTPUT_FILENAME)
-        # ODO: SENT THE RESULT TO THE REMOTE SERVER TO INSPECT THE RESULT!
+        # TODO: SENT THE RESULT TO THE REMOTE SERVER TO INSPECT THE RESULT!
+
+
+def get_ip_address():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.254.254.254', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
+
+
+def get_email_from_ip(user_ip):
+    """
+    In this case, we want to ask the remote server for email given IP address.
+    To make sure the authentication is properly.
+    """
+    return 'admin@example.com'

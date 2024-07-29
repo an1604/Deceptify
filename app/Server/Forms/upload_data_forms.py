@@ -4,8 +4,6 @@ from wtforms.fields.simple import PasswordField, SubmitField
 from wtforms.validators import DataRequired
 from wtforms import MultipleFileField
 
-from Server.Forms.validators import MultipleFileRequired
-
 
 class VoiceUploadForm(FlaskForm):
     files = MultipleFileField(

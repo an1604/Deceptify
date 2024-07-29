@@ -22,9 +22,9 @@
             </div>
         {% endfor %}
         <ul class="posts">
-            <li><a href="{{url_for('view_audio_prompts',profile=profileo.profile_name)}}">View audio prompts</a></li>
+            <li><a href="{{url_for('main.view_audio_prompts',profile=profileo.profile_name)}}">View audio prompts</a></li>
             {% if profileo.get_video_data() is not none %}
-            <li><a href="{{url_for('view_video_prompts',profile=profileo.profile_name)}}">View video prompts</a></li>
+            <li><a href="{{url_for('main.view_video_prompts',profile=profileo.profile_name)}}">View video prompts</a></li>
             {% endif %}
 
         </ul>

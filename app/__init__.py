@@ -1,19 +1,12 @@
-import time
-import queue
-import requests
-from flask import Flask
+from flask import Flask, session
 from flask_bootstrap import Bootstrap
 import os
 from dotenv import load_dotenv
-from routes import execute_routes
-from Server.data.DataStorage import Data
+from flask_login import LoginManager
+
+from app.Server.data.user import get_user_from_remote, User
 
 load_dotenv()
-
-remote_server_ip = os.getenv("REMOTE_SERVER_IP")
-remote_server_port = os.getenv("REMOTE_SERVER_PORT")
-updates_queue = queue.Queue()  # Queue for handling updates from the remote server.
-data = None  # The data parameter keeps the last update from the remoter server.
 
 
 def create_audio_file():
@@ -43,6 +36,16 @@ def create_attack_file():
     return attack_dir_path
 
 
+login_manager = LoginManager()
+login_manager.login_view = 'auth.login'
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    user = User.get(int(user_id))
+    return user
+
+
 def create_app():
     app = Flask(
         __name__
@@ -56,13 +59,16 @@ def create_app():
     app.config["UPLOAD_FOLDER"] = audio_file_path
     app.config["VIDEO_UPLOAD_FOLDER"] = video_file_path
     app.config["ATTACK_RECS"] = create_attack_file()
-    bootstrap = Bootstrap(app)
 
-    data_storage = Data().get_data_object()
-    execute_routes(app, data_storage)  # Executing the routes
+    bootstrap = Bootstrap(app)
+    login_manager.init_app(app)
+
+    # Register main blueprint
+    from app.main import main as main_blueprint
+    app.register_blueprint(main_blueprint)
+    # Register authentication blueprint
+    from app.auth import auth as auth_blueprint
+    app.register_blueprint(auth_blueprint, url_prefix='/auth')
+
     app.run(debug=True, use_reloader=True)  # Running the application.
     return app
-
-
-if __name__ == "__main__":
-    create_app()

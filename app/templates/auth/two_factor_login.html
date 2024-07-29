@@ -1,0 +1,16 @@
+{% import "./_macros.html" as macros %}
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Deceptify- Verfication{% endblock %}
+
+
+{% block page_content %}
+    <div class="page-header">
+        <h1>Login</h1>
+        <br>
+        <h3>We need to ensure you subscribe to our service... </h3>
+        <h3>What is your code?</h3>
+    </div>
+    {{ wtf.quick_form(form) }}
+{% endblock %}

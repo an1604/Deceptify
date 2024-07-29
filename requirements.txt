@@ -31,3 +31,7 @@ WTForms
 scrapegraphai
 opencv-python
 pyvirtualcam
+flask-mail
+flask-login
+qrcode
+python-decouple

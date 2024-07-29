@@ -1,11 +1,10 @@
-import base64
 import json
 import os
 import pickle
 from typing import Set, List, Optional, Type
 
-from Server.data.Profile import Profile
-from Server.data.Attacks import Attack
+from app.Server.data.Profile import Profile
+from app.Server.data.Attacks import Attack
 
 
 class DataStorage:
