@@ -1,0 +1,47 @@
+{% import "_macros.html" as macros %}
+{% extends "base.html" %}
+
+{% block title %}Deceptify{% endblock %}
+
+{% block page_content %}
+    <div class="page-header">
+        {% if current_user.is_authenticated %}
+            <h1>Welcome, {{ current_user.email }}!</h1>
+        {% else %}
+            <h1>WELCOME TO DECEPTIFY!</h1>
+        {% endif %}
+    </div>
+    {% if current_user.is_authenticated %}
+        <div>
+            {% if 'message' in session %}
+                <p>{{ session.pop('message') }}</p>
+            {% endif %}
+        </div>
+        <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+            <!--    <a href="{{url_for('main.new_voice_attack')}}">-->
+            <!--        <button type="button">Generate Voice Attack</button>-->
+            <!--    </a>-->
+
+
+            <a href="{{ url_for('main.information_gathering') }}">
+                <button type="button">Start Attack Generation Process</button>
+            </a>
+
+            <a href="{{ url_for('main.new_profile') }}">
+                <button type="button">Create New Profile</button>
+            </a>
+            <a href="{{ url_for('main.profileview') }}">
+                <button type="button">View Profiles</button>
+            </a>
+            <a href="{{ url_for('main.save_exit') }}">
+                <button type="button">Save</button>
+            </a>
+        </div>
+    {% else %}
+        <div>
+            <a href="{{ url_for('auth.login') }}">
+                <button type="button">LOGIN</button>
+            </a>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -33,3 +33,6 @@ langchain_community
 scrapegraphai
 opencv-python
 pyvirtualcam
+flask-mail
+flask-login
+qrcode

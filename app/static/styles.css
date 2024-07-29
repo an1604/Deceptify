@@ -1,111 +1,141 @@
 .profile-thumbnail {
     position: absolute;
 }
+
 .profile-header {
     min-height: 260px;
     margin-left: 280px;
 }
+
 div.post-tabs {
     margin-top: 16px;
 }
+
 ul.posts {
     list-style-type: none;
     padding: 0px;
     margin: 16px 0px 0px 0px;
     border-top: 1px solid #e0e0e0;
 }
+
 div.post-tabs ul.posts {
     margin: 0px;
     border-top: none;
 }
+
 ul.posts li.post {
     padding: 8px;
     border-bottom: 1px solid #e0e0e0;
 }
+
 ul.posts li.post:hover {
     background-color: #f0f0f0;
 }
+
 div.post-date {
     float: right;
 }
+
 div.post-author {
     font-weight: bold;
 }
+
 div.post-thumbnail {
     position: absolute;
 }
+
 div.post-content {
     margin-left: 48px;
     min-height: 48px;
 }
+
 div.post-footer {
     text-align: right;
 }
+
 ul.comments {
     list-style-type: none;
     padding: 0px;
     margin: 16px 0px 0px 0px;
 }
+
 ul.comments li.comment {
     margin-left: 32px;
     padding: 8px;
     border-bottom: 1px solid #e0e0e0;
 }
+
 ul.comments li.comment:nth-child(1) {
     border-top: 1px solid #e0e0e0;
 }
+
 ul.comments li.comment:hover {
     background-color: #f0f0f0;
 }
+
 div.comment-date {
     float: right;
 }
+
 div.comment-author {
     font-weight: bold;
 }
+
 div.comment-thumbnail {
     position: absolute;
 }
+
 div.comment-content {
     margin-left: 48px;
     min-height: 48px;
 }
+
 div.comment-form {
     margin: 16px 0px 16px 32px;
 }
+
 div.pagination {
     width: 100%;
     text-align: right;
     padding: 0px;
     margin: 0px;
 }
+
 div.flask-pagedown-preview {
     margin: 10px 0px 10px 0px;
     border: 1px solid #e0e0e0;
     padding: 4px;
 }
+
 div.flask-pagedown-preview h1 {
     font-size: 140%;
 }
+
 div.flask-pagedown-preview h2 {
     font-size: 130%;
 }
+
 div.flask-pagedown-preview h3 {
     font-size: 120%;
 }
+
 .post-body h1 {
     font-size: 140%;
 }
+
 .post-body h2 {
     font-size: 130%;
 }
+
 .post-body h3 {
     font-size: 120%;
 }
+
 .table.followers tr {
     border-bottom: 1px solid #e0e0e0;
 }
-.msg-header{
+
+.msg-header {
     border: 1px solid #ccc;
     width: 100%;
     height: 10%;
@@ -113,46 +143,56 @@ div.flask-pagedown-preview h3 {
     display: inline-block;
     /*background-color: #077;*/
 }
-.last-seen{
+
+.last-seen {
     width: 120px;
-    float:left;
+    float: left;
     margin-top: 10px;
 }
-.last-seen h4{
+
+.last-seen h4 {
     font-size: 20px;
     margin-left: 10px;
 
 }
-.last-seen h6{
+
+.last-seen h6 {
     font-size: 10px;
     margin-left: 10px;
     line-height: 2px;
 }
-.chat-page{
+
+.chat-page {
     padding: 0 0 50px 0;
 }
-.msg-inbox{
+
+.msg-inbox {
     border: 1px solid #ccc;
     overflow: hidden;
     padding-bottom: 30px;
 }
-.chats{
+
+.chats {
     padding: 30px 15px 25px;
 }
-.msg-page{
+
+.msg-page {
     height: 516px;
-    overflow-y:auto ;
+    overflow-y: auto;
 }
-.received-msg{
+
+.received-msg {
     display: inline-block;
     padding: 0 0 0 10px;
     vertical-align: top;
     width: 92%;
 }
-.received-msg-inbox{
+
+.received-msg-inbox {
     width: 57%;
 }
-.received-msg-inbox p{
+
+.received-msg-inbox p {
     background: #efefef none repeat scroll 0 0;
     border-radius: 10px;
     font-size: 14px;
@@ -161,28 +201,32 @@ div.flask-pagedown-preview h3 {
     width: 100%;
 }
 
-.outgoing-chats{
+.outgoing-chats {
     overflow: hidden;
     margin: 26px 20px;
 }
-.outgoing-chat-msg p{
-     background: #007bff none repeat scroll 0 0;
+
+.outgoing-chat-msg p {
+    background: #007bff none repeat scroll 0 0;
     border-radius: 10px;
     font-size: 14px;
     margin: 0;
     padding: 5px 10px 5px 12px;
     width: 100%;
 }
-.outgoing-chat-msg{
+
+.outgoing-chat-msg {
     float: left;
     width: 46%;
-    margin-left:45%;
+    margin-left: 45%;
 }
-.msg-bottom{
+
+.msg-bottom {
     position: relative;
     height: 10%;
 }
-.input-group{
+
+.input-group {
     float: right;
     margin-top: 13px;
     margin-right: 20px;
@@ -190,9 +234,23 @@ div.flask-pagedown-preview h3 {
     border-radius: 20px;
     width: 61% !important;
 }
-.profile-picture{
+
+.profile-picture {
     display: flex;
     justify-content: center;
     align-items: center;
-     margin-top: 30px;
+    margin-top: 30px;
+}
+
+.page-body {
+    /* background-image: url('{{ url_for(' static ', filename=' background.jpg ') }}'); */
+    /* background-size: cover; */ /* Ensure the image covers the entire element */
+    /* background-repeat: no-repeat; */ /* Prevent the image from repeating */
+    /* background-position: center center; */ /* Center the image */
+    background-color: #2E2E2E; /* Set background to dark-grey */
+    height: 100vh; /* Make sure the element is full height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }

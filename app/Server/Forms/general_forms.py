@@ -1,11 +1,8 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import StringField, SubmitField, FileField, PasswordField, TextAreaField, SelectField
-from wtforms.fields.list import FieldList
-from wtforms.fields.numeric import IntegerField
-from wtforms.fields.simple import BooleanField
 from wtforms.validators import DataRequired, Email, ValidationError
-from Server.data.DataStorage import DataStorage
+from app.Server.data.DataStorage import Data
 
 
 class CampaignForm(FlaskForm):
@@ -48,7 +45,7 @@ class CampaignForm(FlaskForm):
 class ViewAttacksForm(FlaskForm):
     attack_list = SelectField(
         label="Select Attack",
-        choices=DataStorage.get_attacks,
+        choices=Data().get_data_object().get_attacks,
         validators=[DataRequired()]
     )
     submit = SubmitField("View Info")
@@ -182,22 +179,11 @@ class PromptDeleteForm(FlaskForm):
         super(PromptDeleteForm, self).__init__(*args, **kwargs)
 
 
-class ZoomMeetingForm(FlaskForm):
-    meeting_name = StringField('Meeting Name', validators=[DataRequired()])
-    year = IntegerField('Year', default=2024)
-    month = IntegerField('Month')
-    day = IntegerField('Day')
-    hour = IntegerField('Hour')
-    minute = IntegerField('Minute')
-    second = IntegerField('Second', default=13)
-    submit = SubmitField("Submit")
-
-
 class LoginForm(FlaskForm):
-    email = StringField("Email", validators=[DataRequired(), Email()])
+    email = StringField(label="Email", validators=[Email()])
     submit = SubmitField("Login")
 
 
-class Submit_2FA(FlaskForm):
-    password = PasswordField("One time password", validators=[DataRequired()])
-    submit = SubmitField("Login")
+class AuthenticationForm(FlaskForm):
+    code = StringField(label='Your code here:', validators=[DataRequired()])
+    submit = SubmitField('Submit')

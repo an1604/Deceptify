@@ -1,12 +1,11 @@
-import speech_recognition as sr
 from threading import Thread
 from queue import Queue
-from Server.Util import *
+from app.Server.Util import *
 from speech_recognition import WaitTimeoutError
-from Server.LLM.llm import Llm
+from app.Server.LLM.llm import Llm
 
-from Server.Util import generate_voice, get_voice_profile, play_audio_through_vbcable
-from Server.speechToText.utilities_for_s2t import *
+from app.Server.Util import generate_voice, get_voice_profile, play_audio_through_vbcable
+from app.Server.speechToText.utilities_for_s2t import *
 
 r = sr.Recognizer()
 audio_queue = Queue()

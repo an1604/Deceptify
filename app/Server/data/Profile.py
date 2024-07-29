@@ -1,10 +1,8 @@
-import base64
 import json
-from flask import session, current_app as app
-from typing import Optional, Set, Union, List
+from typing import Optional, Set, List
 
-from Server import Util
-from Server.data.prompt import Prompt
+from app.Server import Util
+from app.Server.data.prompt import Prompt
 
 
 # TODO: fix when saving to pkl file and getting from pkl file
