@@ -106,7 +106,7 @@ def get_voice_profile(username, profile_name, prompt, prompt_filename):
     params = {'username': username, 'profile_name': profile_name, 'prompt_filename': prompt_filename}
     response = requests.get(url, params=params)
     response.raise_for_status()
-    file_path = 'AudioFiles' + '\\' + profile_name + "-" + prompt + ".wav"
+    file_path = 'Server\\AudioFiles' + '\\' + profile_name + "-" + prompt + ".wav"
     with open(file_path, 'wb') as f:
         f.write(response.content)
     return file_path
@@ -167,7 +167,6 @@ def play_audio_through_vbcable(audio_file_path, device_name="CABLE Input"):
 
 # Whatsapp open and close function
 
-'''
 def open_whatsapp():
     pyautogui.press('winleft')
     time.sleep(1)
@@ -216,27 +215,8 @@ def ExecuteCall(contact_name, event):
     open_whatsapp()
     search_contact(contact_name)
     start_call()
-    #event.wait()
-    #end_call()
-'''
-
-
-def dateTimeName(filename: str) -> str:
-    """
-    This function generates a string that represents the current date and time,
-    formatted according to a specific string format, and then appends a filename to it.
-
-    Parameters:
-    filename (str): The name of the file to be appended to the date and time string.
-
-    Returns:
-    str: A string representing the current date and time, followed by the filename.
-    The date and time are formatted as "day month year _ hour _ minute _ second _",
-    and all spaces are removed. For example, if the current date and time is
-    1st July 2021, 14:30:05, and the filename is "file.mp3", the output would be
-    "010721_143005_file.mp3".
-    """
-    return time.strftime("%d %m %y _ %H _ %M _ %S _", time.localtime()).replace(" ", "") + filename
+    # event.wait()
+    # end_call()
 
 
 FORMAT = pyaudio.paInt16
@@ -268,6 +248,7 @@ def transcribe_audio(wav_file_path, json_file_path=None, return_as_string=False)
 
 
 def record_call(event, fname):
+    event.clear()
     print("Recording...")
     time.sleep(10)
     # stopped = session['stopped call']
@@ -287,6 +268,8 @@ def record_call(event, fname):
         while not event.is_set():
             frames.append(stream.read(CHUNK))
             # stopped = session['stopped call']
+    except Exception as e:
+        print(e)
     finally:
         stream.stop_stream()
         print("stopped recording...")

@@ -1,9 +1,20 @@
+import base64
 import os.path
 import uuid
+import os
+import urllib
 from flask import redirect as flask_redirect, jsonify, session, send_file
+
+from flask import redirect as flask_redirect
+from flask import jsonify, session, send_file, abort
 from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
 
+from app.Server.Forms.general_forms import *
+from app.Server.Forms.upload_data_forms import *
+import app.Server.CamScript
+from app.Server.CamScript import RunVideo
+from zoom_req import *
 from app.Server.Forms.general_forms import *
 from app.Server.Forms.upload_data_forms import *
 from flask import render_template, url_for, flash, request, send_from_directory
@@ -14,14 +25,26 @@ from app.Server.data.Profile import Profile
 from threading import Thread, Event
 from dotenv import load_dotenv
 from app.Server.speechToText import SRtest
-
-CloseCallEvent = Event()
-StopRecordEvent = Event()
-GetAnswerEvent = Event()
+from app.Server.speechToText import SRtest
+import requests
 
 load_dotenv()
 
-SERVER_URL = os.getenv('SERVER_URL')
+CloseCallEvent = Event()
+StopRecordEvent = Event()
+CutVideoEvent = Event()
+GetAnswerEvent = Event()
+
+load_dotenv()
+cam_thread = None
+# Credentials For Zoom API
+ZOOM_CLIENT_ID = os.getenv('ZOOM_CLIENT_ID')
+ZOOM_CLIENT_SECRET = os.getenv('ZOOM_CLIENT_SECRET')
+ZOOM_ACCOUNT_ID = os.getenv('ZOOM_ACCOUNT_ID')
+AUTH_URL = os.getenv('ZOOM_AUTH_URL')
+REDIRECT_URI = os.getenv('REDIRECT_URI')
+TOKEN_URL = os.getenv('TOKEN_URL')
+BASE_ZOOM_URL = os.getenv('BASE_ZOOM_API_REQ_URL')
 
 
 def error_routes(app):  # Error handlers routes
@@ -37,7 +60,6 @@ def error_routes(app):  # Error handlers routes
 def general_routes(main, data_storage):  # This function stores all the general routes.
     @main.route("/", methods=["GET", "POST"])  # The root router (welcome page).
     def index():
-        print(current_user.is_authenticated)
         return render_template("index.html")
 
     @main.route('/save_exit')
@@ -67,6 +89,7 @@ def general_routes(main, data_storage):  # This function stores all the general 
             if video is not None:
                 video_path = os.path.join(main.config["VIDEO_UPLOAD_FOLDER"], secure_filename(video.filename))
                 video.save(video_path)
+                createvoice_profile(username="oded", profile_name=name, file_path=file_path)
                 data_storage.add_profile(Profile(name, gen_info, str(file_path), video_data_path=str(video_path)))
             else:
                 createvoice_profile(username="oded", profile_name=name, file_path=file_path)
@@ -125,7 +148,9 @@ def general_routes(main, data_storage):  # This function stores all the general 
     @main.route("/dashboard", methods=["GET", "POST"])
     @login_required
     def dashboard():
-        return render_template("dashboard.html")
+        encoded_start_url = request.args.get('start_url')
+        start_url = encoded_start_url if encoded_start_url else None
+        return render_template("dashboard.html", start_url=start_url)
 
     @main.route('/mp3/<path:filename>')  # Serve the MP3 files statically
     @login_required
@@ -136,6 +161,64 @@ def general_routes(main, data_storage):  # This function stores all the general 
     @login_required
     def serve_video(filename):
         return send_from_directory(main.config['VIDEO_UPLOAD_FOLDER'], filename)
+
+    @main.route('/zoom_authorization')
+    @login_required
+    def zoom_authorization():
+        auth_url = f'{AUTH_URL}?response_type=code&client_id={ZOOM_CLIENT_ID}&redirect_uri={REDIRECT_URI}'
+        return flask_redirect(auth_url)
+
+    @main.route('/zoom')
+    @login_required
+    def zoom():
+        code = request.args.get('code')
+        if code:
+            data = {
+                'grant_type': 'authorization_code',
+                'code': code,
+                'redirect_uri': REDIRECT_URI
+            }
+            credentials = f'{ZOOM_CLIENT_ID}:{ZOOM_CLIENT_SECRET}'
+            encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
+            headers = {
+                'Authorization': f'Basic {encoded_credentials}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+            response = requests.post(TOKEN_URL, data=data, headers=headers)
+            if response.status_code == 200:
+                response_data = response.json()
+                refresh_token = response_data.get('refresh_token')
+                access_token = response_data.get('access_token')
+
+                session['zoom_access_credentials'] = {
+                    'refresh_token': refresh_token,
+                    'access_token': access_token
+                }
+                return flask_redirect(url_for('generate_zoom_record'))
+            else:
+                return jsonify({'error': 'Failed to retrieve tokens'}), response.status_code
+        else:
+            return jsonify({'error': 'No code parameter provided'}), 400
+
+    @app.route('/generate_zoom_record', methods=["GET", "POST"])
+    def generate_zoom_record():
+        form = ZoomMeetingForm()
+        if 'zoom_access_credentials' in session:
+            access_token = session['zoom_access_credentials'].get('access_token')
+            print(access_token)
+            if form.validate_on_submit():
+                headers, data = generate_data_for_new_meeting(access_token=access_token,
+                                                              meeting_name=form.meeting_name.data,
+                                                              year=form.year.data, month=form.month.data,
+                                                              day=form.day.data,
+                                                              hour=form.hour.data, second=form.second.data,
+                                                              minute=form.minute.data)
+                start_url = create_new_meeting(headers=headers, data=data)
+                encoded_start_url = urllib.parse.quote(start_url)
+                print(start_url)
+                return flask_redirect(url_for('dashboard', start_url=encoded_start_url))
+            return render_template('generate_zoom_meeting.html', form=form)
+        return abort(404)  # Aborting if we got no access token
 
 
 def attack_generation_routes(main, data_storage):
@@ -176,12 +259,15 @@ def attack_generation_routes(main, data_storage):
     def attack_dashboard_transition():
         profile_name = request.args.get("profile")
         contact_name = request.args.get("contact")
+        if session.get("started_call"):
+            session.pop("started_call")
         return render_template('attack_pages/attack_dashboard_transition.html', profile=profile_name,
                                contact=contact_name)
 
     @main.route('/attack_dashboard', methods=['GET', 'POST'])
     @login_required
     def attack_dashboard():
+        global cam_thread
         profile_name = request.args.get("profile")
         contact_name = request.args.get("contact")
         profile = data_storage.get_profile(profile_name)
@@ -190,17 +276,42 @@ def attack_generation_routes(main, data_storage):
 
         started = session.get("started_call")
         if not started:
-            s2t_thread = Thread(target=SRtest.startConv, args=(main.config, profile_name))
-            s2t_thread.start()
-            recorder_thread = Thread(target=record_call,
-                                     args=(StopRecordEvent, f"Attacker-{profile_name}-Target-{contact_name}"))
-            s2t_thread.join()
-            StopRecordEvent.set()
+            recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
+                                                               "-Target-" + contact_name))
+            recorder_thread.start()
+            if profile.video_data_path is not None:
+                cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
+                                                           ".mp4", True, CutVideoEvent))
+                cam_thread.start()
+            # if profile.video_data_path is not None:
+            #    s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name))
+            #    s2t_thread.start()
+            # thread_call = Thread(target=ExecuteCall, args=(contact_name, CloseCallEvent))
+            # thread_call.start()
+            #    s2t_thread.join()
+            #    StopRecordEvent.set()
 
+            # Create a new thread for the speech to text
+            # s2t = SpeechToText((Util.dateTimeName('_'.join([profile_name, contact_name, "voice_call"]))))
+            # s2t.start()
             session["started_call"] = True
             session['stopped_call'] = False
         if form.validate_on_submit():
             if profile.video_data_path is not None:
+                CutVideoEvent.set()
+                play_audio_thread = Thread(target=play_audio_through_vbcable,
+                                           args=(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                                                 form.prompt_field.data + ".wav", "CABLE Input"))
+                play_audio_thread.start()
+                cam_thread.join()
+                cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
+                                                           "-" + form.prompt_field.data + ".mp4", False, CutVideoEvent))
+                cam_thread.start()
+                cam_thread.join()
+                cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
+                                                           ".mp4", True, CutVideoEvent))
+                cam_thread.start()
+                play_audio_thread.join()
                 return flask_redirect(url_for('main.attack_dashboard', profile=profile_name, contact=contact_name))
             else:
                 play_audio_through_vbcable(
@@ -336,6 +447,8 @@ def attack_generation_routes(main, data_storage):
         session['stopped_call'] = True
         CloseCallEvent.set()
         StopRecordEvent.set()
+        CutVideoEvent.set()
+        app.Server.CamScript.virtual_cam = None
         session.pop("started_call", None)
         return jsonify({})
 
