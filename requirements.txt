@@ -36,3 +36,5 @@ pyvirtualcam
 flask-mail
 flask-login
 qrcode
+pyotp
+email_validator

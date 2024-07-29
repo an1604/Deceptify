@@ -47,12 +47,12 @@ TOKEN_URL = os.getenv('TOKEN_URL')
 BASE_ZOOM_URL = os.getenv('BASE_ZOOM_API_REQ_URL')
 
 
-def error_routes(app):  # Error handlers routes
-    @app.errorhandler(404)
+def error_routes(main):  # Error handlers routes
+    @main.errorhandler(404)
     def not_found(error):
         return render_template("errors/404.html"), 404
 
-    @app.errorhandler(500)
+    @main.errorhandler(500)
     def internal_error(error):
         return render_template("errors/500.html"), 500
 
@@ -119,6 +119,7 @@ def general_routes(main, data_storage):  # This function stores all the general 
         return render_template("profile.html", profileo=profile)
 
     @main.route("/transcript/<attack_id>")
+    @login_required
     def transcript(attack_id):
         attack = data_storage.get_attack(attack_id)
         json_file_path = os.path.join(main.config['ATTACK_RECS'],
@@ -200,7 +201,8 @@ def general_routes(main, data_storage):  # This function stores all the general 
         else:
             return jsonify({'error': 'No code parameter provided'}), 400
 
-    @app.route('/generate_zoom_record', methods=["GET", "POST"])
+    @main.route('/generate_zoom_record', methods=["GET", "POST"])
+    @login_required
     def generate_zoom_record():
         form = ZoomMeetingForm()
         if 'zoom_access_credentials' in session:
