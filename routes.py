@@ -2,6 +2,7 @@ import uuid
 
 from flask import redirect as flask_redirect, jsonify, session, send_file
 from werkzeug.utils import secure_filename
+import Server.CamScript
 from Server.CamScript import RunVideo
 from Server.Forms.general_forms import *
 from Server.Forms.upload_data_forms import *
@@ -201,28 +202,21 @@ def attack_generation_routes(app, data_storage):
 
         started = session.get("started_call")
         if not started:
+            recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
+                                                               "-Target-" + contact_name))
+            recorder_thread.start()
             if profile.video_data_path is not None:
                 cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
                                                            ".mp4", True, CutVideoEvent))
                 cam_thread.start()
             # if profile.video_data_path is not None:
-
-            #    s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name))
-            #    s2t_thread.start()
-            # thread_call = Thread(target=ExecuteCall, args=(contact_name, CloseCallEvent))
-            # thread_call.start()
-            #    recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
-            #                                                      "-Target-" + contact_name))
+                #    s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name))
+                #    s2t_thread.start()
+                # thread_call = Thread(target=ExecuteCall, args=(contact_name, CloseCallEvent))
+                # thread_call.start()
             #    s2t_thread.join()
             #    StopRecordEvent.set()
 
-            # # Omer's call recording NEED TO BE TESTED ON WINDOWS
-            #
-            # recorder = CallRecorder()
-            # recording_thread = Thread(target=recorder.start_recording)
-            # recording_thread.start()
-            # # When you want to stop recording, call:
-            # # recorder.stop_recording()
 
             # Create a new thread for the speech to text
             # s2t = SpeechToText((Util.dateTimeName('_'.join([profile_name, contact_name, "voice_call"]))))
@@ -233,16 +227,19 @@ def attack_generation_routes(app, data_storage):
         if form.validate_on_submit():
             if profile.video_data_path is not None:
                 CutVideoEvent.set()
+                play_audio_thread = Thread(target=play_audio_through_vbcable,
+                                           args=(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                                                 form.prompt_field.data + ".wav", "CABLE Input"))
+                play_audio_thread.start()
                 cam_thread.join()
                 cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
                                                            "-" + form.prompt_field.data + ".mp4", False, CutVideoEvent))
                 cam_thread.start()
-                play_audio_through_vbcable(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-                                           form.prompt_field.data + ".wav")
                 cam_thread.join()
                 cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
                                                            ".mp4", True, CutVideoEvent))
                 cam_thread.start()
+                play_audio_thread.join()
                 return flask_redirect(url_for('attack_dashboard', profile=profile_name, contact=contact_name))
             else:
                 play_audio_through_vbcable(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
@@ -403,6 +400,7 @@ def attack_generation_routes(app, data_storage):
         CloseCallEvent.set()
         StopRecordEvent.set()
         CutVideoEvent.set()
+        Server.CamScript.virtual_cam = None
         session.pop("started_call", None)
         return jsonify({})
 

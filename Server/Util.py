@@ -246,6 +246,7 @@ def transcribe_audio_to_json(wav_file_path, json_file_path):
 
 
 def record_call(event, fname):
+    event.clear()
     print("Recording...")
     time.sleep(10)
     # stopped = session['stopped call']
@@ -265,6 +266,8 @@ def record_call(event, fname):
         while not event.is_set():
             frames.append(stream.read(CHUNK))
             # stopped = session['stopped call']
+    except Exception as e:
+        print(e)
     finally:
         stream.stop_stream()
         print("stopped recording...")
