@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import StringField, SubmitField, FileField, PasswordField, TextAreaField, SelectField
+from wtforms.fields.numeric import IntegerField
 from wtforms.validators import DataRequired, Email, ValidationError
 from app.Server.data.DataStorage import Data
 
@@ -187,3 +188,14 @@ class LoginForm(FlaskForm):
 class AuthenticationForm(FlaskForm):
     code = StringField(label='Your code here:', validators=[DataRequired()])
     submit = SubmitField('Submit')
+
+
+class ZoomMeetingForm(FlaskForm):
+    meeting_name = StringField('Meeting Name', validators=[DataRequired()])
+    year = IntegerField('Year', default=2024)
+    month = IntegerField('Month')
+    day = IntegerField('Day')
+    hour = IntegerField('Hour')
+    minute = IntegerField('Minute')
+    second = IntegerField('Second', default=13)
+    submit = SubmitField("Submit")

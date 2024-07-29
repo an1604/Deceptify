@@ -64,8 +64,10 @@ def create_app():
     login_manager.init_app(app)
 
     # Register main blueprint
-    from app.main import main as main_blueprint
+    from app.main import create_blueprint
+    main_blueprint = create_blueprint(app)
     app.register_blueprint(main_blueprint)
+
     # Register authentication blueprint
     from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')

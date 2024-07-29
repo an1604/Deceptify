@@ -57,7 +57,7 @@ def error_routes(main):  # Error handlers routes
         return render_template("errors/500.html"), 500
 
 
-def general_routes(main, data_storage):  # This function stores all the general routes.
+def general_routes(main, app, data_storage):  # This function stores all the general routes.
     @main.route("/", methods=["GET", "POST"])  # The root router (welcome page).
     def index():
         return render_template("index.html")
@@ -84,10 +84,10 @@ def general_routes(main, data_storage):  # This function stores all the general 
                 video = None
 
             # Save the voice sample
-            file_path = os.path.join(main.config["UPLOAD_FOLDER"], secure_filename(data.filename))
+            file_path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(data.filename))
             data.save(file_path)
             if video is not None:
-                video_path = os.path.join(main.config["VIDEO_UPLOAD_FOLDER"], secure_filename(video.filename))
+                video_path = os.path.join(app.config["VIDEO_UPLOAD_FOLDER"], secure_filename(video.filename))
                 video.save(video_path)
                 createvoice_profile(username="oded", profile_name=name, file_path=file_path)
                 data_storage.add_profile(Profile(name, gen_info, str(file_path), video_data_path=str(video_path)))
@@ -122,7 +122,7 @@ def general_routes(main, data_storage):  # This function stores all the general 
     @login_required
     def transcript(attack_id):
         attack = data_storage.get_attack(attack_id)
-        json_file_path = os.path.join(main.config['ATTACK_RECS'],
+        json_file_path = os.path.join(app.config['ATTACK_RECS'],
                                       f"Attacker-{attack.get_mimic_profile().getName()}-Target-{attack.getDesc()}.json")
         with open(json_file_path, 'r') as file:
             data = json.load(file)
@@ -132,7 +132,7 @@ def general_routes(main, data_storage):  # This function stores all the general 
     @login_required
     def recording(attack_id):
         attack = data_storage.get_attack(attack_id)
-        file_path = os.path.join(main.config['ATTACK_RECS'],
+        file_path = os.path.join(app.config['ATTACK_RECS'],
                                  f"Attacker-{attack.get_mimic_profile().getName()}-Target-{attack.getID()}.wav")
         return send_file(file_path)
 
@@ -156,12 +156,12 @@ def general_routes(main, data_storage):  # This function stores all the general 
     @main.route('/mp3/<path:filename>')  # Serve the MP3 files statically
     @login_required
     def serve_mp3(filename):
-        return send_from_directory(main.config['UPLOAD_FOLDER'], filename)
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
     @main.route('/video/<path:filename>')  # Serve the video files statically
     @login_required
     def serve_video(filename):
-        return send_from_directory(main.config['VIDEO_UPLOAD_FOLDER'], filename)
+        return send_from_directory(app.config['VIDEO_UPLOAD_FOLDER'], filename)
 
     @main.route('/zoom_authorization')
     @login_required
@@ -195,7 +195,7 @@ def general_routes(main, data_storage):  # This function stores all the general 
                     'refresh_token': refresh_token,
                     'access_token': access_token
                 }
-                return flask_redirect(url_for('generate_zoom_record'))
+                return flask_redirect(url_for('main.generate_zoom_record'))
             else:
                 return jsonify({'error': 'Failed to retrieve tokens'}), response.status_code
         else:
@@ -317,7 +317,7 @@ def attack_generation_routes(main, data_storage):
                 return flask_redirect(url_for('main.attack_dashboard', profile=profile_name, contact=contact_name))
             else:
                 play_audio_through_vbcable(
-                    os.path.join(main.config['UPLOAD_FOLDER'], f"{profile_name}-{form.prompt_field.data}.wav"))
+                    os.path.join(app.config['UPLOAD_FOLDER'], f"{profile_name}-{form.prompt_field.data}.wav"))
                 return flask_redirect(url_for('main.attack_dashboard', profile=profile_name, contact=contact_name))
         return render_template('attack_pages/attack_dashboard.html', form=form, contact=contact_name)
 
@@ -367,7 +367,7 @@ def attack_generation_routes(main, data_storage):
     def upload_voice_file():
         form = VoiceUploadForm()
         if form.validate_on_submit():
-            wavs_filepath, profile_directory = create_wavs_directory_for_dataset(main.config['UPLOAD_FOLDER'])
+            wavs_filepath, profile_directory = create_wavs_directory_for_dataset(app.config['UPLOAD_FOLDER'])
             for file in form.files.data:
                 filename = secure_filename(file.filename)
                 file_path = os.path.join(wavs_filepath, filename)
@@ -394,7 +394,7 @@ def attack_generation_routes(main, data_storage):
             flash("No selected file")
             return flask_redirect(request.url)
         file_name = str(uuid.uuid4()) + ".mp3"
-        full_file_name = os.path.join(main.config["UPLOAD_FOLDER"], file_name)
+        full_file_name = os.path.join(app.config["UPLOAD_FOLDER"], file_name)
         file.save(full_file_name)
         return "<h1>File saved</h1>"
 
@@ -455,7 +455,7 @@ def attack_generation_routes(main, data_storage):
         return jsonify({})
 
 
-def execute_routes(main, data_storage):  # Function that executes all the routes.
-    general_routes(main, data_storage)  # General pages navigation
+def execute_routes(main, app, data_storage):  # Function that executes all the routes.
+    general_routes(main, app, data_storage)  # General pages navigation
     attack_generation_routes(main, data_storage)  # Attack generation pages navigation
     error_routes(main)  # Errors pages navigation
