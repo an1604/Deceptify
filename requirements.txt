@@ -29,5 +29,7 @@ visitor
 Werkzeug
 WTForms
 scrapegraphai
+langchain_community
+scrapegraphai
 opencv-python
 pyvirtualcam

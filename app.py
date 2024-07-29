@@ -1,19 +1,16 @@
-import time
-import queue
-import requests
 from flask import Flask
 from flask_bootstrap import Bootstrap
 import os
 from dotenv import load_dotenv
 from routes import execute_routes
-from Server.data.DataStorage import DataStorage
+from Server.data.DataStorage import Data
+from flask_login import LoginManager
 
 load_dotenv()
 
-remote_server_ip = os.getenv("REMOTE_SERVER_IP")
-remote_server_port = os.getenv("REMOTE_SERVER_PORT")
-updates_queue = queue.Queue()  # Queue for handling updates from the remote server.
 data = None  # The data parameter keeps the last update from the remoter server.
+# login_manager = LoginManager()
+# login_manager.login_view = 'login'
 
 
 def create_audio_file():
@@ -57,10 +54,11 @@ def create_app():
     app.config["VIDEO_UPLOAD_FOLDER"] = video_file_path
     app.config["ATTACK_RECS"] = create_attack_file()
     bootstrap = Bootstrap(app)
+    # login_manager.init_app(app)  # Initialize login manager for user authentication.
 
-    data_storage = DataStorage().load_data()
+    data_storage = Data().get_data_object()
     execute_routes(app, data_storage)  # Executing the routes
-    app.run(debug=True, use_reloader=True)  # Running the application.
+    app.run(debug=True, use_reloader=True, host='0.0.0.0')  # Running the application.
     return app
 
 

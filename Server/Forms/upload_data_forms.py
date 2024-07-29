@@ -2,21 +2,27 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from wtforms.fields.simple import PasswordField, SubmitField
 from wtforms.validators import DataRequired
+from wtforms import MultipleFileField, SelectField
+
+from Server.Forms.validators import MultipleFileRequired
+from Server.data.DataStorage import Data
 
 
-class VoiceUploadForm(
-    FlaskForm
-):  # For uploading voice recordings for the model's training and tune.
-    file_field = FileField(
-        label="Upload Your Voice Recording",
+class VoiceUploadForm(FlaskForm):
+    profiles = [profile for profile in Data().get_data_object().getAllProfileNames()]
+    if len(profiles) <= 0:
+        profiles = ['user']
+
+    profile_name = SelectField(label="Choose the profile",
+                               choices=profiles,
+                               default="user")
+    files = MultipleFileField(
+        label="Upload Your Voice Recordings (wav files)",
+        render_kw={"multiple": True},
         validators=[
             FileRequired(),
-            FileAllowed(
-                ["mp3", "wav", "ogg"], "Voice recording files only (MP3, WAV, OGG)"
-            ),
-        ],
+            FileAllowed(['wav', 'mp3', 'wav'])],
     )
-    passwd = PasswordField("Enter you key for validation", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
 

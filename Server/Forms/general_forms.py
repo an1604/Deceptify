@@ -1,6 +1,9 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import StringField, SubmitField, FileField, PasswordField, TextAreaField, SelectField
+from wtforms.fields.list import FieldList
+from wtforms.fields.numeric import IntegerField
+from wtforms.fields.simple import BooleanField
 from wtforms.validators import DataRequired, Email, ValidationError
 from Server.data.DataStorage import DataStorage
 
@@ -110,20 +113,6 @@ class ProfileForm(FlaskForm):
         label="Profile Name",
         validators=[DataRequired()]
     )
-    # role_field = SelectField(
-    #     label="Role",
-    #     choices=[("Victim", "Victim"), ("Attacker", "Attacker"), ("Other", "Other")],
-    #     validators=[DataRequired()],
-    # )
-    # data_type_selection = SelectField(
-    #     label="Which type of information do you want to upload?",
-    #     choices=[
-    #         ("DataSets", "DataSets"),
-    #         ("Recordings", "Recordings"),
-    #         ("Video", "Video"),
-    #     ],
-    #     validators=[DataRequired()],
-    # )
     gen_info_field = StringField(
         "Whatsapp name",
         description="Enter profile whatsapp name",
@@ -191,3 +180,24 @@ class PromptDeleteForm(FlaskForm):
         # Extract the extra argument
         self.profile = kwargs.pop('profile', None)
         super(PromptDeleteForm, self).__init__(*args, **kwargs)
+
+
+class ZoomMeetingForm(FlaskForm):
+    meeting_name = StringField('Meeting Name', validators=[DataRequired()])
+    year = IntegerField('Year', default=2024)
+    month = IntegerField('Month')
+    day = IntegerField('Day')
+    hour = IntegerField('Hour')
+    minute = IntegerField('Minute')
+    second = IntegerField('Second', default=13)
+    submit = SubmitField("Submit")
+
+
+class LoginForm(FlaskForm):
+    email = StringField("Email", validators=[DataRequired(), Email()])
+    submit = SubmitField("Login")
+
+
+class Submit_2FA(FlaskForm):
+    password = PasswordField("One time password", validators=[DataRequired()])
+    submit = SubmitField("Login")

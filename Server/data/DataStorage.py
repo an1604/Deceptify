@@ -13,54 +13,31 @@ class DataStorage:
     A class that represents the data storage for profiles, prompts, and attacks.
     """
 
-    _shared_state = {}
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(DataStorage, cls).__new__(cls, *args, **kwargs)
+            cls._instance._initialized = False
+        return cls._instance
 
     def __init__(self):
-        self.__dict__ = self._shared_state
-        if not self._shared_state:
+        if not self._initialized:
             self.profiles: Set[Profile] = set()
             self.attacks: Set = set()
+            self._initialized = True
 
     def add_profile(self, profile: Profile) -> None:
-        """
-        Add a profile to the data storage.
-
-        Args:
-            profile (Profile): The profile to be added.
-        """
         self.profiles.add(profile)
 
-    def add_attack(self, new_attack) -> None:
-        """
-        Add an attack to the data storage.
-        This also adds the attack to the target and victim profiles.
-
-        Args:
-            new_attack: The attack to be added.
-        """
-        # target = new_attack.get_target()
-        # victim = new_attack.get_mimic_profile()
-        # target.addAttack(new_attack)
-        # victim.addAttack(new_attack)
+    def add_attack(self, new_attack: Attack) -> None:
         self.attacks.add(new_attack)
         print(f'dataStorage attacks: {self.attacks}')
 
-    def get_attacks(self) -> Set:
-        """
-        Get all the attacks stored in the data storage.
-
-        Returns:
-            Set: A set of attacks.
-        """
+    def get_attacks(self) -> Set[Attack]:
         return self.attacks
 
-    def delete_attack(self, attackID) -> None:
-        """
-        Delete an attack from the data storage.
-
-        Args:
-            attackID: The ID of the attack to be deleted.
-        """
+    def delete_attack(self, attackID: int) -> None:
         attack_to_remove = None
         for attack in self.attacks:
             if attack.getID() == attackID:
@@ -70,84 +47,52 @@ class DataStorage:
             self.attacks.remove(attack_to_remove)
 
     def get_AllProfiles(self) -> Set[Profile]:
-        """
-        Get all the profiles stored in the data storage.
-
-        Returns:
-            Set[Profile]: A set of profiles.
-        """
         return self.profiles
 
     def get_profiles(self) -> Set[Profile]:
-        """
-        Get the profiles stored in the data storage.
-
-        Returns:
-            Set[Profile]: A set of profiles.
-        """
         return self.profiles
 
     def getAllProfileNames(self) -> List[str]:
-        """
-        Get the names of all the profiles stored in the data storage.
-
-        Returns:
-            List[str]: A list of profile names or a message if empty.
-        """
         if not self.profiles:
             return ["No profiles available, time to create some!"]
         else:
             return [profile.getName() for profile in self.profiles]
 
     def get_profile(self, profile_name: str) -> Optional[Profile]:
-        """
-        Get a profile from the data storage by its name.
-
-        Args:
-            profile_name (str): The name of the profile.
-
-        Returns:
-            Optional[Profile]: The profile object if found, None otherwise.
-        """
         for profile in self.profiles:
             if profile.getName() == profile_name:
                 return profile
         return None
 
-    def get_attack(self,attack_id) -> Optional[Attack]:
-
+    def get_attack(self, attack_id: int) -> Optional[Attack]:
         for attack in self.attacks:
-            if attack.getID() == int(attack_id):
+            if attack.getID() == attack_id:
                 return attack
         return None
 
     def prepare_data_to_remote_server(self) -> str:
-        """
-        Prepare the data before sending it to the remote server.
-
-        Returns:
-            str: A JSON string containing the profile data.
-        """
         profiles = [profile.to_json() for profile in self.profiles]
         return json.dumps({'profiles': profiles})
 
     def save_data(self) -> None:
-        """
-        Save the data object to a file.
-        """
         with open('data.pkl', 'wb') as file:
             pickle.dump(self, file)
 
     @classmethod
     def load_data(cls: Type['DataStorage']) -> 'DataStorage':
-        """
-        Load the data object from a file and return an instance.
-
-        Returns:
-            DataStorage: An instance of the DataStorage class.
-        """
+        instance = cls()
         if os.path.exists('data.pkl'):
             with open('data.pkl', 'rb') as file:
                 loaded_data = pickle.load(file)
-                cls._shared_state.update(loaded_data.__dict__)
-        return cls()
+                instance.__dict__.update(loaded_data.__dict__)
+        return instance
+
+
+class Data:
+    _data_storage = None
+
+    @staticmethod
+    def get_data_object() -> DataStorage:
+        if Data._data_storage is None:
+            Data._data_storage = DataStorage.load_data()
+        return Data._data_storage
