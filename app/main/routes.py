@@ -218,7 +218,7 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
                 start_url = create_new_meeting(headers=headers, data=data)
                 encoded_start_url = urllib.parse.quote(start_url)
                 print(start_url)
-                return flask_redirect(url_for('dashboard', start_url=encoded_start_url))
+                return flask_redirect(url_for('main.dashboard', start_url=encoded_start_url))
             return render_template('generate_zoom_meeting.html', form=form)
         return abort(404)  # Aborting if we got no access token
 
