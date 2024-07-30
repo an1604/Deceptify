@@ -10,7 +10,7 @@
 <h2>Prompts</h2>
 <div>
     {% for prompt in prompts %}
-    <button type="button" class="viewVideoButton" data-videopath="{{ url_for('serve_video', filename=prompt.videoname) }}">{{ prompt.prompt_desc }}</button>
+    <button type="button" class="viewVideoButton" data-videopath="{{ url_for('main.serve_video', filename=prompt.videoname) }}">{{ prompt.prompt_desc }}</button>
     <br><br>
     {% endfor %}
     <video id="videoPlayer" controls style="display: none; width: 100%; max-width: 600px;">

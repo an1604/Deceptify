@@ -16,6 +16,11 @@ def connect(width, height, fps, event):
             print(f"RuntimeError: {e}")
 
 
+def ResetVirtualCam():
+    global virtual_cam
+    virtual_cam = None
+
+
 def RunVideo(video_path, is_default: bool, event: Event):
     video = cv2.VideoCapture(video_path)
     if not video.isOpened():

@@ -14,8 +14,10 @@
         function openSmallWindow() {
             const profile = "{{profile}}";
             const contact = "{{contact}}"
+            const type = "{{type}}"
             window.open('/attack_dashboard?profile=' + encodeURIComponent(profile) + '&contact='
-                + encodeURIComponent(contact), 'smallWindow', 'width=600,height=360,left=0,top=0,resizable=no,scrollbars=no,status=no');
+                + encodeURIComponent(contact) + '&type=' + encodeURIComponent(type), 'smallWindow',
+                'width=600,height=360,left=0,top=0,resizable=no,scrollbars=no,status=no');
             window.close()
         }
         window.onload = openSmallWindow;

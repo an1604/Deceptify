@@ -3,10 +3,10 @@ from queue import Queue
 from app.Server.Util import *
 from speech_recognition import WaitTimeoutError
 from app.Server.LLM.llm import Llm
-
+import pyaudio
 from app.Server.Util import generate_voice, get_voice_profile, play_audio_through_vbcable
 from app.Server.speechToText.utilities_for_s2t import *
-
+import re
 r = sr.Recognizer()
 audio_queue = Queue()
 conversation_history = []
@@ -15,6 +15,20 @@ llm = Llm()
 isAnswer = None
 
 
+def get_device_index(device_name="CABLE Output"):
+    p = pyaudio.PyAudio()
+    device_index = None
+    for i in range(p.get_device_count()):
+        dev = p.get_device_info_by_index(i)
+        if device_name in dev['name']:
+            device_index = i
+            break
+    p.terminate()
+    return device_index
+
+def sanitize_filename(filename):
+    # Replace invalid characters with underscores
+    return re.sub(r'[<>:"/\\|?*]', '_', filename).strip()
 def recognize_worker(config, profile_name, username):
     global flag
     # This runs in a background thread
@@ -36,10 +50,12 @@ def recognize_worker(config, profile_name, username):
             for phrase in end_call_phrases:
                 if phrase in response:
                     flag = True
-            serv_response = generate_voice(username, profile_name, response)
-            get_voice_profile(username, profile_name, response, serv_response["file"])
+            sanitized_prompt = sanitize_filename(response)
+            serv_response = generate_voice(username, profile_name, sanitized_prompt)
+            get_voice_profile(username, profile_name, sanitized_prompt, serv_response["file"])
+            print("got profile")
             play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-                                       response + ".wav")
+                                       "prompt" + ".wav")
             conversation_history.append({"ai": response})
         except sr.UnknownValueError:
             print("Google Speech Recognition could not understand audio")
@@ -54,8 +70,9 @@ def startConv(config, profile_name, username="oded"):
     recognize_thread = Thread(target=recognize_worker, args=(config, profile_name, username,))
     recognize_thread.daemon = True
     recognize_thread.start()
+    device_index = get_device_index()
 
-    with sr.Microphone() as source:
+    with sr.Microphone(device_index=device_index) as source:
         print("Adjusting for ambient noise, please wait...")
         print("Listening for speech...")
         print(source)

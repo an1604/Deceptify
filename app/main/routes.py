@@ -12,8 +12,7 @@ from flask_login import login_required, current_user
 
 from app.Server.Forms.general_forms import *
 from app.Server.Forms.upload_data_forms import *
-import app.Server.CamScript
-from app.Server.CamScript import RunVideo
+from app.Server.CamScript import RunVideo, ResetVirtualCam
 from zoom_req import *
 from app.Server.Forms.general_forms import *
 from app.Server.Forms.upload_data_forms import *
@@ -26,6 +25,7 @@ from threading import Thread, Event
 from dotenv import load_dotenv
 from app.Server.speechToText import SRtest
 from app.Server.speechToText import SRtest
+from app.Server.CamScript import virtual_cam
 import requests
 
 load_dotenv()
@@ -151,6 +151,7 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
     def dashboard():
         encoded_start_url = request.args.get('start_url')
         start_url = encoded_start_url if encoded_start_url else None
+        print("this is the url + " + str(start_url))
         return render_template("dashboard.html", start_url=start_url)
 
     @main.route('/mp3/<path:filename>')  # Serve the MP3 files statically
@@ -169,9 +170,10 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
         auth_url = f'{AUTH_URL}?response_type=code&client_id={ZOOM_CLIENT_ID}&redirect_uri={REDIRECT_URI}'
         return flask_redirect(auth_url)
 
-    @main.route('/zoom')
+    @main.route('/zoom', methods=["GET", "POST"])
     @login_required
     def zoom():
+        print("2")
         code = request.args.get('code')
         if code:
             data = {
@@ -218,12 +220,12 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
                 start_url = create_new_meeting(headers=headers, data=data)
                 encoded_start_url = urllib.parse.quote(start_url)
                 print(start_url)
-                return flask_redirect(url_for('dashboard', start_url=encoded_start_url))
+                return flask_redirect(url_for('main.dashboard', start_url=encoded_start_url))
             return render_template('generate_zoom_meeting.html', form=form)
         return abort(404)  # Aborting if we got no access token
 
 
-def attack_generation_routes(main, data_storage):
+def attack_generation_routes(main, app, data_storage):
     @main.route("/newattack", methods=["GET", "POST"])  # The new chat route.
     @login_required
     def newattack():
@@ -253,7 +255,7 @@ def attack_generation_routes(main, data_storage):
             flash("Campaign created successfully using")
             return flask_redirect(
                 url_for('main.attack_dashboard_transition', profile=form.mimic_profile.data,
-                        contact=form.target_name.data))
+                        contact=form.target_name.data, type=attack_type))
         return render_template('attack_pages/newattack.html', form=form)
 
     @main.route('/attack_dashboard_transition', methods=['GET'])
@@ -261,10 +263,11 @@ def attack_generation_routes(main, data_storage):
     def attack_dashboard_transition():
         profile_name = request.args.get("profile")
         contact_name = request.args.get("contact")
+        attack_type = request.args.get("type")
         if session.get("started_call"):
             session.pop("started_call")
         return render_template('attack_pages/attack_dashboard_transition.html', profile=profile_name,
-                               contact=contact_name)
+                               contact=contact_name, type=attack_type)
 
     @main.route('/attack_dashboard', methods=['GET', 'POST'])
     @login_required
@@ -272,6 +275,7 @@ def attack_generation_routes(main, data_storage):
         global cam_thread
         profile_name = request.args.get("profile")
         contact_name = request.args.get("contact")
+        attack_type = request.args.get("type")
         profile = data_storage.get_profile(profile_name)
         form = AttackDashboardForm()
         form.prompt_field.choices = [(prompt.prompt_desc, prompt.prompt_desc) for prompt in profile.getPrompts()]
@@ -281,17 +285,18 @@ def attack_generation_routes(main, data_storage):
             recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
                                                                "-Target-" + contact_name))
             recorder_thread.start()
-            if profile.video_data_path is not None:
+            if profile.video_data_path is not None and attack_type == "Video":
                 cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
                                                            ".mp4", True, CutVideoEvent))
                 cam_thread.start()
+            # else:  # voice attack
             # if profile.video_data_path is not None:
-            #    s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name))
-            #    s2t_thread.start()
+            # s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name))
+            # s2t_thread.start()
             # thread_call = Thread(target=ExecuteCall, args=(contact_name, CloseCallEvent))
             # thread_call.start()
-            #    s2t_thread.join()
-            #    StopRecordEvent.set()
+            # s2t_thread.join()
+            # StopRecordEvent.set()
 
             # Create a new thread for the speech to text
             # s2t = SpeechToText((Util.dateTimeName('_'.join([profile_name, contact_name, "voice_call"]))))
@@ -299,7 +304,7 @@ def attack_generation_routes(main, data_storage):
             session["started_call"] = True
             session['stopped_call'] = False
         if form.validate_on_submit():
-            if profile.video_data_path is not None:
+            if profile.video_data_path is not None and attack_type == "Video":
                 CutVideoEvent.set()
                 play_audio_thread = Thread(target=play_audio_through_vbcable,
                                            args=(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
@@ -450,12 +455,12 @@ def attack_generation_routes(main, data_storage):
         CloseCallEvent.set()
         StopRecordEvent.set()
         CutVideoEvent.set()
-        app.Server.CamScript.virtual_cam = None
+        ResetVirtualCam()
         session.pop("started_call", None)
         return jsonify({})
 
 
 def execute_routes(main, app, data_storage):  # Function that executes all the routes.
     general_routes(main, app, data_storage)  # General pages navigation
-    attack_generation_routes(main, data_storage)  # Attack generation pages navigation
+    attack_generation_routes(main, app, data_storage)  # Attack generation pages navigation
     error_routes(main)  # Errors pages navigation

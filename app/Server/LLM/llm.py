@@ -3,7 +3,7 @@ from scrapegraphai.graphs import SmartScraperGraph
 
 ROLE = """
 ROLE: Your role is to get the ID of the person that you talk with.
-REMEMBER: keep your answers as short as you can, maximum one line in any case.
+REMEMBER: keep your answers as short as you can, max five words.
 Query: {} 
 """
 

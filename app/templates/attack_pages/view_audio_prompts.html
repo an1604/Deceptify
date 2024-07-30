@@ -11,7 +11,7 @@
 <h2>Prompts</h2>
 <div>
     {% for prompt in prompts %}
-    <button type="button" class="playButton" data-filepath="{{ url_for('serve_mp3',filename=prompt.filename) }}">{{prompt.prompt_desc}}</button>
+    <button type="button" class="playButton" data-filepath="{{ url_for('main.serve_mp3',filename=prompt.filename) }}">{{prompt.prompt_desc}}</button>
     <br>
     <br>
     {% endfor %}
