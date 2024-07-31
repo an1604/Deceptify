@@ -150,8 +150,7 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
     @login_required
     def dashboard():
         encoded_start_url = request.args.get('start_url')
-        start_url = encoded_start_url if encoded_start_url else None
-        print("this is the url + " + str(start_url))
+        start_url = urllib.parse.unquote(encoded_start_url) if encoded_start_url else None
         return render_template("dashboard.html", start_url=start_url)
 
     @main.route('/mp3/<path:filename>')  # Serve the MP3 files statically
@@ -173,7 +172,6 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
     @main.route('/zoom', methods=["GET", "POST"])
     @login_required
     def zoom():
-        print("2")
         code = request.args.get('code')
         if code:
             data = {
@@ -217,9 +215,10 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
                                                               day=form.day.data,
                                                               hour=form.hour.data, second=form.second.data,
                                                               minute=form.minute.data)
+
                 start_url = create_new_meeting(headers=headers, data=data)
-                encoded_start_url = urllib.parse.quote(start_url)
                 print(start_url)
+                encoded_start_url = urllib.parse.quote(start_url)
                 return flask_redirect(url_for('main.dashboard', start_url=encoded_start_url))
             return render_template('generate_zoom_meeting.html', form=form)
         return abort(404)  # Aborting if we got no access token

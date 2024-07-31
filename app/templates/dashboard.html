@@ -4,11 +4,10 @@
 {% block page_content %}
     <div class="page-header">
         <h1>Dash Board</h1>
-        <a href="{{ url_for('main.zoom_authorization') }}">Authorize With Zoom To Create An Attack!</a>
-    </div>
-    {% if start_url %}
-        <div>
+        {% if start_url %}
             <a href="{{ start_url }}">Your Attack Is Ready To Go!</a>
-        </div>
-    {% endif %}
+        {% else %}
+            <a href="{{ url_for('main.zoom_authorization') }}">Authorize With Zoom To Create An Attack!</a>
+        {% endif %}
+    </div>
 {% endblock %}

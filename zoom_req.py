@@ -17,11 +17,9 @@ def get_meetings_from_zoom(user_id, headers):
 def create_new_meeting(headers, data, user_id='nataf12386@gmail.com'):
     request_url = f'https://api.zoom.us/v2/users/me/meetings'
     response = requests.post(request_url, headers=headers, data=json.dumps(data))
-    print(response)
 
     if response.status_code == 201:
         response_data = response.json()
-        print(response_data)
         start_url = response_data.get('start_url')
         return start_url
     return None
@@ -42,7 +40,7 @@ def generate_data_for_new_meeting(access_token, meeting_name="My Meeting",
         "start_time": start_time_str,
         "duration": "3",
         "settings": {
-            "host_video": True,  # CHANGE THIS VALUE TO TURN OFF THE CAMERA ON THE BEGINNING
+            "host_video": False,  # CHANGE THIS VALUE TO TURN OFF THE CAMERA ON THE BEGINNING
             "participant_video": True,
             "join_before_host": True,
             "mute_upon_entry": 'true',
