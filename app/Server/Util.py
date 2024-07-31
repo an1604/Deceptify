@@ -138,10 +138,10 @@ def play_audio_through_vbcable(audio_file_path, device_name="CABLE Input"):
                     output=True,
                     output_device_index=device_index)
 
-    default_stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                            channels=wf.getnchannels(),
-                            rate=wf.getframerate(),
-                            output=True)
+    # default_stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+    #                         channels=wf.getnchannels(),
+    #                         rate=wf.getframerate(),
+    #                         output=True)
     # Read data in chunks
     chunk = 1024
     data = wf.readframes(chunk)
@@ -149,14 +149,14 @@ def play_audio_through_vbcable(audio_file_path, device_name="CABLE Input"):
     # Play the audio file
     while data:
         stream.write(data)
-        default_stream.write(data)
+        # default_stream.write(data)
         data = wf.readframes(chunk)
 
     # Stop stream
     stream.stop_stream()
-    default_stream.stop_stream()
+    # default_stream.stop_stream()
     stream.close()
-    default_stream.close()
+    # default_stream.close()
 
     # Close PyAudio
     p.terminate()

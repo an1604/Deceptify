@@ -33,7 +33,7 @@ def RunVideo(video_path, is_default: bool, event: Event):
     fps = video.get(cv2.CAP_PROP_FPS)
     if virtual_cam is None:
         connect(width, height, fps, event)
-    # Attempt to open virtual camera until successful
+    print("starting video")
     while not event.is_set():
         ret, frame = video.read()
         if not ret:
@@ -41,10 +41,10 @@ def RunVideo(video_path, is_default: bool, event: Event):
                 return
             video.set(cv2.CAP_PROP_POS_FRAMES, 0)
             continue
-
         # Send frame to virtual camera
         virtual_cam.send(frame)
 
         # Wait until next frame is due
         virtual_cam.sleep_until_next_frame()
+    print("ending video")
     video.release()

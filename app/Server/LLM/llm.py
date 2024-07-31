@@ -2,7 +2,7 @@ from langchain_community.llms import Ollama
 from scrapegraphai.graphs import SmartScraperGraph
 
 ROLE = """
-ROLE: Your role is to get the ID of the person that you talk with.
+ROLE: Your name is Donald, you are the best friend of the other speaker, and you need to get his address to pick him up. .
 REMEMBER: keep your answers as short as you can, max five words.
 Query: {} 
 """

@@ -1,4 +1,4 @@
-from threading import Thread
+from threading import Thread, Event
 from queue import Queue
 from app.Server.Util import *
 from speech_recognition import WaitTimeoutError
@@ -7,12 +7,14 @@ import pyaudio
 from app.Server.Util import generate_voice, get_voice_profile, play_audio_through_vbcable
 from app.Server.speechToText.utilities_for_s2t import *
 import re
+
 r = sr.Recognizer()
 audio_queue = Queue()
 conversation_history = []
 flag = False
 llm = Llm()
 isAnswer = None
+waitforllm = Event()
 
 
 def get_device_index(device_name="CABLE Output"):
@@ -26,11 +28,14 @@ def get_device_index(device_name="CABLE Output"):
     p.terminate()
     return device_index
 
+
 def sanitize_filename(filename):
     # Replace invalid characters with underscores
     return re.sub(r'[<>:"/\\|?*]', '_', filename).strip()
+
+
 def recognize_worker(config, profile_name, username):
-    global flag
+    global flag, waitforllm, conversation_history
     # This runs in a background thread
     global isAnswer
     while True:
@@ -48,25 +53,32 @@ def recognize_worker(config, profile_name, username):
             isAnswer = True
             print("AI says: " + response)
             for phrase in end_call_phrases:
-                if phrase in response:
+                if phrase in spoken_text.lower():
                     flag = True
             sanitized_prompt = sanitize_filename(response)
             serv_response = generate_voice(username, profile_name, sanitized_prompt)
-            get_voice_profile(username, profile_name, sanitized_prompt, serv_response["file"])
-            print("got profile")
+            get_voice_profile(username, profile_name, "prompt", serv_response["file"])
             play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
                                        "prompt" + ".wav")
             conversation_history.append({"ai": response})
+            print("1")
+            print(conversation_history)
+            print("2")
+            if not waitforllm.is_set():
+                waitforllm.set()
         except sr.UnknownValueError:
+            waitforllm.set()
             print("Google Speech Recognition could not understand audio")
         except sr.RequestError as e:
+            waitforllm.set()
             print("Could not request results from Google Speech Recognition service; {0}".format(e))
         except Exception as e:
             print(e)
 
 
 def startConv(config, profile_name, username="oded"):
-    global flag
+    global flag, waitforllm
+    flag = False
     recognize_thread = Thread(target=recognize_worker, args=(config, profile_name, username,))
     recognize_thread.daemon = True
     recognize_thread.start()
@@ -78,11 +90,12 @@ def startConv(config, profile_name, username="oded"):
         print(source)
         try:
             while not flag:
+                waitforllm.clear()
                 r.adjust_for_ambient_noise(source)
                 # r.pause_threshold = 1
                 audio_queue.put(r.listen(source, timeout=8, phrase_time_limit=8))
                 print("sleeping")
-                time.sleep(10)
+                waitforllm.wait()
                 if not isAnswer:
                     # Generate filler
                     pass

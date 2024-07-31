@@ -289,13 +289,13 @@ def attack_generation_routes(main, app, data_storage):
                 cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
                                                            ".mp4", True, CutVideoEvent))
                 cam_thread.start()
-            # else:  # voice attack
-            # if profile.video_data_path is not None:
-            # s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name))
-            # s2t_thread.start()
-            # thread_call = Thread(target=ExecuteCall, args=(contact_name, CloseCallEvent))
-            # thread_call.start()
-            # s2t_thread.join()
+            else:  # voice attack
+                # if profile.video_data_path is not None:
+                s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name))
+                s2t_thread.start()
+                # thread_call = Thread(target=ExecuteCall, args=(contact_name, CloseCallEvent))
+                # thread_call.start()
+                s2t_thread.join()
             # StopRecordEvent.set()
 
             # Create a new thread for the speech to text
@@ -319,12 +319,15 @@ def attack_generation_routes(main, app, data_storage):
                                                            ".mp4", True, CutVideoEvent))
                 cam_thread.start()
                 play_audio_thread.join()
-                return flask_redirect(url_for('main.attack_dashboard', profile=profile_name, contact=contact_name))
+                return flask_redirect(url_for('main.attack_dashboard', profile=profile_name,
+                                              contact=contact_name, type=attack_type))
             else:
                 play_audio_through_vbcable(
                     os.path.join(app.config['UPLOAD_FOLDER'], f"{profile_name}-{form.prompt_field.data}.wav"))
-                return flask_redirect(url_for('main.attack_dashboard', profile=profile_name, contact=contact_name))
-        return render_template('attack_pages/attack_dashboard.html', form=form, contact=contact_name)
+                return flask_redirect(url_for('main.attack_dashboard', profile=profile_name,
+                                              contact=contact_name, type=attack_type))
+        return render_template('attack_pages/attack_dashboard.html', form=form,
+                               contact=contact_name, type=attack_type)
 
     @main.route('/send_prompt', methods=['GET'])
     @login_required
