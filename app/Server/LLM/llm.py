@@ -1,5 +1,14 @@
+import os
+import time
+import faiss
+import pandas as pd
+
 from langchain_community.llms import Ollama
 from scrapegraphai.graphs import SmartScraperGraph
+
+from sentence_transformers import SentenceTransformer
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 
 ROLE = """
 ROLE: Your name is Donald, you are the best friend of the other speaker, and you need to get his address to pick him up. .
@@ -33,25 +42,25 @@ class Llm(object):
     def __init__(self):
         self.llm = Ollama(model=model_name)
         self.scraper = None
+        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+
+        # Create Faiss index
+        self.index = faiss.IndexFlatL2(384)
+
+        self.faq = self.get_faq()
+
+        for qa in self.faq:  # Create the embedding representation for each row in the knowledgebase.
+            embedding = self.get_embedding(qa)
+            self.index.add(embedding)
+
+        index_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'faiss.index')
+        faiss.write_index(self.index, index_path)
 
     def get_answer(self, prompt, event=None):
         answer = self.llm.invoke(ROLE.format(prompt))
         if event:
             event.set()
         return answer
-
-    def run_long_conversation(self):
-        prompt = input("You're turn ")
-        while not ('exit' in prompt):
-            print(f"\n{self.get_answer(prompt)}")
-            prompt = input("You're turn ")
-
-    def run_quick_conversation(self):
-        prompt = ROLE.format(input("You're turn "))
-        while not ('exit' in prompt):
-            for chunks in self.llm.stream(prompt):
-                print(chunks, end="")
-            prompt = ROLE.format(input("You're turn "))
 
     def scrape(self, url, prompt):
         self.scraper = SmartScraperGraph(
@@ -63,8 +72,27 @@ class Llm(object):
         print(result)
         return result
 
+    def get_embedding(self, _input):
+        embedding = self.embedding_model.encode(_input)
+        return np.array([embedding])  # Ensure it returns a 2D array
+
+    @staticmethod
+    def get_nearest_neighbors(vector, k=3):
+        index = faiss.read_index(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'faiss.index'))
+        query_vector = vector.astype("float32").reshape(1, -1)
+        distances, indices = index.search(query_vector, k)
+        return indices, distances
+
+    @staticmethod
+    def get_faq(file_path=r'C:\colman\Final project\Deceptify\app\Server\LLM\knowledge.csv'):
+        df = pd.read_csv(file_path, sep=";")
+        faq = [x + " - " + y for x, y in df.values]
+        return faq
+
 
 if __name__ == '__main__':
     llm = Llm()
     # llm.scrape()
-    llm.get_answer("what is 1 + 4")
+    t1 = time.time()
+    print(llm.get_answer("I will be in touch later"))
+    print(time.time() - t1)
