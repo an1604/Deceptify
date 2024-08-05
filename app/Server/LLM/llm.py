@@ -13,7 +13,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 ROLE = """
 ROLE: Your name is Donald, you are the best friend of the other speaker, and you need to get his address to pick him up. .
 REMEMBER: keep your answers as short as you can, max five words.
-Query: {} 
+Query: {prompt}
+Reference Answer: {reference}
 """
 
 # model_name = 'http://ollama:11434/'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
@@ -57,7 +58,25 @@ class Llm(object):
         faiss.write_index(self.index, index_path)
 
     def get_answer(self, prompt, event=None):
-        answer = self.llm.invoke(ROLE.format(prompt))
+        prompt_embedding = self.get_embedding(prompt)  # Get the embedding representation for the prompt
+        indices, distances = self.get_nearest_neighbors(prompt_embedding)
+        closest_distance = distances[0][0]
+        faq_index = indices[0][0]  # Taking the closest FAQ index
+
+        print(closest_distance)
+        threshold = 0.9
+
+        if closest_distance < threshold:
+            try:
+                answer = self.faq[faq_index].split('-')[-1]
+            except IndexError as e:
+                print(f"IndexError: {e}")
+                print(f"Index: {faq_index}, Length of faq: {len(self.faq)}")
+                answer = "Sorry, I couldn't find an appropriate answer."
+        else:
+            user_prompt = ROLE.format(prompt=prompt,reference=self.faq[faq_index].split('-')[-1])
+            print(user_prompt)
+            answer = self.llm.invoke(user_prompt)
         if event:
             event.set()
         return answer
