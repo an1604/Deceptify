@@ -1,4 +1,7 @@
 import socket
+import re
+import csv
+from io import StringIO
 
 import pyaudio
 import wave
@@ -12,6 +15,38 @@ import speech_recognition as sr
 load_dotenv()
 
 SERVER_URL = os.getenv('SERVER_URL')
+
+
+def create_knowledgebase(text):
+    pattern = re.compile(r'"Question","Answer".*', re.DOTALL)
+    matches = pattern.findall(text)
+    if not matches:
+        prio
+        return None
+    csv_content = matches[0].strip()
+
+    with open('knowledgebase_costume.csv', 'w', newline='') as file:
+        file.write(csv_content)
+    print(csv_content)
+    # Get just the relevant question,answer pairs.
+    rows = []
+    reader = csv.reader(StringIO(csv_content))
+    next(reader)  # Skip the header row
+    for row in reader:
+        if len(row) == 2:
+            question, answer = row
+            rows.append((question, answer))
+    print(rows)
+
+    # Rewrite the file with only the question,answer pairs.
+    with open('knowledgebase_costume.csv', 'w', newline='') as file:
+        file.write("'Question';'Answer'\n")
+        for question, answer in rows:
+            file.write(f"'{question}';'{answer}'\n")
+        with open('knowledgebase.csv','r') as knowledgebase:
+            for line in knowledgebase:
+                file.write(line + '\n')
+    return rows
 
 
 def create_wavs_directory_for_dataset(upload_folder, profile_name="user"):

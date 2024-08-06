@@ -4,6 +4,7 @@ import uuid
 import os
 import urllib
 from flask import redirect as flask_redirect, jsonify, session, send_file
+from app.deceptify import llm
 
 from flask import redirect as flask_redirect
 from flask import jsonify, session, send_file, abort
@@ -101,6 +102,7 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
             # redirect to ollama
             flash("Profile created successfully")
             return flask_redirect(url_for("main.index"))
+            # TODO: return flask_redirect(url_for('upload_voice_file')) FOR UPLOAD VOICE FILES FOR DATASET
         return render_template("attack_pages/new_profile.html", form=form)
 
     @main.route("/profileview", methods=["GET", "POST"])
@@ -296,14 +298,8 @@ def attack_generation_routes(main, app, data_storage):
                 # if profile.video_data_path is not None:
                 s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name))
                 s2t_thread.start()
-                # thread_call = Thread(target=ExecuteCall, args=(contact_name, CloseCallEvent))
-                # thread_call.start()
                 s2t_thread.join()
-            # StopRecordEvent.set()
 
-            # Create a new thread for the speech to text
-            # s2t = SpeechToText((Util.dateTimeName('_'.join([profile_name, contact_name, "voice_call"]))))
-            # s2t.start()
             session["started_call"] = True
             session['stopped_call'] = False
         if form.validate_on_submit():
@@ -470,3 +466,6 @@ def execute_routes(main, app, data_storage):  # Function that executes all the r
     general_routes(main, app, data_storage)  # General pages navigation
     attack_generation_routes(main, app, data_storage)  # Attack generation pages navigation
     error_routes(main)  # Errors pages navigation
+
+
+

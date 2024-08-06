@@ -3,7 +3,7 @@ from flask_bootstrap import Bootstrap
 import os
 from dotenv import load_dotenv
 from flask_login import LoginManager
-
+from datetime import timedelta
 from app.Server.data.user import get_user_from_remote, User
 
 load_dotenv()
@@ -53,7 +53,7 @@ def create_app():
 
     # app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # A secret key for the encryption process (not really useful).
     app.config["SECRET_KEY"] = "hard to guess string"
-
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
     audio_file_path = create_audio_file()
     video_file_path = create_video_file()
     app.config["UPLOAD_FOLDER"] = audio_file_path

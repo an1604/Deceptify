@@ -17,6 +17,18 @@ Query: {prompt}
 Reference Answer: {reference}
 """
 
+KNOWLEDGEBASE_ROLE = """
+    Your task is to generate a knowledgebase like a csv that include general 
+    questions and answers about a person.
+    the answers should be short and simple
+    The person have the following general information that you can use to generate the file:
+    {}. 
+
+    For example: If the person likes to play chess, for a question what's your plans today you can 
+    insert an answer 'To play chess', another question could be: "where were you yesterday?", and an answer to that
+    will be "I went to the park yesterday with my dog"
+    """
+
 # model_name = 'http://ollama:11434/'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
 model_name = 'llama3'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
 
@@ -45,17 +57,24 @@ class Llm(object):
         self.scraper = None
         self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 
+        self.start_conv = True
+        self.open_msg = 'Hello how are you doing?'
+
         # Create Faiss index
         self.index = faiss.IndexFlatL2(384)
-
         self.faq = self.get_faq()
+        self.generate_faq_embedding()
 
+    def generate_faq_embedding(self):
         for qa in self.faq:  # Create the embedding representation for each row in the knowledgebase.
             embedding = self.get_embedding(qa)
             self.index.add(embedding)
 
         index_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'faiss.index')
         faiss.write_index(self.index, index_path)
+
+    def generate_knowledgebase(self, gen_info):
+        return self.llm.invoke(KNOWLEDGEBASE_ROLE.format(gen_info))
 
     def get_answer(self, prompt, event=None):
         prompt_embedding = self.get_embedding(prompt)  # Get the embedding representation for the prompt
@@ -115,3 +134,4 @@ if __name__ == '__main__':
     t1 = time.time()
     print(llm.get_answer("I will speak with you soon"))
     print(time.time() - t1)
+

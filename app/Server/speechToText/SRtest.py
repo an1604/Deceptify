@@ -2,7 +2,6 @@ from threading import Thread, Event
 from queue import Queue
 from app.Server.Util import *
 from speech_recognition import WaitTimeoutError
-from app.Server.LLM.llm import Llm
 import pyaudio
 from app.Server.Util import generate_voice, get_voice_profile, play_audio_through_vbcable
 from app.Server.speechToText.utilities_for_s2t import *
@@ -14,11 +13,11 @@ r = sr.Recognizer()
 audio_queue = Queue()
 conversation_history = []
 flag = False
-llm = Llm()
-isAnswer = None
+
 waitforllm = Event()
 data_storage = Data().get_data_object()
 prompts_for_user = set()
+
 
 def get_device_index(device_name="CABLE Output"):
     p = pyaudio.PyAudio()
@@ -72,9 +71,7 @@ def recognize_worker(config, profile_name, username):
                 #TODO: play audio file of, "can i have your email?","can i have your id?" etc
 
             conversation_history.append({"ai": response})
-            print("1")
             print(conversation_history)
-            print("2")
             if not waitforllm.is_set():
                 waitforllm.set()
         except sr.UnknownValueError:
@@ -90,6 +87,11 @@ def recognize_worker(config, profile_name, username):
 def startConv(config, profile_name, username="oded", starting_message="Hello how are you doing"):
     global flag, waitforllm, prompts_for_user
     flag = False
+    started_conv = False
+
+    prompts_for_user = set([prompt.prompt_desc for prompt in
+                            data_storage.get_profile(profile_name).getPrompts()])
+
     recognize_thread = Thread(target=recognize_worker, args=(config, profile_name, username,))
     recognize_thread.daemon = True
     recognize_thread.start()
@@ -98,7 +100,9 @@ def startConv(config, profile_name, username="oded", starting_message="Hello how
     with sr.Microphone() as source:
         print("Adjusting for ambient noise, please wait...")
         print("Listening for speech...")
-        print(source)
+        play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                                   starting_message + ".wav", "CABLE Input")
+        conversation_history.append({"ai": starting_message})
         try:
             while not flag:
                 waitforllm.clear()
@@ -112,9 +116,6 @@ def startConv(config, profile_name, username="oded", starting_message="Hello how
                 audio_queue.put(r.listen(source, timeout=8, phrase_time_limit=8))
                 print("sleeping")
                 waitforllm.wait()
-                if not isAnswer:
-                    # Generate filler
-                    pass
                 print("Woke up")
 
         except WaitTimeoutError:
@@ -124,3 +125,4 @@ def startConv(config, profile_name, username="oded", starting_message="Hello how
     audio_queue.join()  # Block until all current audio processing jobs are done
     audio_queue.put(None)  # Tell the recognize_thread to stop
     recognize_thread.join()  # Wait for the recognize_thread to actually stop
+    starting_thread.join()

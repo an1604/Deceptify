@@ -111,12 +111,9 @@ class ProfileForm(FlaskForm):
         label="Profile Name",
         validators=[DataRequired()]
     )
-    gen_info_field = StringField(
-        "Whatsapp name",
-        description="Enter profile whatsapp name",
-        validators=[DataRequired()],
+    gen_info_field = TextAreaField(
+        label="Give us information about the mimic. (Optional)",
     )
-
     # Additional fields to upload different types of data
     recording_upload = FileField(
         label="Upload Your Voice Recording",

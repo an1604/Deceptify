@@ -33,6 +33,7 @@ def two_factor_login():
         code = form.code.data
         if code == session['code']:
             user = get_user_from_remote(get_ip_address())
+            session.permanent = True  # Mark the session as permanent
             login_user(user)
             session.pop('try_to_logged_in', None)
             session.pop('code', None)
@@ -46,4 +47,5 @@ def two_factor_login():
 @auth.route('/logout')
 def logout():
     logout_user()
+    session.clear()
     return flask_redirect(url_for('main.index'))

@@ -31,7 +31,7 @@ class DataStorage:
 
     def add_attack(self, new_attack: Attack) -> None:
         self.attacks.add(new_attack)
-        print(f'dataStorage attacks: {self.attacks}')
+        # print(f'dataStorage attacks: {self.attacks}')
 
     def get_attacks(self) -> Set[Attack]:
         return self.attacks
@@ -81,6 +81,7 @@ class DataStorage:
     def load_data(cls: Type['DataStorage']) -> 'DataStorage':
         instance = cls()
         if os.path.exists('data.pkl'):
+            # print("The path exists!")
             with open('data.pkl', 'rb') as file:
                 loaded_data = pickle.load(file)
                 instance.__dict__.update(loaded_data.__dict__)
