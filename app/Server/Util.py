@@ -106,7 +106,7 @@ def get_voice_profile(username, profile_name, prompt, prompt_filename):
     params = {'username': username, 'profile_name': profile_name, 'prompt_filename': prompt_filename}
     response = requests.get(url, params=params)
     response.raise_for_status()
-    file_path = 'app\\Server\\AudioFiles' + '\\' + profile_name + "-" + prompt + ".wav"
+    file_path = 'Server\\AudioFiles' + '\\' + profile_name + "-" + prompt + ".wav"
     with open(file_path, 'wb') as f:
         f.write(response.content)
     return file_path

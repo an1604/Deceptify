@@ -64,7 +64,7 @@ class Llm(object):
         faq_index = indices[0][0]  # Taking the closest FAQ index
 
         print(closest_distance)
-        threshold = 0.9
+        threshold = 0.85
 
         if closest_distance < threshold:
             try:
@@ -113,5 +113,5 @@ if __name__ == '__main__':
     llm = Llm()
     # llm.scrape()
     t1 = time.time()
-    print(llm.get_answer("I will be in touch later"))
+    print(llm.get_answer("I will speak with you soon"))
     print(time.time() - t1)
