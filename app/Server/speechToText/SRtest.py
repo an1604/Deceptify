@@ -62,10 +62,10 @@ def recognize_worker(config, profile_name, username):
                 sanitized_prompt = sanitize_filename(response)
                 prompts_for_user.add(sanitized_prompt)
                 #TODO: Add a filler of "wait a second", "hold on a second"
-                serv_response = generate_voice(username, profile_name, sanitized_prompt)
-                get_voice_profile(username, profile_name, "prompt", serv_response["file"])
-                play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-                                           "prompt" + ".wav")
+                # serv_response = generate_voice(username, profile_name, sanitized_prompt)
+                # get_voice_profile(username, profile_name, "prompt", serv_response["file"])
+                # play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                #                            "prompt" + ".wav")
             if response == "I am good thank you":
                 print()
                 #TODO: play audio file of, "can i have your email?","can i have your id?" etc
@@ -100,9 +100,6 @@ def startConv(config, profile_name, username="oded", starting_message="Hello how
     with sr.Microphone() as source:
         print("Adjusting for ambient noise, please wait...")
         print("Listening for speech...")
-        play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-                                   starting_message + ".wav", "CABLE Input")
-        conversation_history.append({"ai": starting_message})
         try:
             while not flag:
                 waitforllm.clear()
@@ -120,8 +117,8 @@ def startConv(config, profile_name, username="oded", starting_message="Hello how
 
         except WaitTimeoutError:
             print("Timed out waiting for audio")
-
-    save_conversation_to_json("conversation.json", conversation_history)
+    llm.end_conversation()
+    save_conversation_to_json(profile_name + "-conversation.json", conversation_history)
     audio_queue.join()  # Block until all current audio processing jobs are done
     audio_queue.put(None)  # Tell the recognize_thread to stop
     recognize_thread.join()  # Wait for the recognize_thread to actually stop

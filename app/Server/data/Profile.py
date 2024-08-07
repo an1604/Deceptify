@@ -126,9 +126,9 @@ class Profile:
         Set default prompts for the profile.
         """
         default_prompts = [
-            "Hello how are you doing","I am good thank you", "Thank you", "See you later",
-            "What did you say", "I don't know", "Can you repeat that",
-            "Yes i agree", "No i do not agree", "Yes", "No"
+            "Hello how are you doing", "I am good thank you", "Thank you", "See you later",
+            "Goodbye", "What did you say", "I don't know", "Can you repeat that",
+            "Yes i agree", "No i do not agree", "Yes", "No", "Wait a second", "Hold on a second", "Umm"
         ]
         if self.video_data_path is None:
             for prompt_desc in default_prompts:

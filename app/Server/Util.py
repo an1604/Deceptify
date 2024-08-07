@@ -21,11 +21,10 @@ def create_knowledgebase(text):
     pattern = re.compile(r'"Question","Answer".*', re.DOTALL)
     matches = pattern.findall(text)
     if not matches:
-        prio
         return None
     csv_content = matches[0].strip()
 
-    with open('knowledgebase_costume.csv', 'w', newline='') as file:
+    with open('knowledgebase_custom.csv', 'w', newline='') as file:
         file.write(csv_content)
     print(csv_content)
     # Get just the relevant question,answer pairs.
@@ -42,8 +41,8 @@ def create_knowledgebase(text):
     with open('knowledgebase_costume.csv', 'w', newline='') as file:
         file.write("'Question';'Answer'\n")
         for question, answer in rows:
-            file.write(f"'{question}';'{answer}'\n")
-        with open('knowledgebase.csv','r') as knowledgebase:
+            file.write(f"'{question}';'{answer}'")
+        with open('Server/LLM/knowledge.csv', 'r') as knowledgebase:
             for line in knowledgebase:
                 file.write(line + '\n')
     return rows
