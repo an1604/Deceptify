@@ -26,6 +26,7 @@ def create_knowledgebase(text):
 
     with open('knowledgebase_custom.csv', 'w', newline='') as file:
         file.write(csv_content)
+        file.close()
     print(csv_content)
     # Get just the relevant question,answer pairs.
     rows = []
@@ -38,13 +39,16 @@ def create_knowledgebase(text):
     print(rows)
 
     # Rewrite the file with only the question,answer pairs.
-    with open('knowledgebase_costume.csv', 'w', newline='') as file:
-        file.write("'Question';'Answer'\n")
+    with open('knowledgebase_custom.csv', 'w', newline='') as file:
+        file.write("'Question';'Answer'")
         for question, answer in rows:
             file.write(f"'{question}';'{answer}'")
         with open('Server/LLM/knowledge.csv', 'r') as knowledgebase:
             for line in knowledgebase:
-                file.write(line + '\n')
+                print(line)
+                file.write(line)
+
+        file.close()
     return rows
 
 
@@ -140,7 +144,11 @@ def get_voice_profile(username, profile_name, prompt, prompt_filename):
     params = {'username': username, 'profile_name': profile_name, 'prompt_filename': prompt_filename}
     response = requests.get(url, params=params)
     response.raise_for_status()
+
     file_path = 'Server\\AudioFiles' + '\\' + profile_name + "-" + prompt + ".wav"
+    #TODO: LOOK ON THIS REGEX FILTERING
+    # file_path = re.sub(r'\[.*?\]\s*', '',file_path)
+
     with open(file_path, 'wb') as f:
         f.write(response.content)
     return file_path
@@ -330,7 +338,6 @@ def record_call(event, fname):
 
             print(f"{WAVE_OUTPUT_FILENAME} succssfully saved!")
             transcribe_audio(WAVE_OUTPUT_FILENAME, JSON_OUTPUT_FILENAME)
-        # TODO: SENT THE RESULT TO THE REMOTE SERVER TO INSPECT THE RESULT!
 
 
 def get_ip_address():

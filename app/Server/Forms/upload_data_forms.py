@@ -4,9 +4,13 @@ from wtforms.fields.choices import SelectField
 from wtforms.fields.simple import PasswordField, SubmitField
 from wtforms.validators import DataRequired
 from wtforms import MultipleFileField
+from app.Server.data.DataStorage import Data
 
 
 class VoiceUploadForm(FlaskForm):
+    profiles = SelectField(label='Profiles',
+                           choices=[profile for profile in Data().get_data_object().getAllProfileNames()],
+                           validators=[DataRequired()])
     files = MultipleFileField(
         label="Upload Your Voice Recordings (wav files)",
         render_kw={"multiple": True},

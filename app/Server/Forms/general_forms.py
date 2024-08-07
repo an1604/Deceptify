@@ -114,24 +114,6 @@ class ProfileForm(FlaskForm):
     gen_info_field = TextAreaField(
         label="Give us information about the mimic. (Optional)",
     )
-    # Additional fields to upload different types of data
-    recording_upload = FileField(
-        label="Upload Your Voice Recording",
-        validators=[
-            FileRequired(),
-            FileAllowed(
-                ["mp3", "wav", "ogg"], "Voice recording files only (MP3, WAV, OGG)"
-            ),
-        ],
-    )
-
-    Image_upload = FileField(
-        label='Upload Video',
-        validators=[FileAllowed(["JPG", "jpg"], message="JPG Images only")]
-    )
-
-    # dataset_upload = FileField('Upload Dataset')
-
     submit = SubmitField("Submit")
 
 

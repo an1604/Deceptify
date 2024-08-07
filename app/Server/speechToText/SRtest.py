@@ -7,7 +7,7 @@ from app.Server.Util import generate_voice, get_voice_profile, play_audio_throug
 from app.Server.speechToText.utilities_for_s2t import *
 import re
 from app.Server.data.DataStorage import Data
-from app.deceptify import llm
+from app.Server.LLM.llm import llm
 
 r = sr.Recognizer()
 audio_queue = Queue()
@@ -46,19 +46,16 @@ def recognize_worker(config, profile_name, username):
         # Recognize audio data using Google Speech Recognition
         try:
             spoken_text = r.recognize_google(audio)
-            print("User said: " + spoken_text)
             conversation_history.append({"user": spoken_text})
-            response = llm.get_answer(spoken_text).strip()
+            response = llm.get_answer(spoken_text, conversation_history).strip()
             print("AI says: " + response)
 
             if "see you" in response.lower():
                 flag = True
             if response in prompts_for_user:
-                print("not generating")
                 play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
                                            response + ".wav")
             else:
-                print("generating")
                 sanitized_prompt = sanitize_filename(response)
                 prompts_for_user.add(sanitized_prompt)
                 #TODO: Add a filler of "wait a second", "hold on a second"
@@ -71,7 +68,6 @@ def recognize_worker(config, profile_name, username):
                 #TODO: play audio file of, "can i have your email?","can i have your id?" etc
 
             conversation_history.append({"ai": response})
-            print(conversation_history)
             if not waitforllm.is_set():
                 waitforllm.set()
         except sr.UnknownValueError:

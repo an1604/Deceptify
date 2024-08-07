@@ -4,7 +4,7 @@ import uuid
 import os
 import urllib
 from flask import redirect as flask_redirect, jsonify, session, send_file
-from app.deceptify import llm
+from app.Server.LLM.llm import llm
 
 from flask import redirect as flask_redirect
 from flask import jsonify, session, send_file, abort

@@ -2,7 +2,6 @@ import json
 from profile import Profile
 
 
-# TODO: fix when saving to pkl file and getting from pkl file
 class AttackFactory:
     """
     A factory class for creating attack objects based on the specified attack type.
@@ -212,7 +211,6 @@ class Attack:
         ) == (other.campaign_name, other.mimic_profile, other.target, other.description, other.attack_purpose, other.id)
 
 
-# TODO: CONTINUE THIS VOICEATTACK IMPLEMENTATION.
 class VoiceAttack(Attack):
     """
     Class representing a voice attack.
@@ -311,7 +309,6 @@ class VoiceAttack(Attack):
         )
 
 
-# TODO: CONTINUE THIS VIDEOATTACK IMPLEMENTATION.
 class VideoAttack(Attack):
     """
     Class representing a video attack.
