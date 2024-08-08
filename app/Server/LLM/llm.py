@@ -1,15 +1,18 @@
 import os
-import time
 import faiss
 import pandas as pd
 from threading import Thread
 from langchain_community.llms import Ollama
 from scrapegraphai.graphs import SmartScraperGraph
 from queue import Queue
+from functools import lru_cache
+from langchain_core.prompts import PromptTemplate
 
 from sentence_transformers import SentenceTransformer
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+
+from app.Server.LLM.prompts.prompts import *
 
 # model_name = 'http://ollama:11434/'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
 model_name = 'llama3'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
@@ -48,6 +51,8 @@ class Llm(object):
 
         # Create Faiss index
         self.index = faiss.IndexFlatL2(384)
+        # self.faq = self.get_faq(file_path='C:\\colman\\Final project\\Deceptify\\app\\knowledgebase_custom.csv')
+        # self.generate_faq_embedding()
 
     def generate_faq_embedding(self):
         for qa in self.faq:  # Create the embedding representation for each row in the knowledgebase.
@@ -58,43 +63,38 @@ class Llm(object):
         faiss.write_index(self.index, index_path)
 
     def generate_knowledgebase(self, gen_info):
-        return self.llm.invoke(KNOWLEDGEBASE_ROLE.format(gen_info))
+        return self.llm.invoke(KNOWLEDGEBASE_ROLE.format(gen_info=gen_info))
 
     def get_answer(self, prompt, history, event=None):
-        # if self.start_conv:
-        #     generate_embedding = Thread(target=self.add_new_line_for_embedding)
-        #     generate_embedding.daemon = 1
-        #     generate_embedding.start()
-        #     self.start_conv = False
+        try:
+            if not self.embedd_custom_knowledgebase:
+                self.faq = self.get_faq(file_path='C:\\colman\\Final project\\Deceptify\\app\\knowledgebase_custom.csv')
+                self.generate_faq_embedding()
+                self.embedd_custom_knowledgebase = True
+            prompt_embedding = self.get_embedding(prompt)  # Get the embedding representation for the prompt
+            indices, distances = self.get_nearest_neighbors(prompt_embedding)
+            closest_distance = distances[0][0]
+            faq_index = indices[0][0]  # Taking the closest FAQ index
 
-        if not self.embedd_custom_knowledgebase:
-            self.faq = self.get_faq(file_path='C:\\colman\\Final project\\Deceptify\\app\\knowledgebase_custom.csv')
-            self.generate_faq_embedding()
+            threshold = 0.9
 
-        prompt_embedding = self.get_embedding(prompt)  # Get the embedding representation for the prompt
-        indices, distances = self.get_nearest_neighbors(prompt_embedding)
-        closest_distance = distances[0][0]
-        faq_index = indices[0][0]  # Taking the closest FAQ index
+            if closest_distance < threshold:
+                try:
+                    answer = self.faq[faq_index].split('-')[-1]
+                except IndexError as e:
+                    print(f"IndexError: {e}")
+                    print(f"Index: {faq_index}, Length of faq: {len(self.faq)}")
+                    answer = "Sorry, I couldn't find an appropriate answer."
+            else:
+                user_prompt = get_role(role=ROLE, history=history, prompt=prompt)
+                answer = self.llm.invoke(user_prompt)
 
-        threshold = 0.85
-
-        if closest_distance < threshold:
-            try:
-                answer = self.faq[faq_index].split('-')[-1]
-            except IndexError as e:
-                print(f"IndexError: {e}")
-                print(f"Index: {faq_index}, Length of faq: {len(self.faq)}")
-                answer = "Sorry, I couldn't find an appropriate answer."
-        else:
-            user_prompt = ROLE.format(prompt=prompt,
-                                      place='park', history=history, connection='Best Friend',
-                                      target='address')
-            answer = self.llm.invoke(user_prompt)
-
-        if event:
-            event.set()
-        self.qa_q.put((prompt, answer))
-        return answer
+            if event:
+                event.set()
+            self.qa_q.put((prompt, answer))
+            return answer
+        except Exception as e:
+            print(f"Exception from get_answer: {e}")
 
     def scrape(self, url, prompt):
         self.scraper = SmartScraperGraph(
@@ -114,26 +114,7 @@ class Llm(object):
         self.qa_q.put(None)
         self.stop = True
 
-    def add_new_line_for_embedding(self):
-        print('run the new thread...')
-        while not self.stop:
-            data = self.qa_q.get()
-            print(data)
-            print("1")
-            if data:
-                print('data found!')
-                question, answer = data[0], data[1]
-                res = f"{question}-{answer}"
-                res_emb = self.get_embedding(res)
-
-                self.index.add(res_emb)
-                index_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'faiss.index')
-                faiss.write_index(self.index, index_path)
-                print('New embedding added!!')
-        print("Ended embedding")
-
-    @staticmethod
-    def get_nearest_neighbors(vector, k=3):
+    def get_nearest_neighbors(self, vector, k=3):
         index = faiss.read_index(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'faiss.index'))
         query_vector = vector.astype("float32").reshape(1, -1)
         distances, indices = index.search(query_vector, k)
@@ -141,7 +122,7 @@ class Llm(object):
 
     @staticmethod
     def get_faq(file_path=r'C:\\colman\\Final project\\Deceptify\\app\\knowledgebase_custom.csv'):
-        df = pd.read_csv(file_path, sep=";")
+        df = pd.read_csv(file_path, sep=";").dropna()
         faq = [x + " - " + y for x, y in df.values]
         return faq
 

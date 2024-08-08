@@ -98,7 +98,7 @@ def recognize_worker(config, profile_name, username, purpose):
             waitforllm.set()
             print("Could not request results from Google Speech Recognition service; {0}".format(e))
         except Exception as e:
-            print(e)
+            print(f'Exception from recognize_worker: {e}')
 
 
 def startConv(config, profile_name, purpose, username="oded", starting_message="Hello how are you doing"):

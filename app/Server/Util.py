@@ -43,13 +43,12 @@ def create_knowledgebase(text):
         if len(row) == 2:
             question, answer = row
             rows.append((question, answer))
-    print(rows)
 
     # Rewrite the file with only the question,answer pairs.
     with open('knowledgebase_custom.csv', 'w', newline='') as file:
-        file.write("'Question';'Answer'")
+        file.write("'Question';'Answer'\n")
         for question, answer in rows:
-            file.write(f"'{question}';'{answer}'")
+            file.write(f"'{question}';'{answer}'\n")
         with open('Server/LLM/knowledge.csv', 'r') as knowledgebase:
             for line in knowledgebase:
                   file.write(line)
