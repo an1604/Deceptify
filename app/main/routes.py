@@ -243,7 +243,7 @@ def attack_generation_routes(main, app, data_storage):
             flash("Campaign created successfully using")
             return flask_redirect(
                 url_for('main.attack_dashboard_transition', profile=form.mimic_profile.data,
-                        contact=form.target_name.data, type=attack_type))
+                        contact=form.target_name.data, id=campaign_unique_id))
         return render_template('attack_pages/newattack.html', form=form)
 
     @main.route('/attack_dashboard_transition', methods=['GET'])
@@ -251,11 +251,11 @@ def attack_generation_routes(main, app, data_storage):
     def attack_dashboard_transition():
         profile_name = request.args.get("profile")
         contact_name = request.args.get("contact")
-        attack_type = request.args.get("type")
+        attack_id = request.args.get("id")
         if session.get("started_call"):
             session.pop("started_call")
         return render_template('attack_pages/attack_dashboard_transition.html', profile=profile_name,
-                               contact=contact_name, type=attack_type)
+                               contact=contact_name, id=attack_id)
 
     @main.route('/attack_dashboard', methods=['GET', 'POST'])
     @login_required
@@ -263,9 +263,12 @@ def attack_generation_routes(main, app, data_storage):
         global cam_thread
         profile_name = request.args.get("profile")
         contact_name = request.args.get("contact")
-        attack_type = request.args.get("type")
-        attack_purpose = "Address"
+        # attack_type = request.args.get("type")
+        # attack_purpose = "Address"
+        attack_id = request.args.get("attack_id")
         profile = data_storage.get_profile(profile_name)
+        attack = profile.get_attacks(attack_id)
+        attack_purpose = attack.attack_purpose
         form = AttackDashboardForm()
         form.prompt_field.choices = [(prompt.prompt_desc, prompt.prompt_desc) for prompt in profile.getPrompts()]
 
@@ -274,43 +277,43 @@ def attack_generation_routes(main, app, data_storage):
             recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
                                                                "-Target-" + contact_name))
             recorder_thread.start()
-            if profile.video_data_path is not None and attack_type == "Video":
-                cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
-                                                           ".mp4", True, CutVideoEvent))
-                cam_thread.start()
-            else:  # voice attack
+            # if profile.video_data_path is not None and attack_type == "Video":
+            #     cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
+            #                                                ".mp4", True, CutVideoEvent))
+            #     cam_thread.start()
+            # else:  # voice attack
                 # if profile.video_data_path is not None:
-                s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name, attack_purpose))
-                s2t_thread.start()
-                s2t_thread.join()
+            s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name, attack_purpose))
+            s2t_thread.start()
+            s2t_thread.join()
 
             session["started_call"] = True
             session['stopped_call'] = False
         if form.validate_on_submit():
-            if profile.video_data_path is not None and attack_type == "Video":
-                CutVideoEvent.set()
-                play_audio_thread = Thread(target=play_audio_through_vbcable,
-                                           args=(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-                                                 form.prompt_field.data + ".wav", "CABLE Input"))
-                play_audio_thread.start()
-                cam_thread.join()
-                cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
-                                                           "-" + form.prompt_field.data + ".mp4", False, CutVideoEvent))
-                cam_thread.start()
-                cam_thread.join()
-                cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
-                                                           ".mp4", True, CutVideoEvent))
-                cam_thread.start()
-                play_audio_thread.join()
-                return flask_redirect(url_for('main.attack_dashboard', profile=profile_name,
-                                              contact=contact_name, type=attack_type))
-            else:
-                play_audio_through_vbcable(
-                    os.path.join(app.config['UPLOAD_FOLDER'], f"{profile_name}-{form.prompt_field.data}.wav"))
-                return flask_redirect(url_for('main.attack_dashboard', profile=profile_name,
-                                              contact=contact_name, type=attack_type))
+            # if profile.video_data_path is not None and attack_type == "Video":
+            #     CutVideoEvent.set()
+            #     play_audio_thread = Thread(target=play_audio_through_vbcable,
+            #                                args=(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+            #                                      form.prompt_field.data + ".wav", "CABLE Input"))
+            #     play_audio_thread.start()
+            #     cam_thread.join()
+            #     cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
+            #                                             "-" + form.prompt_field.data + ".mp4", False, CutVideoEvent))
+            #     cam_thread.start()
+            #     cam_thread.join()
+            #     cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
+            #                                                ".mp4", True, CutVideoEvent))
+            #     cam_thread.start()
+            #     play_audio_thread.join()
+            #     return flask_redirect(url_for('main.attack_dashboard', profile=profile_name,
+            #                                   contact=contact_name, type=attack_type))
+            # else:
+            play_audio_through_vbcable(
+                os.path.join(app.config['UPLOAD_FOLDER'], f"{profile_name}-{form.prompt_field.data}.wav"))
+            return flask_redirect(url_for('main.attack_dashboard', profile=profile_name,
+                                            contact=contact_name, id=attack_id))
         return render_template('attack_pages/attack_dashboard.html', form=form,
-                               contact=contact_name, type=attack_type)
+                               contact=contact_name, id=attack_id)
 
     @main.route('/send_prompt', methods=['GET'])
     @login_required

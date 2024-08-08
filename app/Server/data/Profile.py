@@ -175,6 +175,10 @@ class Profile:
         # return self.AttackerAttacks.union(self.victimAttacks)
         return self.Attacks
 
+    def get_attack(self, attack_id):
+        a = [attack for attack in self.Attacks if attack.attack_id == attack_id]
+        return a[0]
+
     def to_dict(self) -> dict:
         """
         Convert the profile to a dictionary.

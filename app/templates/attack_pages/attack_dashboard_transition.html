@@ -14,9 +14,9 @@
         function openSmallWindow() {
             const profile = "{{profile}}";
             const contact = "{{contact}}"
-            const type = "{{type}}"
+            const attack_id = "{{id}}"
             window.open('/attack_dashboard?profile=' + encodeURIComponent(profile) + '&contact='
-                + encodeURIComponent(contact) + '&type=' + encodeURIComponent(type), 'smallWindow',
+                + encodeURIComponent(contact) + '&id=' + encodeURIComponent(attack_id), 'smallWindow',
                 'width=600,height=360,left=0,top=0,resizable=no,scrollbars=no,status=no');
             window.close()
         }
