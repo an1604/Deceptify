@@ -1,3 +1,4 @@
+import time
 from threading import Thread, Event
 from queue import Queue
 from app.Server.Util import *
@@ -36,7 +37,7 @@ def sanitize_filename(filename):
     return re.sub(r'[<>:"/\\|?*]', '_', filename).strip()
 
 
-def recognize_worker(config, profile_name, username):
+def recognize_worker(config, profile_name, username, purpose):
     global flag, waitforllm, conversation_history, data_storage, prompts_for_user
     while True:
         audio = audio_queue.get()  # Retrieve the next audio processing job from the main thread
@@ -59,15 +60,25 @@ def recognize_worker(config, profile_name, username):
                 sanitized_prompt = sanitize_filename(response)
                 prompts_for_user.add(sanitized_prompt)
                 #TODO: Add a filler of "wait a second", "hold on a second"
-                # serv_response = generate_voice(username, profile_name, sanitized_prompt)
-                # get_voice_profile(username, profile_name, "prompt", serv_response["file"])
-                # play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-                #                            "prompt" + ".wav")
+                serv_response = generate_voice(username, profile_name, sanitized_prompt)
+                get_voice_profile(username, profile_name, "prompt", serv_response["file"])
+                play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                                           "prompt" + ".wav")
+            conversation_history.append({"ai": response})
             if response == "I am good thank you":
+                time.sleep(1)
                 print()
                 #TODO: play audio file of, "can i have your email?","can i have your id?" etc
-
-            conversation_history.append({"ai": response})
+                # and add it to llm history
+                play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                                           "Can i have your" +  + ".wav")
+                conversation_history.append({"ai": response})
+            elif response == "Thank you":
+                time.sleep(1)
+                play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                                           "See you later" + ".wav")
+                flag = True
+                conversation_history.append({"ai": "See you later"})
             if not waitforllm.is_set():
                 waitforllm.set()
         except sr.UnknownValueError:
@@ -80,7 +91,7 @@ def recognize_worker(config, profile_name, username):
             print(e)
 
 
-def startConv(config, profile_name, username="oded", starting_message="Hello how are you doing"):
+def startConv(config, profile_name, purpose, username="oded", starting_message="Hello how are you doing"):
     global flag, waitforllm, prompts_for_user
     flag = False
     started_conv = False

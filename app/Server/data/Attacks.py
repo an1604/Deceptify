@@ -82,7 +82,7 @@ class Attack:
         self.target = target
         self.description = description
         self.attack_purpose = attack_purpose
-        self.id = camp_id
+        self.attack_id = camp_id
         self.recordings = None
         self.transcript = None
         self.setRec()
@@ -104,7 +104,7 @@ class Attack:
         return self.attack_purpose
 
     def getID(self):
-        return self.id
+        return self.attack_id
 
     def get_role(self, profile) -> str:
         """
@@ -142,7 +142,7 @@ class Attack:
             "target": self.target,
             "description": self.description,
             "purpose": self.attack_purpose,
-            "id": self.id,
+            "attack_id": self.attack_id,
         }
 
     def to_json(self):
@@ -170,8 +170,8 @@ class Attack:
         target = data["target"]
         description = data["description"]
         attack_purpose = data["purpose"]
-        camp_id = data["id"]
-        return Attack(campaign_name, mimic_profile, target, description, attack_purpose, camp_id)
+        attack_id = data["attack_id"]
+        return Attack(campaign_name, mimic_profile, target, description, attack_purpose, attack_id)
 
     @staticmethod
     def from_json(json_data):
@@ -194,7 +194,7 @@ class Attack:
                 self.target,
                 self.description,
                 self.attack_purpose,
-                self.id,
+                self.attack_id,
             )
         )
 
@@ -207,8 +207,9 @@ class Attack:
             self.target,
             self.description,
             self.attack_purpose,
-            self.id,
-        ) == (other.campaign_name, other.mimic_profile, other.target, other.description, other.attack_purpose, other.id)
+            self.attack_id,
+        ) == (other.campaign_name, other.mimic_profile, other.target, other.description,
+              other.attack_purpose, other.attack_id)
 
 
 class VoiceAttack(Attack):
@@ -223,17 +224,16 @@ class VoiceAttack(Attack):
             target,
             description,
             attack_purpose,
-            camp_id,
+            attack_id,
             recordings=None,
             transcript=None,
     ):
-        super().__init__(campaign_name, mimic_profile, target, description, attack_purpose,  camp_id)
+        super().__init__(campaign_name, mimic_profile, target, description, attack_purpose,  attack_id)
         self.recordings = recordings
         self.transcript = transcript
         self.mimic_profile.addAttack(self)
         self.target.addAttack(self)
         self.attack_purpose = attack_purpose
-        # print(f'VoiceAttack: {self.campaign_name} {self.mimic_profile} {self.target} {self.description} {self.id} {self.recordings} {self.transcript}')
 
     def to_dict(self):
         super_dict = super().to_dict()
@@ -253,7 +253,7 @@ class VoiceAttack(Attack):
         target = data["target"]
         description = data["description"]
         attack_purpose = data["purpose"]
-        camp_id = data["id"]
+        attack_id = data["attack_id"]
         recordings = data["recordings"]
         transcript = data["transcript"]
         return VoiceAttack(
@@ -262,7 +262,7 @@ class VoiceAttack(Attack):
             target,
             description,
             attack_purpose,
-            camp_id,
+            attack_id,
             recordings,
             transcript,
         )
@@ -279,7 +279,7 @@ class VoiceAttack(Attack):
                 self.target,
                 self.description,
                 self.attack_purpose,
-                self.id,
+                self.attack_id,
                 self.recordings,
                 self.transcript,
             )
@@ -294,7 +294,7 @@ class VoiceAttack(Attack):
             self.target,
             self.description,
             self.attack_purpose,
-            self.id,
+            self.attack_id,
             self.transcript,
             self.recordings,
         ) == (
@@ -303,7 +303,7 @@ class VoiceAttack(Attack):
             other.target,
             other.description,
             other.attack_purpose,
-            other.id,
+            other.attack_id,
             other.transcript,
             other.recordings,
         )
@@ -321,11 +321,11 @@ class VideoAttack(Attack):
             target,
             description,
             attack_purpose,
-            camp_id,
+            attack_id,
             video_recordings=None,
             transcript=None,
     ):
-        super().__init__(campaign_name, mimic_profile, target, description, attack_purpose, camp_id)
+        super().__init__(campaign_name, mimic_profile, target, description, attack_purpose, attack_id)
         self.video_recordings = video_recordings
         self.transcript = transcript
 
@@ -347,7 +347,7 @@ class VideoAttack(Attack):
         target = data["target"]
         description = data["description"]
         attack_purpose = data["purpose"]
-        camp_id = data["id"]
+        attack_id = data["attack_id"]
         recordings = data["recordings"]
         transcript = data["transcript"]
         return VideoAttack(
@@ -356,7 +356,7 @@ class VideoAttack(Attack):
             target,
             description,
             attack_purpose,
-            camp_id,
+            attack_id,
             recordings,
             transcript,
         )
@@ -373,7 +373,7 @@ class VideoAttack(Attack):
                 self.target,
                 self.description,
                 self.attack_purpose,
-                self.id,
+                self.attack_id,
                 self.video_recordings,
                 self.transcript,
             )
@@ -388,7 +388,7 @@ class VideoAttack(Attack):
             self.target,
             self.description,
             self.attack_purpose,
-            self.id,
+            self.attack_id,
             self.transcript,
             self.video_recordings,
         ) == (
@@ -397,7 +397,7 @@ class VideoAttack(Attack):
             other.target,
             other.description,
             other.attack_purpose,
-            other.id,
+            other.attack_id,
             other.transcript,
             other.video_recordings,
         )

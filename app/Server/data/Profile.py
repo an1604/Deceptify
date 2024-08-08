@@ -129,6 +129,8 @@ class Profile:
             "Hello how are you doing", "I am good thank you", "Thank you", "See you later",
             "Goodbye", "What did you say", "I don't know", "Can you repeat that",
             "Yes i agree", "No i do not agree", "Yes", "No", "Wait a second", "Hold on a second", "Umm"
+            "Can i have your Id", "Can i have your mail", "Can i have your address", "Can i have your number",
+            "I need it to fill a form", "I need it to send you something", "My contacts were deleted"
         ]
         if self.video_data_path is None:
             for prompt_desc in default_prompts:

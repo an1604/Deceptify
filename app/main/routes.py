@@ -264,6 +264,7 @@ def attack_generation_routes(main, app, data_storage):
         profile_name = request.args.get("profile")
         contact_name = request.args.get("contact")
         attack_type = request.args.get("type")
+        attack_purpose = "Address"
         profile = data_storage.get_profile(profile_name)
         form = AttackDashboardForm()
         form.prompt_field.choices = [(prompt.prompt_desc, prompt.prompt_desc) for prompt in profile.getPrompts()]
@@ -279,7 +280,7 @@ def attack_generation_routes(main, app, data_storage):
                 cam_thread.start()
             else:  # voice attack
                 # if profile.video_data_path is not None:
-                s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name))
+                s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name, attack_purpose))
                 s2t_thread.start()
                 s2t_thread.join()
 
