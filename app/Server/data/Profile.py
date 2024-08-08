@@ -83,8 +83,6 @@ class Profile:
             attack: The attack to be added.
         """
         # self.Attacks.add(attack)
-        print("addAttack->Profile")
-        print({**attack.to_dict(), "role": attack.get_role(self)})
         # self.Attacks.add(attack.to_dict().update({"role": attack.get_role(self)}))
         self.Attacks.append({**attack.to_dict(), "role": attack.get_role(self)})
 
@@ -128,7 +126,7 @@ class Profile:
         default_prompts = [
             "Hello how are you doing", "I am good thank you", "Thank you", "See you later",
             "Goodbye", "What did you say", "I don't know", "Can you repeat that",
-            "Yes i agree", "No i do not agree", "Yes", "No", "Wait a second", "Hold on a second", "Umm"
+            "Yes", "No", "Wait a second", "Hold on a second", "Umm",
             "Can i have your Id", "Can i have your mail", "Can i have your address", "Can i have your number",
             "I need it to fill a form", "I need it to send you something", "My contacts were deleted"
         ]
@@ -176,7 +174,7 @@ class Profile:
         return self.Attacks
 
     def get_attack(self, attack_id):
-        a = [attack for attack in self.Attacks if attack.attack_id == attack_id]
+        a = [attack for attack in self.Attacks if attack["attack_id"] == int(attack_id)]
         return a[0]
 
     def to_dict(self) -> dict:

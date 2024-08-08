@@ -79,6 +79,22 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
             # Get the data from the form
             name = form.name_field.data
             gen_info = form.gen_info_field.data
+            data = form.recording_upload.data
+            video = form.Image_upload.data
+            if video.filename == "":
+                video = None
+
+            # Save the voice sample
+            file_path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(data.filename))
+            data.save(file_path)
+            if video is not None:
+                video_path = os.path.join(app.config["VIDEO_UPLOAD_FOLDER"], secure_filename(video.filename))
+                video.save(video_path)
+                createvoice_profile(username="oded", profile_name=name, file_path=file_path)
+                data_storage.add_profile(Profile(name, gen_info, str(file_path), video_data_path=str(video_path)))
+            # else:
+                # createvoice_profile(username="oded", profile_name=name, file_path=file_path)
+                # data_storage.add_profile(Profile(name, gen_info, str(file_path)))
             if gen_info:
                 response = llm.generate_knowledgebase(gen_info)
                 rows = create_knowledgebase(response)
@@ -265,10 +281,10 @@ def attack_generation_routes(main, app, data_storage):
         contact_name = request.args.get("contact")
         # attack_type = request.args.get("type")
         # attack_purpose = "Address"
-        attack_id = request.args.get("attack_id")
+        attack_id = request.args.get("id")
         profile = data_storage.get_profile(profile_name)
-        attack = profile.get_attacks(attack_id)
-        attack_purpose = attack.attack_purpose
+        attack = profile.get_attack(attack_id)
+        attack_purpose = "address"
         form = AttackDashboardForm()
         form.prompt_field.choices = [(prompt.prompt_desc, prompt.prompt_desc) for prompt in profile.getPrompts()]
 
@@ -308,8 +324,8 @@ def attack_generation_routes(main, app, data_storage):
             #     return flask_redirect(url_for('main.attack_dashboard', profile=profile_name,
             #                                   contact=contact_name, type=attack_type))
             # else:
-            play_audio_through_vbcable(
-                os.path.join(app.config['UPLOAD_FOLDER'], f"{profile_name}-{form.prompt_field.data}.wav"))
+            play_audio_through_vbcable(os.path.join(app.config['UPLOAD_FOLDER'],
+                                                    f"{profile_name}-{form.prompt_field.data}.wav"))
             return flask_redirect(url_for('main.attack_dashboard', profile=profile_name,
                                             contact=contact_name, id=attack_id))
         return render_template('attack_pages/attack_dashboard.html', form=form,

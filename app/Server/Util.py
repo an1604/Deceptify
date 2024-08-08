@@ -23,6 +23,13 @@ def create_knowledgebase(text):
     if not matches:
         return None
     csv_content = matches[0].strip()
+    if os.path.exists('knowledgebase_custom.csv'):
+        try:
+            os.remove('knowledgebase_custom.csv')
+        except Exception as e:
+            print(f"An error occurred while trying to delete: {e}")
+    else:
+        print("file does not exist.")
 
     with open('knowledgebase_custom.csv', 'w', newline='') as file:
         file.write(csv_content)
@@ -45,10 +52,9 @@ def create_knowledgebase(text):
             file.write(f"'{question}';'{answer}'")
         with open('Server/LLM/knowledge.csv', 'r') as knowledgebase:
             for line in knowledgebase:
-                print(line)
-                file.write(line)
+                  file.write(line)
 
-        file.close()
+    #     file.close()
     return rows
 
 

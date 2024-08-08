@@ -11,30 +11,6 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-ROLE = """
-ROLE: Your name is Donald, you are the {connection} of the other speaker, and you need to get the {target} of the person.
-REMEMBER: keep your answers as short as you can, max five words.
-REMEMBER: you are now in the {place}, if you got questions about it, say something smooth about {place} 
-Query: {prompt}
-
-REMEMBER: THIS IS THE CONVERSATION HISTORY UNTIL NOW {history}
-"""
-
-KNOWLEDGEBASE_ROLE = \
-    """Your task is to generate a knowledgebase like a csv that include general questions and 
-    answers about a person. the answers should be short and simple. the questions should be in the form of:
-     "What did you do yesterday?", "Where are you right now?", "What are you doing?" , 
-     "Where were you yesterday?"
-    
-    The person have the following general information that you can use to generate the file:
-    {}. 
-
-    For example: If the person likes to play chess, for a question what's your plans today you can 
-    insert an answer 'To play chess', another question could be: "where were you yesterday?", and an answer to that
-    will be "I went to the park yesterday with my dog". the answers should be created using the given information
-    
-    """
-
 # model_name = 'http://ollama:11434/'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
 model_name = 'llama3'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
 
