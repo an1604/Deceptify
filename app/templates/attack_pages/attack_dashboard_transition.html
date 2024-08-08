@@ -15,9 +15,11 @@
             const profile = "{{profile}}";
             const contact = "{{contact}}"
             const type = "{{type}}"
+            const purpose = "{{purpose}}"
+            const background_audio = "{{background_audio}}"
             window.open('/attack_dashboard?profile=' + encodeURIComponent(profile) + '&contact='
-                + encodeURIComponent(contact) + '&type=' + encodeURIComponent(type), 'smallWindow',
-                'width=600,height=360,left=0,top=0,resizable=no,scrollbars=no,status=no');
+                + encodeURIComponent(contact) + '&type=' + encodeURIComponent(type) + '&purpose' + encodeURIComponent(purpose) + '&background_audio'+ encodeURIComponent(background_audio) ,' smallWindow',
+                'width=600,height=360,left=0,top=0,resizable=no,scrollbars=no,status=no',);
             window.close()
         }
         window.onload = openSmallWindow;

@@ -32,7 +32,7 @@ class CampaignForm(FlaskForm):
     # 'Video Recording'], validators=[DataRequired()])
     attack_purpose = SelectField(
         label="Attack Purpose",
-        choices=[("Phone number", "Phone number"), ("Special code", "Special code"),
+        choices=[("Phone number", "Phone number"), ("ID number", "ID number"),
                  ("Email address", "Email address")],
         validators=[DataRequired()]
     )
@@ -40,6 +40,12 @@ class CampaignForm(FlaskForm):
         label="Campaign Description",
         validators=[DataRequired()]
     )
+    background_audio = SelectField(
+        label="Background Audio",
+        choices=[("No Background", "No Background"), ("City", "City"), ("Park", "Park")],
+        validators=[DataRequired()]
+    )
+
     submit = SubmitField("Submit")
 
 

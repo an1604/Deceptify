@@ -239,6 +239,7 @@ def attack_generation_routes(main, app, data_storage):
             campaign_description = form.target_name.data
             attack_type = form.attack_type.data
             attack_purpose = form.attack_purpose.data
+            background_audio = form.background_audio.data
             campaign_unique_id = int(uuid.uuid4())
             attack = AttackFactory.create_attack(
                 attack_type,
@@ -248,25 +249,66 @@ def attack_generation_routes(main, app, data_storage):
                 campaign_description,
                 attack_purpose,
                 campaign_unique_id,
+                background_audio,
             )
             data_storage.add_attack(attack)
 
             flash("Campaign created successfully using")
             return flask_redirect(
                 url_for('main.attack_dashboard_transition', profile=form.mimic_profile.data,
-                        contact=form.target_name.data, type=attack_type))
+                        contact=form.target_name.data, type=attack_type, purpose=attack_purpose, background_audio=background_audio))
         return render_template('attack_pages/newattack.html', form=form)
 
     @main.route('/attack_dashboard_transition', methods=['GET'])
     @login_required
     def attack_dashboard_transition():
+        Prompt_String = ()
+        def generate_prompt(profile_name, attack_purpose, Prompt):
+            if attack_purpose == "Phone number":
+                    desc = Prompt
+                    response = generate_voice("oded", profile_name, desc)
+                    get_voice_profile("oded", profile_name, desc, response["file"])
+                    return desc
+
+            elif attack_purpose == "ID number":
+                    desc = Prompt
+                    response = generate_voice("oded", profile_name, desc)
+                    get_voice_profile("oded", profile_name, desc, response["file"])
+                    return desc
+
+            else:
+                    desc = Prompt
+                    response = generate_voice("oded", profile_name, desc)
+                    get_voice_profile("oded", profile_name, desc, response["file"])
+                    return desc
+
+
         profile_name = request.args.get("profile")
         contact_name = request.args.get("contact")
         attack_type = request.args.get("type")
+        attack_purpose = request.args.get("purpose")
+        background_audio = request.args.get("background_audio")
+        if attack_purpose == "Phone number":
+            Prompt_String = ("what is your phone number", "I need to call you later")
+        elif attack_purpose == "ID number":
+            Prompt_String = ("what is your ID", "I need some sort of Identification")
+        else:
+            Prompt_String = ("what is your email", "I need some sort of Identification")
+
+
+        profile = data_storage.get_profile(profile_name)
         if session.get("started_call"):
             session.pop("started_call")
+
+        # Generate specific prompt based on attack purpose
+        for prompt in Prompt_String:
+            prompt_desc = generate_prompt(profile_name, attack_purpose, prompt)
+            new_prompt = Prompt(prompt_desc=prompt_desc, prompt_profile=profile_name)
+            profile.addPrompt(new_prompt)
+
         return render_template('attack_pages/attack_dashboard_transition.html', profile=profile_name,
-                               contact=contact_name, type=attack_type)
+                               contact=contact_name, type=attack_type, purpose=attack_purpose,
+                               background_audio=background_audio)
 
     @main.route('/attack_dashboard', methods=['GET', 'POST'])
     @login_required
@@ -275,12 +317,30 @@ def attack_generation_routes(main, app, data_storage):
         profile_name = request.args.get("profile")
         contact_name = request.args.get("contact")
         attack_type = request.args.get("type")
+        attack_purpose = request.args.get("purpose")
+        background_audio = request.args.get("background_audio")
         profile = data_storage.get_profile(profile_name)
         form = AttackDashboardForm()
         form.prompt_field.choices = [(prompt.prompt_desc, prompt.prompt_desc) for prompt in profile.getPrompts()]
+        StopBackgroundAudioEvent = Event()
+
+        def play_background_audio_loop(file_path):
+            while not StopBackgroundAudioEvent.is_set():
+                # Play the audio file using VB-Cable
+                play_audio_through_vbcable(file_path)
+                # Add a sleep to avoid overwhelming the CPU
+                time.sleep(1)
 
         started = session.get("started_call")
         if not started:
+            if background_audio:
+                background_audio_path = os.path.join(app.config['BACKGROUND_AUDIO_FOLDER'], background_audio)
+                if background_audio == "City":
+                    background_audio_thread = Thread(target=play_background_audio_loop, args=(r"app\\Server\\AudioFiles\\BackgroundAudio\\City.wav"))
+                else:
+                    background_audio_thread = Thread(target=play_background_audio_loop, args=(r"app\\Server\\AudioFiles\\BackgroundAudio\\Park.wav",))
+                background_audio_thread.start()
+
             recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
                                                                "-Target-" + contact_name))
             recorder_thread.start()
@@ -319,14 +379,14 @@ def attack_generation_routes(main, app, data_storage):
                 cam_thread.start()
                 play_audio_thread.join()
                 return flask_redirect(url_for('main.attack_dashboard', profile=profile_name,
-                                              contact=contact_name, type=attack_type))
+                                              contact=contact_name, type=attack_type, purpose=attack_purpose, background_audio=background_audio))
             else:
                 play_audio_through_vbcable(
                     os.path.join(app.config['UPLOAD_FOLDER'], f"{profile_name}-{form.prompt_field.data}.wav"))
                 return flask_redirect(url_for('main.attack_dashboard', profile=profile_name,
-                                              contact=contact_name, type=attack_type))
+                                              contact=contact_name, type=attack_type, purpose=attack_purpose, background_audio=background_audio))
         return render_template('attack_pages/attack_dashboard.html', form=form,
-                               contact=contact_name, type=attack_type)
+                               contact=contact_name, type=attack_type, purpose=attack_purpose, background_audio=background_audio)
 
     @main.route('/send_prompt', methods=['GET'])
     @login_required
