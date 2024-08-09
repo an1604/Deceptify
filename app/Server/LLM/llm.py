@@ -10,7 +10,6 @@ from langchain_core.prompts import PromptTemplate
 
 from sentence_transformers import SentenceTransformer
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 
 from app.Server.LLM.prompts.prompts import *
 
