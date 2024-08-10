@@ -14,6 +14,7 @@ class embeddings(object):
     def __init__(self):
         self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
         self.index = faiss.IndexFlatL2(384)
+        self.sentences_map = {}
         self.faq = self.get_faq(file_path='knowledgebase_custom.csv')
 
     @staticmethod
@@ -31,15 +32,16 @@ class embeddings(object):
         index_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'faiss.index')
         faiss.write_index(self.index, index_path)
 
-    @staticmethod
-    def get_faq(file_path='knowledgebase_custom.csv'):
+    def get_faq(self, file_path='knowledgebase_custom.csv'):
         df = pd.read_csv(file_path, sep=";").dropna()
-        faq = [x + " - " + y for x, y in df.values]
+        faq = []
+        for x, y in df.values:
+            faq.append(x)
+            self.sentences_map[x] = y
         return faq
 
     def get_embedding(self, _input):
         embedding = self.embedding_model.encode(_input)
-        # embedding = self.embedding_model.embed_query(_input)
         return np.array([embedding])  # Ensure it returns a 2D array
 
     def get_answer_from_embedding(self, _input, threshold=0.9):
@@ -53,10 +55,10 @@ class embeddings(object):
 
         if closest_distance < threshold:
             try:
-                answer = self.faq[faq_index].split('-')[-1]
+                answer = self.sentences_map[self.faq[faq_index]]
             except IndexError as e:
                 print(f"IndexError: {e}")
-                print(f"Index: {faq_index}, Length of faq: {len(self.faq)}")
+                print(f"Cannot find the value for the given key: {self.faq[faq_index]}")
                 answer = "Can you repeat it?"
         else:
             answer = None
