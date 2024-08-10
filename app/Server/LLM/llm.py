@@ -121,7 +121,7 @@ class Llm(object):
 
     @staticmethod
     def get_faq(file_path=r'C:\\colman\\Final project\\Deceptify\\app\\knowledgebase_custom.csv'):
-        df = pd.read_csv(file_path, sep=";").dropna()
+        df = pd.read_csv(file_path, sep=";", quotechar='"').dropna()
         faq = [x + " - " + y for x, y in df.values]
         return faq
 
