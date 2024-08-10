@@ -35,6 +35,10 @@ graph_config = {
 }
 
 
+def normalize_text(text):
+    return text.strip().lower()
+
+
 class Llm(object):
     def __init__(self):
         self.llm = Ollama(model=model_name)
@@ -54,7 +58,7 @@ class Llm(object):
         # self.generate_faq_embedding()
 
     def generate_faq_embedding(self):
-        for qa in self.faq:  # Create the embedding representation for each row in the knowledgebase.
+        for i, qa in enumerate(self.faq):  # Create the embedding representation for each row in the knowledgebase.
             embedding = self.get_embedding(qa)
             self.index.add(embedding)
 
@@ -75,7 +79,7 @@ class Llm(object):
             closest_distance = distances[0][0]
             faq_index = indices[0][0]  # Taking the closest FAQ index
 
-            threshold = 0.9
+            threshold = 0.8
 
             if closest_distance < threshold:
                 try:
@@ -106,7 +110,8 @@ class Llm(object):
         return result
 
     def get_embedding(self, _input):
-        embedding = self.embedding_model.encode(_input)
+        normalized_input = normalize_text(_input)
+        embedding = self.embedding_model.encode(normalized_input)
         return np.array([embedding])  # Ensure it returns a 2D array
 
     def end_conversation(self):
