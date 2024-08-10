@@ -50,9 +50,6 @@ class embeddings(object):
         closest_distance = distances[0][0]
         print(closest_distance)
         faq_index = indices[0][0]  # Taking the closest FAQ index
-        print(f'{self.faq[indices[0][0]]} --> {distances[0][0]}')
-        print(f'{self.faq[indices[0][1]]} --> {distances[0][1]}')
-        print(f'{self.faq[indices[0][2]]} --> {distances[0][2]}')
 
         if closest_distance < threshold:
             try:

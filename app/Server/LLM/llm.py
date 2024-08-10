@@ -75,12 +75,12 @@ class Llm(object):
 
 llm = Llm()
 
-#if __name__ == '__main__':
-#    llm = Llm()
-#    initial_message = "Hello this is Jason from US-Bank"
-#    llm.chat_history.add_ai_response(initial_message)
-#    print(initial_message)
-#    while True:
-#        user_response = input('user turn:')
-#        response = llm.get_answer(user_response)
-#        print(response)
+if __name__ == '__main__':
+    llm = Llm()
+    initial_message = "Hello this is Jason from US-Bank"
+    llm.chat_history.add_ai_response(initial_message)
+    print(initial_message)
+    while True:
+        user_response = input('user turn:')
+        response = llm.get_answer(user_response)
+        print(response)

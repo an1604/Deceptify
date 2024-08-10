@@ -10,9 +10,9 @@ def get_text_from_file(path):
 
 class prompts(object):
     ROLE = PromptTemplate.from_template(
-        get_text_from_file('Server/LLM/prompts/BankRole.txt'))
+        get_text_from_file('prompts/BankRole.txt'))
     # PRINCIPLES = get_text_from_file('Server/LLM/prompts/remember.txt')
-    KNOWLEDGEBASE_ROLE = SystemMessage(content=get_text_from_file('Server/LLM/prompts/knowledge.txt'))
+    KNOWLEDGEBASE_ROLE = SystemMessage(content=get_text_from_file('prompts/knowledge.txt'))
 
     @staticmethod
     def get_principles(target='address'):
