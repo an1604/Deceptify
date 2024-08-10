@@ -1,5 +1,6 @@
 import os
-from langchain_core.prompts import PromptTemplate
+from langchain.schema import AIMessage, HumanMessage, SystemMessage
+from langchain_core.prompts import SystemMessagePromptTemplate, PromptTemplate
 
 
 def get_text_from_file(path):
@@ -7,20 +8,19 @@ def get_text_from_file(path):
         return f.read()
 
 
-def replace_target_info(content, param, param_name):
-    text = content.replace(param_name, param)
-    return text
+class prompts(object):
+    ROLE = PromptTemplate.from_template(
+        get_text_from_file('prompts/BankRole.txt'))
+    # PRINCIPLES = get_text_from_file('Server/LLM/prompts/remember.txt')
+    KNOWLEDGEBASE_ROLE = SystemMessage(content=get_text_from_file('prompts/knowledge.txt'))
 
+    @staticmethod
+    def get_principles(target='address'):
+        return prompts.PRINCIPLES.format(target=target)
 
-def get_role(role: str, prompt, history, place='park', target='address', connection='co-worker'):
-    r = role.format(place=place, target=target, connection=connection,prompt=prompt,history= history)
-    return r
-
-
-ROLE = get_text_from_file('Server/LLM/prompts/role.txt')
-
-KNOWLEDGEBASE_ROLE = get_text_from_file('Server/LLM/prompts/knowledge.txt')
-
-ROLE_TEMPLATE = 'Role: {}\n{}'
-CONTEX_TEMPLATE = '\nContex: {}\n'
-PROMPT_TEMPLATE = '{}\n{}{}{}'
+    @staticmethod
+    def get_role(role: str, name='Donald', place='park', target='address',
+                 connection='co-worker'):
+        principles = prompts.get_principles()
+        r = role.format(name=name, place=place, target=target, connection=connection, principles=principles)
+        return r

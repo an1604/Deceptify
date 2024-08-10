@@ -38,5 +38,4 @@ flask-login
 qrcode
 pyotp
 email_validator
-TTS
 sentence_transformers
