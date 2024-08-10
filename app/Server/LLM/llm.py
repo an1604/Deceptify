@@ -10,8 +10,8 @@ from app.Server.LLM.embeddings import embeddings
 from app.Server.LLM.prompts.prompts import prompts
 
 # model_name = 'http://ollama:11434/'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
-# model_name = 'llama3'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
-model_name = 'tinyllama'
+model_name = 'llama3'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
+# model_name = 'tinyllama'
 
 # machine = 'ollama'  # REPLACE IT TO LOCALHOST IF YOU RUN LOCALLY
 machine = 'localhost'  # REPLACE IT TO LOCALHOST IF YOU RUN LOCALLY
