@@ -1,5 +1,4 @@
-# from langchain_community.llms import Ollama
-from langchain_community.chat_models import ChatOllama
+from langchain_community.llms import Ollama
 from queue import Queue
 
 from langchain_core.messages import AIMessage
@@ -22,41 +21,47 @@ class Llm(object):
         self.llm = Ollama(model=model_name)  # Switched the Ollama to ChatOllama
         self.qa_q = Queue()
 
-        self.embedding_model = None
-
+        self.embedding_model = embeddings()
         self.chat_history = chatHistory()
         self.chat_history.initialize_role(prompts.ROLE)
+        self.user_prompt = self.chat_history.get_prompt()
 
         self.start_conv = True
         self.stop = False
         self.embedd_custom_knowledgebase = False
-        self.open_msg = 'Hello how are you doing?'
 
     def generate_knowledgebase(self, gen_info):
         return self.llm.invoke(prompts.KNOWLEDGEBASE_ROLE.format(gen_info=gen_info))
 
-    def get_answer(self, prompt, history, event=None):
+    def get_answer(self, prompt, history=None, event=None):
         try:
             # Creating HumanMessage object for ollama to understand.
             self.chat_history.add_human_message(prompt)
-
             if not self.embedd_custom_knowledgebase:
-                self.embedding_model = embeddings()
+                self.embedding_model.generate_faq_embedding()
                 self.embedd_custom_knowledgebase = True
 
             answer = self.embedding_model.get_answer_from_embedding(prompt)
             if answer is None:
                 # user_prompt = prompts.get_role(role=ROLE, history=history, prompt=prompt)
-                chain = prompt | self.llm
+                chain = self.user_prompt | self.llm
                 answer = chain.invoke({
-                    "chat_history": self.chat_history.get_chat_history()
-                }).content
+                    "history": self.chat_history.get_chat_history(),
+                    # 'name': 'Donald',  # Default value
+                    # 'place': 'park',  # Default value
+                    # 'target': 'address',  # Default value
+                    # 'connection': 'co-worker',  # Default value,
+                    # 'principles': prompts.get_principles(),
+                    "context": prompt
+                })
+            print("line 62")
 
             if event:
                 event.set()
 
             self.qa_q.put((prompt, answer))
-            self.chat_history.add_ai_response(AIMessage(content=answer))
+            self.chat_history.add_ai_response(answer)
+            print("line 69")
 
             return answer
 

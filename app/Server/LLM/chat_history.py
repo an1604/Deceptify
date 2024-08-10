@@ -1,5 +1,5 @@
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
-from langchain_core.prompts import MessagesPlaceholder, ChatPromptTemplate
+from langchain_core.prompts import MessagesPlaceholder, ChatPromptTemplate, PromptTemplate
 
 
 class chatHistory(object):
@@ -10,22 +10,17 @@ class chatHistory(object):
     def initialize_role(self, role: SystemMessage):
         self.role = role
 
-    def generate_prompt(self, _input):
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", self.role),
-            MessagesPlaceholder("chat_history"),
-            ("human", f"{_input}"),
-        ])
-        return prompt
 
     def add_human_message(self, msg: str):
-        self.chat_history.extend(HumanMessage(content=msg))
+        # self.chat_history.extend(HumanMessage(msg))
+        self.chat_history.extend(("user", f"{msg}"))
 
     def add_system_message(self, msg: str):
         self.chat_history.extend(SystemMessage(content=msg))
 
     def add_ai_response(self, res: str):
-        self.chat_history.extend(AIMessage(content=res))
+        # self.chat_history.extend(AIMessage(content=res))
+        self.chat_history.extend(("assistant", f"{res}"))
 
     def get_window(self):
         return self.chat_history[-1]
@@ -38,3 +33,6 @@ class chatHistory(object):
             HumanMessage(content=user_message),
             AIMessage(content=ai_response)
         ])
+
+    def get_prompt(self):
+        return self.role
