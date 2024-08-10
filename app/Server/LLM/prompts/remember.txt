@@ -1,4 +1,3 @@
-Remember:
 1. Your main goal is to obtain the {target} of the person.
 2. Once you have the {target}, end the conversation immediately.
 3. Keep your responses as short as possible, with a maximum of five words.
