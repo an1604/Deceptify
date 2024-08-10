@@ -62,17 +62,17 @@ def recognize_worker(config, profile_name, username, purpose):
             else:
                 sanitized_prompt = sanitize_filename(response)
                 prompts_for_user.add(sanitized_prompt)
-                start_filler = Thread(target=play_audio_through_vbcable,
-                                      args=(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-                                            fillers[index] + ".wav", "CABLE Input"))
-                start_filler.daemon = True
-                start_filler.start()
+                # start_filler = Thread(target=play_audio_through_vbcable,
+                #                       args=(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                #                             fillers[index] + ".wav", "CABLE Input"))
+                # start_filler.daemon = True
+                # start_filler.start()
                 conversation_history.append({"ai": fillers[index]})
                 index = (index + 1) % 3
-                serv_response = generate_voice(username, profile_name, sanitized_prompt)
-                get_voice_profile(username, profile_name, "prompt", serv_response["file"])
-                play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-                                           "prompt" + ".wav")
+                # serv_response = generate_voice(username, profile_name, sanitized_prompt)
+                # get_voice_profile(username, profile_name, "prompt", serv_response["file"])
+                # play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                #                            "prompt" + ".wav")
             conversation_history.append({"ai": response})
             if response == "I am good thank you":
                 #TODO: play audio file of, "can i have your email?","can i have your id?" etc
@@ -80,11 +80,13 @@ def recognize_worker(config, profile_name, username, purpose):
                 play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
                                            "Can i have your " + purpose + ".wav")
                 conversation_history.append({"ai": "Can i have your " + purpose})
+                print("AI says: Can i have your" + purpose)
             elif response == "Thank you":
                 play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
                                            "See you later" + ".wav")
                 flag = True
                 conversation_history.append({"ai": "See you later"})
+                print("AI says: See you later")
             #elif "I need it" in response or response == "My contacts were deleted":
             #    play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
             #                               "Can i have your " + purpose + ".wav")
@@ -125,6 +127,7 @@ def startConv(config, profile_name, purpose, username="oded", starting_message="
                     play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
                                                starting_message + ".wav", "CABLE Input")
                     conversation_history.append({"ai": starting_message})
+                    print("AI says: " + starting_message)
                     started_conv = True
                 # r.pause_threshold = 1
                 audio_queue.put(r.listen(source, timeout=8, phrase_time_limit=8))

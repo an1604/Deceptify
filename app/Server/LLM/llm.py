@@ -19,9 +19,7 @@ machine = 'localhost'  # REPLACE IT TO LOCALHOST IF YOU RUN LOCALLY
 
 class Llm(object):
     def __init__(self):
-        self.llm = ChatOllama(model=model_name)  # Switched the Ollama to ChatOllama
-        self.parser = StrOutputParser()
-        self.faq = None
+        self.llm = Ollama(model=model_name)  # Switched the Ollama to ChatOllama
         self.qa_q = Queue()
 
         self.embedding_model = None
@@ -71,3 +69,13 @@ class Llm(object):
 
 
 llm = Llm()
+
+#if __name__ == '__main__':
+#    llm = Llm()
+#    initial_message = "Hello this is Jason from US-Bank"
+#    llm.chat_history.add_ai_response(initial_message)
+#    print(initial_message)
+#    while True:
+#        user_response = input('user turn:')
+#        response = llm.get_answer(user_response)
+#        print(response)
