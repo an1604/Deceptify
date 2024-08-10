@@ -75,8 +75,6 @@ def recognize_worker(config, profile_name, username, purpose):
                                            "prompt" + ".wav")
             conversation_history.append({"ai": response})
             if response == "I am good thank you":
-                #TODO: play audio file of, "can i have your email?","can i have your id?" etc
-                # and add it to llm history
                 play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
                                            "Can i have your " + purpose + ".wav")
                 conversation_history.append({"ai": "Can i have your " + purpose})
@@ -101,7 +99,7 @@ def recognize_worker(config, profile_name, username, purpose):
             print(f'Exception from recognize_worker: {e}')
 
 
-def startConv(config, profile_name, purpose, username="oded", starting_message="Hello how are you doing"):
+def startConv(config, profile_name, purpose, username="oded", starting_message="Hello how are you doing",place="US Bank"):
     global flag, waitforllm, prompts_for_user
     flag = False
     started_conv = False
@@ -124,6 +122,8 @@ def startConv(config, profile_name, purpose, username="oded", starting_message="
                 if not started_conv:
                     play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
                                                starting_message + ".wav", "CABLE Input")
+                    # TODO: play through vbcable "Hello this is {name} from {bank} is this {mimic}"
+                    # need to generate on attack phase
                     conversation_history.append({"ai": starting_message})
                     started_conv = True
                 # r.pause_threshold = 1
