@@ -39,7 +39,7 @@ def sanitize_filename(filename):
 
 def recognize_worker(config, profile_name, username, purpose):
     global flag, waitforllm, conversation_history, data_storage, prompts_for_user
-    fillers = ["Wait a second", "Hold on a second", "Umm"]
+    fillers = ["Wait a second", "Umm", "Umm", "Hold on a second", "Umm", "Umm"]
     index = 0
     while True:
         audio = audio_queue.get()  # Retrieve the next audio processing job from the main thread
@@ -68,7 +68,7 @@ def recognize_worker(config, profile_name, username, purpose):
                 start_filler.daemon = True
                 start_filler.start()
                 conversation_history.append({"ai": fillers[index]})
-                index = (index + 1) % 3
+                index = (index + 1) % 6
                 serv_response = generate_voice(username, profile_name, sanitized_prompt)
                 get_voice_profile(username, profile_name, "prompt", serv_response["file"])
                 play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
