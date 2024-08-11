@@ -44,7 +44,7 @@ class embeddings(object):
         embedding = self.embedding_model.encode(_input)
         return np.array([embedding])  # Ensure it returns a 2D array
 
-    def get_answer_from_embedding(self, _input, threshold=0.9):
+    def get_answer_from_embedding(self, _input, threshold=0.5):
         print(_input)
         prompt_embedding = self.get_embedding(_input.lower())  # Get the embedding representation for the prompt
         indices, distances = self.get_nearest_neighbors(prompt_embedding)

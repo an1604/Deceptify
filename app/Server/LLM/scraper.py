@@ -8,7 +8,8 @@ model_name = 'tinyllama'
 machine = 'localhost'  # REPLACE IT TO LOCALHOST IF YOU RUN LOCALLY
 
 
-class scraper(object):
+
+class Scraper(object):
     def __init__(self):
         # Scraper configurations
         self.graph_config = {
@@ -19,7 +20,7 @@ class scraper(object):
                 "base_url": f"http://{machine}:11434",
             },
             "embeddings": {
-                "model": f"http://{machine}:11434/nomic-embed-text",
+                "model": "ollama/nomic-embed-text",
                 "base_url": f"http://{machine}:11434",
             },
             "verbose": True,
