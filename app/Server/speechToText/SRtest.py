@@ -124,7 +124,7 @@ def startConv(config, profile_name, purpose, username="oded", starting_message="
                 if not started_conv:
                     play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
                                                starting_message + ".wav", "CABLE Input")
-                    # TODO: play through vbcable "Hello this is {name} from {bank} is this {mimic}"
+                    # TODO: play through vbcable "Hello this is {name} from {place}"
                     # need to generate on attack phase
                     conversation_history.append({"ai": starting_message})
                     print("AI says: " + starting_message)
