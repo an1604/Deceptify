@@ -39,3 +39,4 @@ qrcode
 pyotp
 email_validator
 sentence_transformers
+PyPDF2

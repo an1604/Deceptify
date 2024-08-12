@@ -16,6 +16,8 @@ class AttackFactory:
             description: str,
             attack_purpose: str,
             attack_id: int,
+            voice_type: str,
+            place: str,
             recordings=None,
             transcript=None,
     ):
@@ -39,6 +41,7 @@ class AttackFactory:
         Raises:
         - ValueError: If the attack_type is not one of the allowed values.
         """
+        attack_type = "Voice"
         allowed_attack_types = [
             "Voice",
             "Video",
@@ -51,6 +54,8 @@ class AttackFactory:
                 description,
                 attack_purpose,
                 attack_id,
+                voice_type,
+                place,
                 recordings,
                 transcript,
             )
@@ -76,13 +81,15 @@ class Attack:
     Base class for all attack types.
     """
 
-    def __init__(self, campaign_name, mimic_profile, target, description, attack_purpose, camp_id):
+    def __init__(self, campaign_name, mimic_profile, target, description, attack_purpose, camp_id, voice_type, place):
         self.campaign_name = campaign_name
         self.mimic_profile = mimic_profile
         self.target = target
         self.description = description
         self.attack_purpose = attack_purpose
         self.attack_id = camp_id
+        self.voice_type = voice_type
+        self.place = place
         self.recordings = None
         self.transcript = None
         self.setRec()
@@ -106,6 +113,12 @@ class Attack:
     def getID(self):
         return self.attack_id
 
+    def getVoiceType(self):
+        return self.voice_type
+
+    def getPlace(self):
+        return self.place
+
     def get_role(self, profile) -> str:
         """
         Determines the role of a given profile.
@@ -120,6 +133,26 @@ class Attack:
             return "Attacker"
         elif profile == self.target:
             return "Victim"
+
+    def get_attack_prompts(self) -> set[str]:
+        if self.attack_purpose == "Bank":
+            return {"We had a suspicious activity in your account and we need verification to make action",
+                    "We detected some suspicious transactions", "In order to continue further i need your id number",
+                    "It is to confirm your identity", "You can call the bank directly to verify",
+                    "Yes after we verify your identity", "Our system flagged it as unusual", "No that will be all"}
+        elif self.attack_purpose == "Delivery":
+            return {"We have your package and we need your address to send it", "we do not have that information",
+                    "We need it to know where to send the package", "It is not provided in the package",
+                    "Yes to ensure it’s delivered correctly", "We need your full address to make the delivery",
+                    "It was on the shipping label", "We will not be able to deliver your package",
+                    "No the delivery is already covered", "No that will be all"}
+        else:  # self.attack_purpose == "Hospital"
+            return {"We had a system reset and we need to verify our clients again",
+                    "We need your id for verification", "To make sure we get the correct information",
+                    "So we can send you information", "We have that documented",
+                    "Our system lost some data so we are verifying info",
+                    "We need to confirm due to the reset", "Your records will not be updated",
+                    "We are only handling it by phone", "No that will be all"}
 
     def setRec(self):
         self.recordings = ("Attacker-" + self.mimic_profile.getName() + "-Target-"
@@ -143,6 +176,8 @@ class Attack:
             "description": self.description,
             "purpose": self.attack_purpose,
             "attack_id": self.attack_id,
+            "voice_type": self.voice_type,
+            "place": self.place,
         }
 
     def to_json(self):
@@ -171,7 +206,9 @@ class Attack:
         description = data["description"]
         attack_purpose = data["purpose"]
         attack_id = data["attack_id"]
-        return Attack(campaign_name, mimic_profile, target, description, attack_purpose, attack_id)
+        voice_type = data["voice_type"]
+        place = data["place"]
+        return Attack(campaign_name, mimic_profile, target, description, attack_purpose, attack_id, voice_type, place)
 
     @staticmethod
     def from_json(json_data):
@@ -195,6 +232,8 @@ class Attack:
                 self.description,
                 self.attack_purpose,
                 self.attack_id,
+                self.voice_type,
+                self.place,
             )
         )
 
@@ -208,8 +247,10 @@ class Attack:
             self.description,
             self.attack_purpose,
             self.attack_id,
+            self.voice_type,
+            self.place,
         ) == (other.campaign_name, other.mimic_profile, other.target, other.description,
-              other.attack_purpose, other.attack_id)
+              other.attack_purpose, other.attack_id, other.voice_type, other.place)
 
 
 class VoiceAttack(Attack):
@@ -225,15 +266,16 @@ class VoiceAttack(Attack):
             description,
             attack_purpose,
             attack_id,
+            voice_type,
+            place,
             recordings=None,
             transcript=None,
     ):
-        super().__init__(campaign_name, mimic_profile, target, description, attack_purpose,  attack_id)
+        super().__init__(campaign_name, mimic_profile, target, description, attack_purpose,  attack_id, voice_type, place)
         self.recordings = recordings
         self.transcript = transcript
         self.mimic_profile.addAttack(self)
         self.target.addAttack(self)
-        self.attack_purpose = attack_purpose
 
     def to_dict(self):
         super_dict = super().to_dict()
@@ -254,6 +296,8 @@ class VoiceAttack(Attack):
         description = data["description"]
         attack_purpose = data["purpose"]
         attack_id = data["attack_id"]
+        voice_type = data["voice_type"]
+        place = data["place"]
         recordings = data["recordings"]
         transcript = data["transcript"]
         return VoiceAttack(
@@ -263,6 +307,8 @@ class VoiceAttack(Attack):
             description,
             attack_purpose,
             attack_id,
+            voice_type,
+            place,
             recordings,
             transcript,
         )
@@ -280,6 +326,8 @@ class VoiceAttack(Attack):
                 self.description,
                 self.attack_purpose,
                 self.attack_id,
+                self.voice_type,
+                self.place,
                 self.recordings,
                 self.transcript,
             )
@@ -295,6 +343,8 @@ class VoiceAttack(Attack):
             self.description,
             self.attack_purpose,
             self.attack_id,
+            self.voice_type,
+            self.place,
             self.transcript,
             self.recordings,
         ) == (
@@ -304,6 +354,8 @@ class VoiceAttack(Attack):
             other.description,
             other.attack_purpose,
             other.attack_id,
+            other.voice_type,
+            other.place,
             other.transcript,
             other.recordings,
         )
@@ -322,10 +374,12 @@ class VideoAttack(Attack):
             description,
             attack_purpose,
             attack_id,
+            voice_type,
+            place,
             video_recordings=None,
             transcript=None,
     ):
-        super().__init__(campaign_name, mimic_profile, target, description, attack_purpose, attack_id)
+        super().__init__(campaign_name, mimic_profile, target, description, attack_purpose, attack_id, voice_type, place)
         self.video_recordings = video_recordings
         self.transcript = transcript
 
@@ -348,6 +402,8 @@ class VideoAttack(Attack):
         description = data["description"]
         attack_purpose = data["purpose"]
         attack_id = data["attack_id"]
+        voice_type = data["voice_type"]
+        place = data["place"]
         recordings = data["recordings"]
         transcript = data["transcript"]
         return VideoAttack(
@@ -357,6 +413,8 @@ class VideoAttack(Attack):
             description,
             attack_purpose,
             attack_id,
+            voice_type,
+            place,
             recordings,
             transcript,
         )
@@ -374,6 +432,8 @@ class VideoAttack(Attack):
                 self.description,
                 self.attack_purpose,
                 self.attack_id,
+                self.voice_type,
+                self.place,
                 self.video_recordings,
                 self.transcript,
             )
@@ -389,6 +449,8 @@ class VideoAttack(Attack):
             self.description,
             self.attack_purpose,
             self.attack_id,
+            self.voice_type,
+            self.place,
             self.transcript,
             self.video_recordings,
         ) == (
@@ -398,6 +460,8 @@ class VideoAttack(Attack):
             other.description,
             other.attack_purpose,
             other.attack_id,
+            other.voice_type,
+            other.place,
             other.transcript,
             other.video_recordings,
         )

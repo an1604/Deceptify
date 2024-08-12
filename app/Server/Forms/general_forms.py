@@ -2,11 +2,16 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import StringField, SubmitField, FileField, PasswordField, TextAreaField, SelectField
 from wtforms.fields.numeric import IntegerField
-from wtforms.validators import DataRequired, Email, ValidationError
+from wtforms.validators import DataRequired, Email, ValidationError, Regexp
 from app.Server.data.DataStorage import Data
 
 
 class CampaignForm(FlaskForm):
+
+    def validate_place(self, field):
+        if self.voice_type.data == "AI" and not field.data:
+            raise ValidationError("Place is required when Voice Type is set to AI.")
+
     campaign_name = StringField(
         label="Campaign Name",
         validators=[DataRequired()]
@@ -20,28 +25,37 @@ class CampaignForm(FlaskForm):
         validators=[DataRequired()]
     )
     target_name = StringField(
-        label="Whatsapp Name",
+        label="Target Name",
         validators=[DataRequired()]
     )
-    attack_type = SelectField(
-        label="Attack Type",
-        choices=[("Voice", "Voice"), ("Video", "Video")],
+    voice_type = SelectField(
+        label="Voice type (Clone for cloned voice attack, AI for default voice AI attack)",
+        choices=[("Clone", "Clone"), ("AI", "AI")],
         validators=[DataRequired()]
     )
-    # attack_type = SelectField("Attack Type", choices=['Voice Call', 'Voice Recording', 'Video Call',
-    # 'Video Recording'], validators=[DataRequired()])
     attack_purpose = SelectField(
-        label="Attack Purpose",
-        choices=[("Phone number", "Phone number"), ("Special code", "Special code"),
-                 ("Email address", "Email address")],
+        label="Attack Purpose (Fill in case of AI attack. Bank for Id and account number, Delivery for address,"
+              "Hospital for Id and address)",
+        choices=[("Bank", "Bank"), ("Delivery", "Delivery"),
+                 ("Hospital", "Hospital")],
         validators=[DataRequired()]
+    )
+    place = StringField(
+        label="Place (Fill in case of AI attack. This represents the place the AI calls from, e.g. Bank name for "
+              "Bank, Airport name for Delivery, and Hospital name for Hospital. The place should be related to the "
+              "target)",
+        validators=[
+            validate_place,
+            Regexp(r'^[A-Za-z]+( [A-Za-z]+)*$', message="Place must contain words separated by a single space, "
+                                                        "and start and end with a letter."),
+            # Reference the custom validator method without `self`
+        ]
     )
     campaign_description = TextAreaField(
         label="Campaign Description",
         validators=[DataRequired()]
     )
     submit = SubmitField("Submit")
-
 
 class ViewAttacksForm(FlaskForm):
     attack_list = SelectField(

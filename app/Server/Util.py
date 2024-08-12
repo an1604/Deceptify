@@ -51,7 +51,7 @@ def create_knowledgebase(text):
             file.write(f"'{question}';'{answer}'\n")
         with open('Server/LLM/knowledge.csv', 'r') as knowledgebase:
             for line in knowledgebase:
-                  file.write(line)
+                file.write(line)
 
     #     file.close()
     return rows
@@ -342,7 +342,6 @@ def record_call(event, fname):
             wf.writeframes(b''.join(frames))
 
             print(f"{WAVE_OUTPUT_FILENAME} succssfully saved!")
-            transcribe_audio(WAVE_OUTPUT_FILENAME, JSON_OUTPUT_FILENAME)
 
 
 def get_ip_address():

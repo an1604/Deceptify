@@ -3,7 +3,7 @@ from typing import Optional, Set, List
 
 from app.Server import Util
 from app.Server.data.prompt import Prompt
-
+from app.Server.data.Attacks import Attack
 
 # TODO: fix when saving to pkl file and getting from pkl file
 class Profile:
@@ -174,8 +174,8 @@ class Profile:
         return self.Attacks
 
     def get_attack(self, attack_id):
-        a = [attack for attack in self.Attacks if attack["attack_id"] == int(attack_id)]
-        return a[0]
+        attack = [attack for attack in self.Attacks if attack["attack_id"] == int(attack_id)][0]
+        return Attack.from_dict(attack)
 
     def to_dict(self) -> dict:
         """

@@ -6,20 +6,70 @@
 
 {% block page_content %}
 <div class="page-header">
-    <h1>Please wait while the attack dashboard is being generated</h1>
+    <h1 id="dashboardTitle">Please wait while the attack is being generated</h1>
 </div>
+
+<div class="button-container">
+    <button id="attackBtn" class="btn btn-primary" disabled onclick="startAttack()">Start Attack</button>
+</div>
+
 {% endblock %}
 {% block scripts %}
     <script>
+        const profile = "{{profile}}";
+        const contact = "{{contact}}";
+        const attack_id = "{{id}}";
+        const voice_type = "{{type}}";
         function openSmallWindow() {
-            const profile = "{{profile}}";
-            const contact = "{{contact}}"
-            const attack_id = "{{id}}"
             window.open('/attack_dashboard?profile=' + encodeURIComponent(profile) + '&contact='
                 + encodeURIComponent(contact) + '&id=' + encodeURIComponent(attack_id), 'smallWindow',
                 'width=600,height=360,left=0,top=0,resizable=no,scrollbars=no,status=no');
             window.close()
         }
-        window.onload = openSmallWindow;
+
+        async function generateAttack() {
+            try {
+                const response = await fetch('/generate_attack_type?profile=' + encodeURIComponent(profile) +
+                    '&attack_id=' + encodeURIComponent(attack_id));
+                const result = await response.json();
+                if (result.status === "complete") {
+                    document.getElementById('attackBtn').disabled = false; // Enable the button
+                    document.getElementById('dashboardTitle').innerText = "The attack has been generated" +
+                        ", you can start the attack"
+
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        if(voice_type.toString() === "Clone") {
+            window.onload = openSmallWindow;
+        }
+        else{
+            window.onload = function() {
+                generateAttack();
+            };
+        }
+
+        async function startAttack() {
+            document.getElementById('attackBtn').disabled = true;
+            try {
+                // Call the route to start the attack
+                const response = await fetch('/start_attack?profile=' + encodeURIComponent(profile) +
+                    '&contact=' + encodeURIComponent(contact) +
+                    '&attack_id=' + encodeURIComponent(attack_id) +
+                    '&voice_type=' + encodeURIComponent(voice_type), {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    console.error('Network response was not ok');
+                }
+
+            } catch (error) {
+                console.error('Error starting the attack:', error);
+            }
+        }
     </script>
 {%endblock%}

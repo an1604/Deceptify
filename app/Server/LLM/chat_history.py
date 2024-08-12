@@ -3,13 +3,27 @@ from langchain_core.prompts import MessagesPlaceholder, ChatPromptTemplate, Prom
 
 
 class chatHistory(object):
-    def __init__(self):
+    def __init__(self, name='default'):
         self.chat_history = []
         self.role = None
+        self.name = name
+
+    def set_profile_name_for_transcript(self, profile_name):
+        self.name = profile_name
+
+    def flush(self, save_attack=True):
+        if save_attack:
+            self.save_chat()
+        self.chat_history.clear()
+        self.role = None
+
+    def save_chat(self):
+        with open(f'chat_history-{self.name}.txt', 'w') as f:
+            for e in self.chat_history:
+                f.write(e + '\n')
 
     def initialize_role(self, role: SystemMessage):
         self.role = role
-
 
     def add_human_message(self, msg: str):
         # self.chat_history.extend(HumanMessage(msg))

@@ -95,9 +95,9 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
             # else:
                 # createvoice_profile(username="oded", profile_name=name, file_path=file_path)
                 # data_storage.add_profile(Profile(name, gen_info, str(file_path)))
-            if gen_info:
-                response = llm.generate_knowledgebase(gen_info)
-                rows = create_knowledgebase(response)
+            # if gen_info:
+            #     response = llm.generate_knowledgebase(gen_info)
+            #     rows = create_knowledgebase(response)
             # redirect to ollama
             flash("Profile created successfully")
             return flask_redirect(url_for("main.index"))
@@ -242,24 +242,27 @@ def attack_generation_routes(main, app, data_storage):
             mimic_profile = data_storage.get_profile(form.mimic_profile.data)
             target_profile = data_storage.get_profile(form.target_profile.data)
             campaign_description = form.target_name.data
-            attack_type = form.attack_type.data
             attack_purpose = form.attack_purpose.data
             campaign_unique_id = int(uuid.uuid4())
+            voice_type = form.voice_type.data
+            place = form.place.data
             attack = AttackFactory.create_attack(
-                attack_type,
+                "Voice",
                 campaign_name,
                 mimic_profile,
                 target_profile,
                 campaign_description,
                 attack_purpose,
                 campaign_unique_id,
+                voice_type,
+                place
             )
             data_storage.add_attack(attack)
 
             flash("Campaign created successfully using")
             return flask_redirect(
                 url_for('main.attack_dashboard_transition', profile=form.mimic_profile.data,
-                        contact=form.target_name.data, id=campaign_unique_id))
+                        contact=form.target_name.data, id=campaign_unique_id, type=voice_type))
         return render_template('attack_pages/newattack.html', form=form)
 
     @main.route('/attack_dashboard_transition', methods=['GET'])
@@ -272,6 +275,46 @@ def attack_generation_routes(main, app, data_storage):
             session.pop("started_call")
         return render_template('attack_pages/attack_dashboard_transition.html', profile=profile_name,
                                contact=contact_name, id=attack_id)
+
+    @main.route('/generate_attack_type', methods=['GET'])
+    def generate_attack_type():
+        profile_name = request.args.get('profile')
+        attack_id = request.args.get('attack_id')
+        profile = data_storage.get_profile(profile_name)
+        attack = profile.get_attack(attack_id)
+        attack_prompts = attack.get_attack_prompts()
+        print(profile.getPrompts())
+        for prompt in attack_prompts:
+            if not profile.getPrompt(prompt):
+                response = generate_voice("oded", profile.profile_name, prompt)
+                get_voice_profile("oded", profile.profile_name, prompt, response["file"])
+                new_prompt = Prompt(prompt_desc=prompt, prompt_profile=profile.profile_name)
+                profile.addPrompt(new_prompt)
+        print(attack.getPlace())
+        starting_message = "Hello this is Jason from " + attack.getPlace()
+        if starting_message not in attack_prompts:
+            response = generate_voice("oded", profile.profile_name, starting_message)
+            get_voice_profile("oded", profile.profile_name, starting_message, response["file"])
+            new_prompt = Prompt(prompt_desc=starting_message, prompt_profile=profile.profile_name)
+            profile.addPrompt(new_prompt)
+        return jsonify({"status": "complete"})
+
+    @main.route('/start_attack', methods=['GET', 'POST'])
+    def start_attack():
+        profile_name = request.args.get('profile')
+        attack_id = request.args.get('attack_id')
+        voice_type = request.args.get('voice_type')
+        contact_name = request.args.get('contact')
+        profile = data_storage.get_profile(profile_name)
+        attack = profile.get_attack(attack_id)
+        recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
+                                                           "-Target-" + contact_name))
+        recorder_thread.start()
+        s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name, attack.getPurpose(),
+                                                           "Hello this is jason from " + attack.getPlace(),
+                                                           StopRecordEvent, contact_name))
+        s2t_thread.start()
+        return '', 204
 
     @main.route('/attack_dashboard', methods=['GET', 'POST'])
     @login_required
@@ -293,16 +336,6 @@ def attack_generation_routes(main, app, data_storage):
             recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
                                                                "-Target-" + contact_name))
             recorder_thread.start()
-            # if profile.video_data_path is not None and attack_type == "Video":
-            #     cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
-            #                                                ".mp4", True, CutVideoEvent))
-            #     cam_thread.start()
-            # else:  # voice attack
-                # if profile.video_data_path is not None:
-            s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name, attack_purpose))
-            s2t_thread.start()
-            s2t_thread.join()
-
             session["started_call"] = True
             session['stopped_call'] = False
         if form.validate_on_submit():
