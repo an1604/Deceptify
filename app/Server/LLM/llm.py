@@ -4,7 +4,6 @@ from time import time
 from langchain_core.messages import AIMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_experimental.llms.ollama_functions import OllamaFunctions
-from scraper import Scraper
 from app.Server.LLM.chat_history import chatHistory
 from app.Server.LLM.embeddings import embeddings
 from app.Server.LLM.prompts.prompts import prompts
@@ -19,15 +18,10 @@ machine = 'localhost'  # REPLACE IT TO LOCALHOST IF YOU RUN LOCALLY
 class Llm(object):
     def __init__(self):
         self.llm = Ollama(model=model_name)  # Switched the Ollama to ChatOllama
-        self.qa_q = Queue()
-        self.scraper = Scraper()
         self.embedding_model = embeddings()
         self.chat_history = chatHistory()
         self.chat_history.initialize_role(prompts.ROLE)
         self.user_prompt = self.chat_history.get_prompt()
-
-        self.start_conv = True
-        self.stop = False
         self.embedd_custom_knowledgebase = False
 
     def generate_knowledgebase(self, gen_info):
@@ -66,29 +60,19 @@ class Llm(object):
             print("line 69")
 
             return answer
-
-        except Exception as e:
-            print(f"Exception from get_answer: {e}")
-
-    def end_conversation(self):
-        self.qa_q.put(None)
-        self.stop = True
-
-    def scrape(self, url="1", prompt="123"):
-        print(
-            self.scraper.scrape_from_url(url="https://www.facebook.com/aviv.nataf.1/?locale=he_IL",
-                                         prompt="List me the school this person learned at"))
+        # except Exception as e:
+        #     print(f"Exception from get_answer: {e}")
 
 
 llm = Llm()
 
 if __name__ == '__main__':
     llm = Llm()
-    llm.scrape()
-    # initial_message = "Hello this is Jason from US-Bank"
-    # llm.chat_history.add_ai_response(initial_message)
-    # print(initial_message)
-    # while True:
-    #     user_response = input('user turn:')
-    #     response = llm.get_answer(user_response)
-    #     print(response)
+    llm.initialize_new_attack("Bank", "david")
+    initial_message = "Hello this is Jason from Discount bank"
+    llm.chat_history.add_ai_response(initial_message)
+    print(initial_message)
+    while True:
+        user_response = input('user turn:')
+        response = llm.get_answer(user_response)
+        print(response)

@@ -37,9 +37,9 @@ def sanitize_filename(filename):
     return re.sub(r'[<>:"/\\|?*]', '_', filename).strip()
 
 
-def recognize_worker(config, profile_name, username, purpose):
-    global flag, waitforllm, conversation_history, data_storage, prompts_for_user
-    fillers = ["Wait a second", "Umm", "Umm", "Hold on a second", "Umm", "Umm"]
+def recognize_worker(config, profile_name, username):
+    global flag, waitforllm, data_storage, prompts_for_user
+    fillers = ["Wait a second", "Hold on a second"]
     index = 0
     while True:
         audio = audio_queue.get()  # Retrieve the next audio processing job from the main thread
@@ -53,8 +53,7 @@ def recognize_worker(config, profile_name, username, purpose):
             conversation_history.append({"user": spoken_text})
             response = llm.get_answer(spoken_text, conversation_history).strip()
             print("AI says: " + response)
-            conversation_history.append({"ai": response})
-            if "see you" in response.lower():
+            if "goodbye" in response.lower():
                 flag = True
             if response in prompts_for_user:
                 play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
@@ -62,33 +61,16 @@ def recognize_worker(config, profile_name, username, purpose):
             else:
                 sanitized_prompt = sanitize_filename(response)
                 prompts_for_user.add(sanitized_prompt)
-                # start_filler = Thread(target=play_audio_through_vbcable,
-                #                       args=(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-                #                             fillers[index] + ".wav", "CABLE Input"))
-                # start_filler.daemon = True
-                # start_filler.start()
-                conversation_history.append({"ai": fillers[index]})
-                index = (index + 1) % 6
-                # serv_response = generate_voice(username, profile_name, sanitized_prompt)
-                # get_voice_profile(username, profile_name, "prompt", serv_response["file"])
-                # play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-                #                            "prompt" + ".wav")
-            conversation_history.append({"ai": response})
-            if response == "I am good thank you":
+                start_filler = Thread(target=play_audio_through_vbcable,
+                                      args=(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                                            fillers[index] + ".wav", "CABLE Input"))
+                start_filler.daemon = True
+                start_filler.start()
+                index = (index + 1) % 2
+                serv_response = generate_voice(username, profile_name, response)
+                get_voice_profile(username, profile_name, "prompt", serv_response["file"])
                 play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-                                           "Can i have your " + purpose + ".wav")
-                conversation_history.append({"ai": "Can i have your " + purpose})
-                print("AI says: Can i have your" + purpose)
-            elif response == "Thank you":
-                play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-                                           "See you later" + ".wav")
-                flag = True
-                conversation_history.append({"ai": "See you later"})
-                print("AI says: See you later")
-            #elif "I need it" in response or response == "My contacts were deleted":
-            #    play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-            #                               "Can i have your " + purpose + ".wav")
-            #    conversation_history.append({"ai": "Can i have your " + purpose})
+                                           'prompt' + ".wav")
             if not waitforllm.is_set():
                 waitforllm.set()
         except sr.UnknownValueError:
@@ -101,11 +83,10 @@ def recognize_worker(config, profile_name, username, purpose):
             print(f'Exception from recognize_worker: {e}')
 
 
-def startConv(config, profile_name, purpose, username="oded", starting_message="Hello how are you doing",place="US Bank"):
+def startConv(config, profile_name, purpose, starting_message, record_event, target_name, username="oded"):
     global flag, waitforllm, prompts_for_user
     flag = False
     started_conv = False
-
     prompts_for_user = set([prompt.prompt_desc for prompt in
                             data_storage.get_profile(profile_name).getPrompts()])
 
@@ -126,7 +107,7 @@ def startConv(config, profile_name, purpose, username="oded", starting_message="
                                                starting_message + ".wav", "CABLE Input")
                     # TODO: play through vbcable "Hello this is {name} from {place}"
                     # need to generate on attack phase
-                    conversation_history.append({"ai": starting_message})
+                    llm.chat_history.add_ai_response(starting_message)
                     print("AI says: " + starting_message)
                     started_conv = True
                 # r.pause_threshold = 1
@@ -143,4 +124,4 @@ def startConv(config, profile_name, purpose, username="oded", starting_message="
     audio_queue.join()  # Block until all current audio processing jobs are done
     audio_queue.put(None)  # Tell the recognize_thread to stop
     recognize_thread.join()  # Wait for the recognize_thread to actually stop
-    starting_thread.join()
+

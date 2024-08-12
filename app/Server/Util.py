@@ -342,8 +342,6 @@ def record_call(event, fname):
             wf.writeframes(b''.join(frames))
 
             print(f"{WAVE_OUTPUT_FILENAME} succssfully saved!")
-            transcribe_audio(WAVE_OUTPUT_FILENAME, JSON_OUTPUT_FILENAME)
-
 
 def get_ip_address():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

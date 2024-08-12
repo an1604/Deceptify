@@ -8,11 +8,16 @@ def get_text_from_file(path):
         return f.read()
 
 
-class prompts(object):
-    ROLE = PromptTemplate.from_template(
-        get_text_from_file('prompts/BankRole.txt'))
+class Prompts(object):
+    ROLE = None
+
     # PRINCIPLES = get_text_from_file('Server/LLM/prompts/remember.txt')
-    KNOWLEDGEBASE_ROLE = SystemMessage(content=get_text_from_file('prompts/knowledge.txt'))
+    # KNOWLEDGEBASE_ROLE = SystemMessage(content=get_text_from_file('knowledge.txt'))
+
+    @staticmethod
+    def set_role(attack_purpose):
+        Prompts.ROLE = PromptTemplate.from_template(
+            get_text_from_file(f'{attack_purpose}Role.txt'))
 
     @staticmethod
     def get_principles(target='address'):
