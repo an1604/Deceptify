@@ -6,6 +6,6 @@ You need the client's id to verify.
 After you got the id you need to get the client's address to refill in the system.
 Once you have the address, say GoodBye and finish the conversation!
 Please keep your answers as short as you can, at most seven words.
-Your answers should not have numbers or punctuation marks
+Your answers should not have numbers or punctuation marks which is '!?,.'
 Accordingly refine your answers to the messages history {history}
 Context: {context}
