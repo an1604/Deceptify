@@ -12,7 +12,6 @@ from app.Server.LLM.llm import llm
 
 r = sr.Recognizer()
 audio_queue = Queue()
-conversation_history = []
 flag = False
 
 waitforllm = Event()
@@ -33,7 +32,6 @@ def get_device_index(device_name="CABLE Output"):
 
 
 def sanitize_filename(filename):
-    # Replace invalid characters with underscores
     return re.sub(r'[<>:"/\\|?*]', '_', filename).strip()
 
 
@@ -50,8 +48,7 @@ def recognize_worker(config, profile_name, username):
         try:
             spoken_text = r.recognize_google(audio)
             print("User says: " + spoken_text)
-            conversation_history.append({"user": spoken_text})
-            response = llm.get_answer(spoken_text, conversation_history).strip()
+            response = llm.get_answer(spoken_text).strip()
             print("AI says: " + response)
             if "goodbye" in response.lower():
                 flag = True
@@ -85,12 +82,15 @@ def recognize_worker(config, profile_name, username):
 
 def startConv(config, profile_name, purpose, starting_message, record_event, target_name, username="oded"):
     global flag, waitforllm, prompts_for_user
+
+    llm.initialize_new_attack(attack_purpose=purpose, profile_name=target_name)  # Refine the llm to the new attack
+    print(profile_name)
     flag = False
     started_conv = False
     prompts_for_user = set([prompt.prompt_desc for prompt in
                             data_storage.get_profile(profile_name).getPrompts()])
 
-    recognize_thread = Thread(target=recognize_worker, args=(config, profile_name, username, purpose))
+    recognize_thread = Thread(target=recognize_worker, args=(config, profile_name, username))
     recognize_thread.daemon = True
     recognize_thread.start()
     device_index = get_device_index()
@@ -119,8 +119,8 @@ def startConv(config, profile_name, purpose, starting_message, record_event, tar
                 print("Timed out waiting for audio")
                 continue
 
-    llm.end_conversation()
-    save_conversation_to_json(profile_name + "-conversation.json", conversation_history)
+    llm.flush()  # Cleaning the llm's previous information.
+    record_event.set()
     audio_queue.join()  # Block until all current audio processing jobs are done
     audio_queue.put(None)  # Tell the recognize_thread to stop
     recognize_thread.join()  # Wait for the recognize_thread to actually stop

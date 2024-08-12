@@ -95,9 +95,9 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
             # else:
                 # createvoice_profile(username="oded", profile_name=name, file_path=file_path)
                 # data_storage.add_profile(Profile(name, gen_info, str(file_path)))
-            if gen_info:
-                response = llm.generate_knowledgebase(gen_info)
-                rows = create_knowledgebase(response)
+            # if gen_info:
+            #     response = llm.generate_knowledgebase(gen_info)
+            #     rows = create_knowledgebase(response)
             # redirect to ollama
             flash("Profile created successfully")
             return flask_redirect(url_for("main.index"))

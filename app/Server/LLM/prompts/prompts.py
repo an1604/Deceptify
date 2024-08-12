@@ -4,7 +4,10 @@ from langchain_core.prompts import SystemMessagePromptTemplate, PromptTemplate
 
 
 def get_text_from_file(path):
-    with open(path, "r") as f:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    path_to_file = os.path.join(script_dir, path)
+    print(path_to_file)
+    with open(path_to_file, "r") as f:
         return f.read()
 
 
@@ -21,11 +24,11 @@ class Prompts(object):
 
     @staticmethod
     def get_principles(target='address'):
-        return prompts.PRINCIPLES.format(target=target)
+        return Prompts.PRINCIPLES.format(target=target)
 
     @staticmethod
     def get_role(role: str, name='Donald', place='park', target='address',
                  connection='co-worker'):
-        principles = prompts.get_principles()
+        principles = Prompts.get_principles()
         r = role.format(name=name, place=place, target=target, connection=connection, principles=principles)
         return r
