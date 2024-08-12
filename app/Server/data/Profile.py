@@ -174,8 +174,8 @@ class Profile:
         return self.Attacks
 
     def get_attack(self, attack_id):
-        a = [attack for attack in self.Attacks if attack["attack_id"] == int(attack_id)]
-        return a[0]
+        attack = [attack for attack in self.Attacks if attack["attack_id"] == int(attack_id)][0]
+        return Attack.from_dict(attack)
 
     def to_dict(self) -> dict:
         """
