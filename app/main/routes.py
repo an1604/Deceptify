@@ -284,7 +284,9 @@ def attack_generation_routes(main, app, data_storage):
         attack_type = request.args.get("type") if request.args.get('type') else session['whatsapp_attack_info'][
             'voice_type']
 
-        zoom_url = session.get('whatsapp_attack_info').get('zoom_url')
+        zoom_url = session.get('whatsapp_attack_info')
+        if zoom_url:
+            zoom_url = zoom_url.get('zoom_url')
 
         if session.get("started_call"):
             session.pop("started_call")
@@ -300,7 +302,10 @@ def attack_generation_routes(main, app, data_storage):
         attack = profile.get_attack(attack_id)
         attack_prompts = attack.get_attack_prompts()
 
-        zoom_url = session['whatsapp_attack_info']['zoom_url']
+        zoom_url = session.get('whatsapp_attack_info')
+        if zoom_url:
+            zoom_url = zoom_url.get('zoom_url')
+
         # phone_number = attack.getPhoneNumber()
         if zoom_url:
             from app.Server.LLM.llm_chat_tools.whatsapp import WhatsAppBot

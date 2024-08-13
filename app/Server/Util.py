@@ -2,6 +2,8 @@ import socket
 import re
 import csv
 from io import StringIO
+import scipy.io.wavfile as wav
+import numpy as np
 
 import pyaudio
 import wave
@@ -167,6 +169,14 @@ def get_device_index(device_name):
     return device_index
 
 
+def convert_wav_to_pcm(input_path, output_path):
+    sample_rate, data = wav.read(input_path)
+    if data.dtype == np.float32:
+        # Convert floating point data to 16-bit PCM
+        max_int16 = np.iinfo(np.int16).max
+        data = (data * max_int16).astype(np.int16)
+    wav.write(output_path, sample_rate, data)
+
 
 def play_audio_through_vbcable(audio_file_path, device_name="CABLE Input"):
     # Open the audio file
@@ -208,15 +218,6 @@ def play_audio_through_vbcable(audio_file_path, device_name="CABLE Input"):
 
     # Close the audio file
     wf.close()
-
-
-def generate_prompts_from_attack_purpose(attack_prompts, profile):
-    for prompt in attack_prompts:
-        if not profile.getPrompt(prompt):
-            response = generate_voice("oded", profile.profile_name, prompt)
-            get_voice_profile("oded", profile.profile_name, prompt, response["file"])
-            new_prompt = Prompt(prompt_desc=prompt, prompt_profile=profile.profile_name)
-            profile.addPrompt(new_prompt)
 
 
 def play_background(stop_event, audio_file_path="./AudioFiles/office.wav", device_name="CABLE Input"):

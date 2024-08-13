@@ -26,6 +26,7 @@ def get_device_index(device_name="CABLE Output"):
     for i in range(p.get_device_count()):
         dev = p.get_device_info_by_index(i)
         if device_name in dev['name']:
+            print(device_name)
             device_index = i
             break
     p.terminate()
@@ -65,8 +66,10 @@ def recognize_worker(config, profile_name, username):
                 start_filler.daemon = True
                 start_filler.start()
                 index = (index + 1) % 2
-                serv_response = generate_voice(username, profile_name, response)
-                get_voice_profile(username, profile_name, "prompt", serv_response["file"])
+                # serv_response = generate_voice(username, profile_name, response)
+                # get_voice_profile(username, profile_name, "prompt", serv_response["file"])
+                generateSpeech(text_prompt=response,
+                               path=config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" + 'prompt' + ".wav")
                 play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
                                            'prompt' + ".wav")
             if not waitforllm.is_set():
@@ -100,8 +103,9 @@ def startConv(config, profile_name, purpose, starting_message, record_event, tar
     with sr.Microphone(device_index=device_index) as source:
         print("Adjusting for ambient noise, please wait...")
         print("Listening for speech...")
-        r.adjust_for_ambient_noise(source)
+        # r.adjust_for_ambient_noise(source)
         while not flag:
+            print("in loop")
             try:
                 waitforllm.clear()
                 if not started_conv:
@@ -127,4 +131,3 @@ def startConv(config, profile_name, purpose, starting_message, record_event, tar
     audio_queue.join()  # Block until all current audio processing jobs are done
     audio_queue.put(None)  # Tell the recognize_thread to stop
     recognize_thread.join()  # Wait for the recognize_thread to actually stop
-
