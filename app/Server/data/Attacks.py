@@ -138,21 +138,16 @@ class Attack:
         if self.attack_purpose == "Bank":
             return {"We had a suspicious activity in your account and we need verification to make action",
                     "We detected some suspicious transactions", "In order to continue further i need your id number",
-                    "It is to confirm your identity", "You can call the bank directly to verify",
-                    "Yes after we verify your identity", "Our system flagged it as unusual", "No that will be all"}
+                    "It is to confirm your identity", "Yes after we verify your identity"}
         elif self.attack_purpose == "Delivery":
             return {"We have your package and we need your address to send it", "we do not have that information",
                     "We need it to know where to send the package", "It is not provided in the package",
-                    "Yes to ensure it’s delivered correctly", "We need your full address to make the delivery",
-                    "It was on the shipping label", "We will not be able to deliver your package",
-                    "No the delivery is already covered", "No that will be all"}
+                    "Yes to ensure it’s delivered correctly", "It was on the shipping label"}
         else:  # self.attack_purpose == "Hospital"
             return {"We had a system reset and we need to verify our clients again",
                     "We need your id for verification", "To make sure we get the correct information",
                     "So we can send you information", "We have that documented",
-                    "Our system lost some data so we are verifying info",
-                    "We need to confirm due to the reset", "Your records will not be updated",
-                    "We are only handling it by phone", "No that will be all"}
+                    "Our system lost some data so we are verifying info"}
 
     def setRec(self):
         self.recordings = ("Attacker-" + self.mimic_profile.getName() + "-Target-"

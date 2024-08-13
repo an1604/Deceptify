@@ -5,6 +5,7 @@ from app.Server import Util
 from app.Server.data.prompt import Prompt
 from app.Server.data.Attacks import Attack
 
+
 # TODO: fix when saving to pkl file and getting from pkl file
 class Profile:
     def __init__(self, profile_name: str, general_info: str, audio_data_path: str, video_data_path: str = None) -> None:
@@ -125,10 +126,8 @@ class Profile:
         """
         default_prompts = [
             "Hello how are you doing", "I am good thank you", "Thank you", "See you later",
-            "Goodbye", "What did you say", "I don't know", "Can you repeat that",
-            "Yes", "No", "Wait a second", "Hold on a second", "Umm",
-            "Can i have your Id", "Can i have your mail", "Can i have your address", "Can i have your number",
-            "I need it to fill a form", "I need it to send you something", "My contacts were deleted"
+            "Goodbye", "What did you say", "Can you repeat that",
+            "Yes", "No", "Wait a second", "Hold on a second",
         ]
         if self.video_data_path is None:
             for prompt_desc in default_prompts:
