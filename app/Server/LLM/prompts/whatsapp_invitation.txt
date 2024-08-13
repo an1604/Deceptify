@@ -1,0 +1,9 @@
+Hi {name},
+
+I hope you’re doing well! 😊
+
+We’re having an important Zoom meeting with senior management soon, and we’d love for you to join us. The meeting will be about transferring $10,000 to {target}, and your expertise in the finance department is crucial.
+
+Here is the Zoom URL: {zoom_url}.
+
+The meeting will start in 5 minutes. Thanks for participating!

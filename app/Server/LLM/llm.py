@@ -80,13 +80,13 @@ class Llm(object):
 
 llm = Llm()
 
-if __name__ == '__main__':
-    llm = Llm()
-    llm.initialize_new_attack("Bank", "david")
-    initial_message = "Hello this is Jason from Discount bank"
-    llm.chat_history.add_ai_response(initial_message)
-    print(initial_message)
-    while True:
-        user_response = input('user turn:')
-        response = llm.get_answer(user_response)
-        print(response)
+# if __name__ == '__main__':
+#     llm = Llm()
+#    llm.initialize_new_attack("Bank", "david")
+#    initial_message = "Hello this is Jason from Discount bank"
+#    llm.chat_history.add_ai_response(initial_message)
+#    print(initial_message)
+#    while True:
+#        user_response = input('user turn:')
+#        response = llm.get_answer(user_response)
+#        print(response)

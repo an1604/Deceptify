@@ -1,33 +1,28 @@
+'''
+
 import base64
+import os
 import os.path
 import uuid
-import os
 import urllib
-from flask import redirect as flask_redirect, jsonify, session, send_file
-from app.Server.LLM.llm import llm
-
-from flask import redirect as flask_redirect
-from flask import jsonify, session, send_file, abort
+from flask import redirect as flask_redirect, jsonify, session, send_file, abort, render_template, url_for, flash, request, send_from_directory
 from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
+from threading import Thread, Event
+from dotenv import load_dotenv
+import requests
 
-from app.Server.Forms.general_forms import *
-from app.Server.Forms.upload_data_forms import *
-from app.Server.CamScript import RunVideo, ResetVirtualCam
+from app.Server.LLM.llm import llm
+from app.Server.LLM.llm_chat_tools.whatsapp import WhatsAppBot
+from app.Server.CamScript import RunVideo, ResetVirtualCam, virtual_cam
 from zoom_req import *
 from app.Server.Forms.general_forms import *
 from app.Server.Forms.upload_data_forms import *
-from flask import render_template, url_for, flash, request, send_from_directory
 from app.Server.Util import *
 from app.Server.data.prompt import Prompt
 from app.Server.data.Attacks import AttackFactory
 from app.Server.data.Profile import Profile
-from threading import Thread, Event
-from dotenv import load_dotenv
 from app.Server.speechToText import SRtest
-from app.Server.speechToText import SRtest
-from app.Server.CamScript import virtual_cam
-import requests
 
 load_dotenv()
 
@@ -35,7 +30,7 @@ CloseCallEvent = Event()
 StopRecordEvent = Event()
 CutVideoEvent = Event()
 GetAnswerEvent = Event()
-
+StopBackgroundEvent = Event()
 load_dotenv()
 cam_thread = None
 # Credentials For Zoom API
@@ -168,9 +163,17 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
     def serve_video(filename):
         return send_from_directory(app.config['VIDEO_UPLOAD_FOLDER'], filename)
 
+
+
     @main.route('/zoom_authorization')
     @login_required
     def zoom_authorization():
+        session['whatsapp_attack_info'] = {
+            'profile': request.args.get('profile'),
+            'contact': request.args.get('contact'),
+            'campaign_unique_id': request.args.get('id'),
+            'voice_type': request.args.get('type')
+        }
         auth_url = f'{AUTH_URL}?response_type=code&client_id={ZOOM_CLIENT_ID}&redirect_uri={REDIRECT_URI}'
         return flask_redirect(auth_url)
 
@@ -222,14 +225,15 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
                                                               minute=form.minute.data)
 
                 start_url = create_new_meeting(headers=headers, data=data)
-                print(start_url)
                 encoded_start_url = urllib.parse.quote(start_url)
-                return flask_redirect(url_for('main.dashboard', start_url=encoded_start_url))
+                session['whatsapp_attack_info']['zoom_url'] = start_url
+                return flask_redirect(url_for('main.attack_dashboard_transition', start_url=encoded_start_url))
             return render_template('generate_zoom_meeting.html', form=form)
         return abort(404)  # Aborting if we got no access token
 
-
+'''
 def attack_generation_routes(main, app, data_storage):
+
     @main.route("/newattack", methods=["GET", "POST"])  # The new chat route.
     @login_required
     def newattack():
@@ -246,6 +250,7 @@ def attack_generation_routes(main, app, data_storage):
             campaign_unique_id = int(uuid.uuid4())
             voice_type = form.voice_type.data
             place = form.place.data
+            # phone_number = form.phone_number.data
             attack = AttackFactory.create_attack(
                 "Voice",
                 campaign_name,
@@ -256,48 +261,59 @@ def attack_generation_routes(main, app, data_storage):
                 campaign_unique_id,
                 voice_type,
                 place
+                # phone_number,
             )
             data_storage.add_attack(attack)
 
-            flash("Campaign created successfully using")
+            redirect_url = 'main.attack_dashboard_transition' if not ('whatsapp' in
+                                                                      attack_purpose.lower()) else 'main.zoom_authorization'
             return flask_redirect(
-                url_for('main.attack_dashboard_transition', profile=form.mimic_profile.data,
+                url_for(redirect_url, profile=form.mimic_profile.data,
                         contact=form.target_name.data, id=campaign_unique_id, type=voice_type))
         return render_template('attack_pages/newattack.html', form=form)
 
     @main.route('/attack_dashboard_transition', methods=['GET'])
     @login_required
     def attack_dashboard_transition():
-        profile_name = request.args.get("profile")
-        contact_name = request.args.get("contact")
-        attack_id = request.args.get("id")
+        profile_name = session['whatsapp_attack_info']['profile'] if not request.args.get(
+            "profile") else request.args.get("profile")
+        contact_name = request.args.get("contact") if request.args.get("contact") else session['whatsapp_attack_info'][
+            'contact']
+        attack_id = request.args.get("id") if request.args.get('id') else session['whatsapp_attack_info'][
+            'campaign_unique_id']
+        attack_type = request.args.get("type") if request.args.get('type') else session['whatsapp_attack_info'][
+            'voice_type']
+
+        zoom_url = session.get('whatsapp_attack_info').get('zoom_url')
+
         if session.get("started_call"):
             session.pop("started_call")
         return render_template('attack_pages/attack_dashboard_transition.html', profile=profile_name,
-                               contact=contact_name, id=attack_id)
+                               contact=contact_name, id=attack_id, type=attack_type, zoom_url=zoom_url)
 
     @main.route('/generate_attack_type', methods=['GET'])
     def generate_attack_type():
         profile_name = request.args.get('profile')
         attack_id = request.args.get('attack_id')
+        contact = request.args.get('contact')
         profile = data_storage.get_profile(profile_name)
         attack = profile.get_attack(attack_id)
         attack_prompts = attack.get_attack_prompts()
-        print(profile.getPrompts())
-        for prompt in attack_prompts:
-            if not profile.getPrompt(prompt):
-                response = generate_voice("oded", profile.profile_name, prompt)
-                get_voice_profile("oded", profile.profile_name, prompt, response["file"])
-                new_prompt = Prompt(prompt_desc=prompt, prompt_profile=profile.profile_name)
-                profile.addPrompt(new_prompt)
-        print(attack.getPlace())
-        starting_message = "Hello this is Jason from " + attack.getPlace()
+
+        zoom_url = session['whatsapp_attack_info']['zoom_url']
+        # phone_number = attack.getPhoneNumber()
+        if zoom_url:
+            WhatsAppBot.send_text_private_message(phone_number='+972522464648',
+                                                  message=WhatsAppBot.get_message_template(zoom_url, profile_name))
+
+        generate_prompts_from_attack_purpose(attack_prompts, profile)
+        starting_message = "Hello " + contact + ", this is Jason from " + attack.getPlace()
         if starting_message not in attack_prompts:
             response = generate_voice("oded", profile.profile_name, starting_message)
             get_voice_profile("oded", profile.profile_name, starting_message, response["file"])
             new_prompt = Prompt(prompt_desc=starting_message, prompt_profile=profile.profile_name)
             profile.addPrompt(new_prompt)
-        return jsonify({"status": "complete"})
+            return jsonify({"status": "complete"})
 
     @main.route('/start_attack', methods=['GET', 'POST'])
     def start_attack():
@@ -310,9 +326,13 @@ def attack_generation_routes(main, app, data_storage):
         recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
                                                            "-Target-" + contact_name))
         recorder_thread.start()
+        background_thread = Thread(target=play_background, args=(StopBackgroundEvent, app.config['UPLOAD_FOLDER']
+                                                                 + "\\office.wav",))
+        background_thread.start()
+        t.start()
         s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name, attack.getPurpose(),
                                                            "Hello this is jason from " + attack.getPlace(),
-                                                           StopRecordEvent, contact_name))
+                                                           StopRecordEvent, contact_name, StopBackgroundEvent))
         s2t_thread.start()
         return '', 204
 
@@ -339,24 +359,6 @@ def attack_generation_routes(main, app, data_storage):
             session["started_call"] = True
             session['stopped_call'] = False
         if form.validate_on_submit():
-            # if profile.video_data_path is not None and attack_type == "Video":
-            #     CutVideoEvent.set()
-            #     play_audio_thread = Thread(target=play_audio_through_vbcable,
-            #                                args=(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-            #                                      form.prompt_field.data + ".wav", "CABLE Input"))
-            #     play_audio_thread.start()
-            #     cam_thread.join()
-            #     cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
-            #                                             "-" + form.prompt_field.data + ".mp4", False, CutVideoEvent))
-            #     cam_thread.start()
-            #     cam_thread.join()
-            #     cam_thread = Thread(target=RunVideo, args=(app.config['VIDEO_UPLOAD_FOLDER'] + "\\" + profile_name +
-            #                                                ".mp4", True, CutVideoEvent))
-            #     cam_thread.start()
-            #     play_audio_thread.join()
-            #     return flask_redirect(url_for('main.attack_dashboard', profile=profile_name,
-            #                                   contact=contact_name, type=attack_type))
-            # else:
             play_audio_through_vbcable(os.path.join(app.config['UPLOAD_FOLDER'],
                                                     f"{profile_name}-{form.prompt_field.data}.wav"))
             return flask_redirect(url_for('main.attack_dashboard', profile=profile_name,
@@ -536,3 +538,4 @@ def execute_routes(main, app, data_storage):  # Function that executes all the r
     general_routes(main, app, data_storage)  # General pages navigation
     attack_generation_routes(main, app, data_storage)  # Attack generation pages navigation
     error_routes(main)  # Errors pages navigation
+    

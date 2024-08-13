@@ -80,7 +80,8 @@ def recognize_worker(config, profile_name, username):
             print(f'Exception from recognize_worker: {e}')
 
 
-def startConv(config, profile_name, purpose, starting_message, record_event, target_name, username="oded"):
+def startConv(config, profile_name, purpose, starting_message, record_event, target_name,
+              background_event, username="oded"):
     global flag, waitforllm, prompts_for_user
 
     llm.initialize_new_attack(attack_purpose=purpose, profile_name=target_name)  # Refine the llm to the new attack
@@ -121,6 +122,7 @@ def startConv(config, profile_name, purpose, starting_message, record_event, tar
 
     llm.flush()  # Cleaning the llm's previous information.
     record_event.set()
+    background_event.set()
     audio_queue.join()  # Block until all current audio processing jobs are done
     audio_queue.put(None)  # Tell the recognize_thread to stop
     recognize_thread.join()  # Wait for the recognize_thread to actually stop

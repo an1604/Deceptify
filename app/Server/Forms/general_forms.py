@@ -37,7 +37,7 @@ class CampaignForm(FlaskForm):
         label="Attack Purpose (Fill in case of AI attack. Bank for Id and account number, Delivery for address,"
               "Hospital for Id and address)",
         choices=[("Bank", "Bank"), ("Delivery", "Delivery"),
-                 ("Hospital", "Hospital")],
+                 ("Hospital", "Hospital"), ("WhatsApp and Zoom", "WhatsApp and Zoom")],
         validators=[DataRequired()]
     )
     place = StringField(
@@ -51,6 +51,10 @@ class CampaignForm(FlaskForm):
             # Reference the custom validator method without `self`
         ]
     )
+    # phone_number = StringField('Phone Number', validators=[
+    #     DataRequired(),
+    #     Regexp(r'^\+972\d{9}$', message="Please enter a valid phone number with the +972 prefix")
+    # ])
     campaign_description = TextAreaField(
         label="Campaign Description",
         validators=[DataRequired()]

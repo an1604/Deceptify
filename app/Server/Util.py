@@ -119,12 +119,6 @@ def createvoice_profile(username, profile_name, file_path):
         response.raise_for_status()
         return response.json
 
-
-def createvideo_profile(username, profile_name, audio_file_path, video_file_path):
-    return None
-    # TODO: add the video profile creation from the server
-
-
 def generate_voice(username, profile_name, prompt):
     """
     Generate a voice clip for the given user and voice profile.
@@ -204,6 +198,57 @@ def play_audio_through_vbcable(audio_file_path, device_name="CABLE Input"):
     # default_stream.stop_stream()
     stream.close()
     # default_stream.close()
+
+    # Close PyAudio
+    p.terminate()
+
+    # Close the audio file
+    wf.close()
+
+
+def generate_prompts_from_attack_purpose(attack_prompts, profile):
+    for prompt in attack_prompts:
+        if not profile.getPrompt(prompt):
+            response = generate_voice("oded", profile.profile_name, prompt)
+            get_voice_profile("oded", profile.profile_name, prompt, response["file"])
+            new_prompt = Prompt(prompt_desc=prompt, prompt_profile=profile.profile_name)
+            profile.addPrompt(new_prompt)
+
+
+def play_background(stop_event, audio_file_path="./AudioFiles/office.wav", device_name="CABLE Input"):
+    # Open the audio file
+    wf = wave.open(audio_file_path, 'rb')
+    playback_name = "CABLE Output"
+
+    # Instantiate PyAudio
+    p = pyaudio.PyAudio()
+    device_index = get_device_index(device_name)
+
+    if device_index is None:
+        raise ValueError(f"Device '{device_name}' not found.")
+
+    # Open a stream with the same format as the audio file
+    stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                    channels=wf.getnchannels(),
+                    rate=wf.getframerate(),
+                    output=True,
+                    output_device_index=device_index)
+
+    chunk = 1024
+
+    while not stop_event.is_set():
+        # Reset file position to start
+        wf.rewind()
+        data = wf.readframes(chunk)
+
+        # Play the audio file
+        while data and not stop_event.is_set():
+            stream.write(data)
+            data = wf.readframes(chunk)
+
+    # Stop stream
+    stream.stop_stream()
+    stream.close()
 
     # Close PyAudio
     p.terminate()

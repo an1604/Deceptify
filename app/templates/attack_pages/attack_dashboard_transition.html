@@ -7,6 +7,9 @@
 {% block page_content %}
 <div class="page-header">
     <h1 id="dashboardTitle">Please wait while the attack is being generated</h1>
+    {% if zoom_url %}
+        <h5> <a href="{{ zoom_url }}">Check into the meeting and wait for the</a> </h5>
+    {% endif %}
 </div>
 
 <div class="button-container">
@@ -30,7 +33,7 @@
         async function generateAttack() {
             try {
                 const response = await fetch('/generate_attack_type?profile=' + encodeURIComponent(profile) +
-                    '&attack_id=' + encodeURIComponent(attack_id));
+                    '&attack_id=' + encodeURIComponent(attack_id) + '&contact=' + encodeURIComponent(contact));
                 const result = await response.json();
                 if (result.status === "complete") {
                     document.getElementById('attackBtn').disabled = false; // Enable the button
