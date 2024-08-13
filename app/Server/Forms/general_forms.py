@@ -57,6 +57,7 @@ class CampaignForm(FlaskForm):
     )
     submit = SubmitField("Submit")
 
+
 class ViewAttacksForm(FlaskForm):
     attack_list = SelectField(
         label="Select Attack",
@@ -85,7 +86,7 @@ class InformationGatheringForm(FlaskForm):
 
 class ContactForm(FlaskForm):
     email = StringField(
-        label="Email",
+        label="llm_chat_tools",
         validators=[Email()]
     )
     contact_field = TextAreaField(
@@ -195,7 +196,7 @@ class PromptDeleteForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    email = StringField(label="Email", validators=[Email()])
+    email = StringField(label="llm_chat_tools", validators=[Email()])
     submit = SubmitField("Login")
 
 
@@ -213,3 +214,22 @@ class ZoomMeetingForm(FlaskForm):
     minute = IntegerField('Minute')
     second = IntegerField('Second', default=13)
     submit = SubmitField("Submit")
+
+
+class DemoForm(FlaskForm):
+    message = StringField('Type your message', validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
+
+class InitDemoForm(FlaskForm):
+    purpose = SelectField(
+        label="Attack Purpose (Fill in case of AI attack. Bank for Id and account number, Delivery for address,"
+              "Hospital for Id and address)",
+        choices=[("Bank", "Bank"), ("Delivery", "Delivery"),
+                 ("Hospital", "Hospital")],
+        validators=[DataRequired()]
+    )
+    profile_name = StringField('The name of the mimic for the Demo',
+                               validators=[DataRequired()])
+    submit = SubmitField("Submit")
+

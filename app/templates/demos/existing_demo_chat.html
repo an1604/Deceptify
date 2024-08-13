@@ -1,0 +1,178 @@
+{% import "_macros.html" as macros %}
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Deceptify - Demo Chat{% endblock %}
+
+{% block page_content %}
+    <style>
+        /* Chat Interface Styling */
+        .chat-page {
+            padding: 0 0 50px 0;
+            background-color: #f5f5f5;
+            height: 80vh;
+            margin: 20px auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            max-width: 900px;
+        }
+
+        .msg-inbox {
+            border: 1px solid #ccc;
+            overflow: hidden;
+            padding-bottom: 30px;
+            background-color: #fff;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .chats {
+            padding: 30px 15px 25px;
+        }
+
+        .msg-page {
+            height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .received-chats {
+            margin-bottom: 15px;
+        }
+
+        .received-msg {
+            display: inline-block;
+            padding: 0 0 0 10px;
+            vertical-align: top;
+            width: 92%;
+        }
+
+        .received-msg-inbox {
+            width: 57%;
+        }
+
+        .received-msg-inbox p {
+            background: #efefef;
+            border-radius: 10px;
+            font-size: 14px;
+            margin: 0;
+            padding: 10px;
+            word-wrap: break-word;
+        }
+
+        .outgoing-chats {
+            overflow: hidden;
+            margin: 26px 20px;
+        }
+
+        .outgoing-chat-msg p {
+            background: #007bff;
+            color: #fff;
+            border-radius: 10px;
+            font-size: 14px;
+            margin: 0;
+            padding: 10px;
+            word-wrap: break-word;
+        }
+
+        .outgoing-chat-msg {
+            float: right;
+            width: 46%;
+            margin-left: 45%;
+        }
+
+        .msg-bottom {
+            position: relative;
+            padding: 15px;
+            background-color: #f1f1f1;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .input-group {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .input-group input {
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 80%;
+            outline: none;
+            box-shadow: none;
+        }
+
+        .input-group button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .input-group button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Add media queries for responsiveness */
+        @media (max-width: 768px) {
+            .msg-page {
+                height: 400px;
+            }
+
+            .outgoing-chat-msg {
+                width: 80%;
+                margin-left: 20%;
+            }
+
+            .received-msg-inbox {
+                width: 80%;
+            }
+        }
+    </style>
+
+    <div class="page-header">
+        <h1>Chat</h1>
+    </div>
+
+    <div class="chat-page">
+        <div class="msg-inbox">
+            <div class="chats">
+                <div class="msg-page">
+                    <div class="received-chats">
+                        <div class="received-msg">
+                            <div class="received-msg-inbox">
+                                <p>{{ init_msg }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% for message in messages %}
+                        {% if 'user' in message[0] %}
+                        <div class="outgoing-chats">
+                            <div class="outgoing-chat-msg">
+                                <p>{{ message[1] }}</p>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="received-chats">
+                            <div class="received-msg">
+                                <div class="received-msg-inbox">
+                                    <p>{{ message[1] }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                    <div class="msg-bottom">
+                        <div class="input-group">
+                            {{ wtf.quick_form(form) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
