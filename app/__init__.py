@@ -72,5 +72,6 @@ def create_app():
     from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
 
-    app.run(debug=True, use_reloader=True)  # Running the application.
+    app.run(debug=True, use_reloader=True, host='0.0.0.0',
+            threaded=True)  # Running the application.
     return app
