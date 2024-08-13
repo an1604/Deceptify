@@ -26,15 +26,17 @@ class chatHistory(object):
         self.role = role
 
     def add_human_message(self, msg: str):
-        # self.chat_history.extend(HumanMessage(msg))
-        self.chat_history.extend(("user", f"{msg}"))
+        message = ("user", f"{msg}")
+        # self.chat_history.extend(message)
+        self.chat_history.append(message)
 
     def add_system_message(self, msg: str):
         self.chat_history.extend(SystemMessage(content=msg))
 
     def add_ai_response(self, res: str):
-        # self.chat_history.extend(AIMessage(content=res))
-        self.chat_history.extend(("assistant", f"{res}"))
+        msg = ("assistant", f"{res}")
+        # self.chat_history.extend(msg)
+        self.chat_history.append(msg)
 
     def get_window(self):
         return self.chat_history[-1]

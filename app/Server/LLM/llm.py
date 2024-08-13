@@ -1,9 +1,5 @@
 from langchain_community.llms import Ollama
-from queue import Queue
 from time import time
-from langchain_core.messages import AIMessage
-from langchain_core.output_parsers import StrOutputParser
-from langchain_experimental.llms.ollama_functions import OllamaFunctions
 from app.Server.LLM.chat_history import chatHistory
 from app.Server.LLM.embeddings import embeddings
 from app.Server.LLM.prompts.prompts import Prompts
@@ -24,6 +20,7 @@ class Llm(object):
         self.user_prompt = self.chat_history.get_prompt()
         self.embedd_custom_knowledgebase = False
         self.mimic_name = 'Donald'  # Default value
+        self.init_msg = None
 
     def flush(self):
         self.chat_history.flush()
@@ -40,44 +37,45 @@ class Llm(object):
         self.user_prompt = self.chat_history.get_prompt()
 
         self.embedd_custom_knowledgebase = False
+        self.init_msg = f"Hello {self.mimic_name}, its Jason from {attack_purpose}."
+
+    def get_init_msg(self):
+        return self.init_msg
 
     def generate_knowledgebase(self, gen_info):
         return self.llm.invoke(Prompts.KNOWLEDGEBASE_ROLE.format(gen_info=gen_info))
 
-    def get_answer(self, prompt, history=None, event=None):
-        # try:
-            # Creating HumanMessage object for ollama to understand.
-            self.chat_history.add_human_message(prompt)
-            if not self.embedd_custom_knowledgebase:
-                self.embedding_model.generate_faq_embedding()
-                self.embedd_custom_knowledgebase = True
+    def get_chat_history(self):
+        return [msg for msg in self.chat_history.get_chat_history() if msg not in ['user', 'assistant']]
 
-            answer = self.embedding_model.get_answer_from_embedding(prompt)
-            if answer is None:
-                # user_prompt = prompts.get_role(role=ROLE, history=history, prompt=prompt)
-                chain = self.user_prompt | self.llm
-                time1 = time()
-                answer = chain.invoke({
-                    "history": self.chat_history.get_chat_history(),
-                    'name': self.mimic_name,  # Default value
-                    # 'place': 'park',  # Default value
-                    # 'target': 'address',  # Default value
-                    # 'connection': 'co-worker',  # Default value,
-                    # 'principles': prompts.get_principles(),
-                    "context": prompt
-                })
-                print(time() - time1)
-            print("line 62")
+    def get_answer(self, prompt, event=None):
+        self.chat_history.add_human_message(prompt)
+        if not self.embedd_custom_knowledgebase:
+            self.embedding_model.generate_faq_embedding()
+            self.embedd_custom_knowledgebase = True
 
-            if event:
-                event.set()
+        answer = self.embedding_model.get_answer_from_embedding(prompt)
+        if answer is None:
+            # user_prompt = prompts.get_role(role=ROLE, history=history, prompt=prompt)
+            chain = self.user_prompt | self.llm
+            time1 = time()
+            answer = chain.invoke({
+                "history": self.chat_history.get_chat_history(),
+                'name': self.mimic_name,  # Default value
+                # 'place': 'park',  # Default value
+                # 'target': 'address',  # Default value
+                # 'connection': 'co-worker',  # Default value,
+                # 'principles': prompts.get_principles(),
+                "context": prompt
+            })
+            print(time() - time1)
 
-            self.chat_history.add_ai_response(answer)
-            print("line 69")
+        if event:
+            event.set()
 
-            return answer
-        # except Exception as e:
-        #     print(f"Exception from get_answer: {e}")
+        self.chat_history.add_ai_response(answer)
+
+        return answer
 
 
 llm = Llm()

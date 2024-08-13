@@ -93,8 +93,8 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
                 createvoice_profile(username="oded", profile_name=name, file_path=file_path)
                 data_storage.add_profile(Profile(name, gen_info, str(file_path), video_data_path=str(video_path)))
             # else:
-                # createvoice_profile(username="oded", profile_name=name, file_path=file_path)
-                # data_storage.add_profile(Profile(name, gen_info, str(file_path)))
+            # createvoice_profile(username="oded", profile_name=name, file_path=file_path)
+            # data_storage.add_profile(Profile(name, gen_info, str(file_path)))
             # if gen_info:
             #     response = llm.generate_knowledgebase(gen_info)
             #     rows = create_knowledgebase(response)
@@ -360,7 +360,7 @@ def attack_generation_routes(main, app, data_storage):
             play_audio_through_vbcable(os.path.join(app.config['UPLOAD_FOLDER'],
                                                     f"{profile_name}-{form.prompt_field.data}.wav"))
             return flask_redirect(url_for('main.attack_dashboard', profile=profile_name,
-                                            contact=contact_name, id=attack_id))
+                                          contact=contact_name, id=attack_id))
         return render_template('attack_pages/attack_dashboard.html', form=form,
                                contact=contact_name, id=attack_id)
 
@@ -497,11 +497,42 @@ def attack_generation_routes(main, app, data_storage):
         session.pop("started_call", None)
         return jsonify({})
 
+    @main.route('/init_chat_demo', methods=["GET", "POST"])
+    def init_chat_demo():
+        form = InitDemoForm()
+        if form.validate_on_submit():
+            attack_purpose = form.purpose.data
+            profile_name = form.profile_name.data
+            llm.initialize_new_attack(attack_purpose, profile_name)  # Initialize a new chat-demo attack.
+            return flask_redirect(url_for('main.new_chat_demo'))
+        return render_template('demos/init_chat_demo.html', form=form)
+
+    @main.route('/new_chat_demo', methods=["GET", "POST"])
+    def new_chat_demo():
+        form = DemoForm()
+        if form.validate_on_submit():
+            message_body = form.message.data
+            session['message_body_for_demo'] = message_body
+            return flask_redirect(url_for('main.existing_demo_chat'))
+        return render_template('demos/new_demo_chat.html', form=form, init_msg=llm.get_init_msg())
+
+    @main.route('/existing_demo_chat', methods=["GET", "POST"])
+    def existing_demo_chat():
+        form = DemoForm()
+        if 'message_body_for_demo' in session:
+            message_body = session['message_body_for_demo']
+            llm.get_answer(message_body)
+            session.pop('message_body_for_demo', None)
+        elif form.validate_on_submit():
+            message = form.message.data
+            llm.get_answer(message)
+            # return flask_redirect(url_for('main.existing_demo_chat'))
+        print(llm.get_chat_history())
+        return render_template('demos/existing_demo_chat.html', form=form, messages=llm.get_chat_history(),
+                               init_msg=llm.get_init_msg())
+
 
 def execute_routes(main, app, data_storage):  # Function that executes all the routes.
     general_routes(main, app, data_storage)  # General pages navigation
     attack_generation_routes(main, app, data_storage)  # Attack generation pages navigation
     error_routes(main)  # Errors pages navigation
-
-
-
