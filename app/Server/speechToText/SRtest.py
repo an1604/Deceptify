@@ -9,6 +9,7 @@ from app.Server.speechToText.utilities_for_s2t import *
 import re
 from app.Server.data.DataStorage import Data
 from app.Server.LLM.llm import llm
+from app.Server.run_bark import generateSpeech
 
 r = sr.Recognizer()
 audio_queue = Queue()
@@ -91,12 +92,12 @@ def startConv(config, profile_name, purpose, starting_message, record_event, tar
     prompts_for_user = set([prompt.prompt_desc for prompt in
                             data_storage.get_profile(profile_name).getPrompts()])
 
-    recognize_thread = Thread(target=recognize_worker, args=(config, profile_name, username))
+    recognize_thread = Thread(target=recognize_worker, args=(config, profile_name, username,))
     recognize_thread.daemon = True
     recognize_thread.start()
     device_index = get_device_index()
 
-    with sr.Microphone() as source:
+    with sr.Microphone(device_index=device_index) as source:
         print("Adjusting for ambient noise, please wait...")
         print("Listening for speech...")
         r.adjust_for_ambient_noise(source)

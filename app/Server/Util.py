@@ -11,6 +11,7 @@ import os
 import time
 import json
 import speech_recognition as sr
+from app.Server.run_bark import generateSpeech
 
 load_dotenv()
 
@@ -119,6 +120,7 @@ def createvoice_profile(username, profile_name, file_path):
         response.raise_for_status()
         return response.json
 
+
 def generate_voice(username, profile_name, prompt):
     """
     Generate a voice clip for the given user and voice profile.
@@ -165,8 +167,10 @@ def get_device_index(device_name):
     return device_index
 
 
+
 def play_audio_through_vbcable(audio_file_path, device_name="CABLE Input"):
     # Open the audio file
+    convert_wav_to_pcm(audio_file_path, audio_file_path)
     wf = wave.open(audio_file_path, 'rb')
     playback_name = "CABLE Output"
     # Instantiate PyAudio

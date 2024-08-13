@@ -138,16 +138,18 @@ class Attack:
         if self.attack_purpose == "Bank":
             return {"We had a suspicious activity in your account and we need verification to make action",
                     "We detected some suspicious transactions", "In order to continue further i need your id number",
-                    "It is to confirm your identity", "Yes after we verify your identity"}
+                    "It is to confirm your identity", "Yes after we verify your identity", "Wait a second",
+                    "Hold on a second"}
         elif self.attack_purpose == "Delivery":
             return {"We have your package and we need your address to send it", "we do not have that information",
                     "We need it to know where to send the package", "It is not provided in the package",
-                    "Yes to ensure it’s delivered correctly", "It was on the shipping label"}
+                    "Yes to ensure it’s delivered correctly", "It was on the shipping label", "Wait a second",
+                    "Hold on a second"}
         elif self.attack_purpose == "Hospital":
             return {"We had a system reset and we need to verify our clients again",
                     "We need your id for verification", "To make sure we get the correct information",
                     "So we can send you information", "We have that documented",
-                    "Our system lost some data so we are verifying info"}
+                    "Our system lost some data so we are verifying info", "Wait a second", "Hold on a second"}
         else:  # self.attack_purpose == "whatsapp"
             return {""}
 

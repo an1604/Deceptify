@@ -1,11 +1,11 @@
-'''
-
 import base64
 import os
 import os.path
 import uuid
 import urllib
-from flask import redirect as flask_redirect, jsonify, session, send_file, abort, render_template, url_for, flash, request, send_from_directory
+
+from flask import redirect as flask_redirect, jsonify, session, send_file, abort, render_template, url_for, flash, \
+    request, send_from_directory
 from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
 from threading import Thread, Event
@@ -13,9 +13,11 @@ from dotenv import load_dotenv
 import requests
 
 from app.Server.LLM.llm import llm
-from app.Server.LLM.llm_chat_tools.whatsapp import WhatsAppBot
+
 from app.Server.CamScript import RunVideo, ResetVirtualCam, virtual_cam
+
 from zoom_req import *
+
 from app.Server.Forms.general_forms import *
 from app.Server.Forms.upload_data_forms import *
 from app.Server.Util import *
@@ -23,6 +25,7 @@ from app.Server.data.prompt import Prompt
 from app.Server.data.Attacks import AttackFactory
 from app.Server.data.Profile import Profile
 from app.Server.speechToText import SRtest
+from app.Server.run_bark import generateSpeech
 
 load_dotenv()
 
@@ -163,8 +166,6 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
     def serve_video(filename):
         return send_from_directory(app.config['VIDEO_UPLOAD_FOLDER'], filename)
 
-
-
     @main.route('/zoom_authorization')
     @login_required
     def zoom_authorization():
@@ -231,9 +232,8 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
             return render_template('generate_zoom_meeting.html', form=form)
         return abort(404)  # Aborting if we got no access token
 
-'''
-def attack_generation_routes(main, app, data_storage):
 
+def attack_generation_routes(main, app, data_storage):
     @main.route("/newattack", methods=["GET", "POST"])  # The new chat route.
     @login_required
     def newattack():
@@ -303,14 +303,25 @@ def attack_generation_routes(main, app, data_storage):
         zoom_url = session['whatsapp_attack_info']['zoom_url']
         # phone_number = attack.getPhoneNumber()
         if zoom_url:
+            from app.Server.LLM.llm_chat_tools.whatsapp import WhatsAppBot
             WhatsAppBot.send_text_private_message(phone_number='+972522464648',
                                                   message=WhatsAppBot.get_message_template(zoom_url, profile_name))
 
-        generate_prompts_from_attack_purpose(attack_prompts, profile)
-        starting_message = "Hello " + contact + ", this is Jason from " + attack.getPlace()
+        for prompt in attack_prompts:
+            if not profile.getPrompt(prompt):
+                # response = generate_voice("oded", profile.profile_name, prompt)
+                # get_voice_profile("oded", profile.profile_name, prompt, response["file"])
+                generateSpeech(prompt, app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" + prompt + ".wav")
+                new_prompt = Prompt(prompt_desc=prompt, prompt_profile=profile.profile_name)
+                profile.addPrompt(new_prompt)
+
+        starting_message = "Hello " + contact + " this is Jason from " + attack.getPlace()
+
         if starting_message not in attack_prompts:
-            response = generate_voice("oded", profile.profile_name, starting_message)
-            get_voice_profile("oded", profile.profile_name, starting_message, response["file"])
+            # response = generate_voice("oded", profile.profile_name, starting_message)
+            # get_voice_profile("oded", profile.profile_name, starting_message, response["file"])
+            generateSpeech(starting_message, app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                           starting_message + ".wav")
             new_prompt = Prompt(prompt_desc=starting_message, prompt_profile=profile.profile_name)
             profile.addPrompt(new_prompt)
             return jsonify({"status": "complete"})
@@ -323,17 +334,15 @@ def attack_generation_routes(main, app, data_storage):
         contact_name = request.args.get('contact')
         profile = data_storage.get_profile(profile_name)
         attack = profile.get_attack(attack_id)
-        recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
-                                                           "-Target-" + contact_name))
-        recorder_thread.start()
-        background_thread = Thread(target=play_background, args=(StopBackgroundEvent, app.config['UPLOAD_FOLDER']
-                                                                 + "\\office.wav",))
-        background_thread.start()
-        t.start()
-        s2t_thread = Thread(target=SRtest.startConv, args=(app.config, profile_name, attack.getPurpose(),
-                                                           "Hello this is jason from " + attack.getPlace(),
-                                                           StopRecordEvent, contact_name, StopBackgroundEvent))
-        s2t_thread.start()
+        # recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
+        #                                                   "-Target-" + contact_name))
+        # recorder_thread.start()
+        # background_thread = Thread(target=play_background, args=(StopBackgroundEvent, app.config['UPLOAD_FOLDER']
+        #                                                         + "\\office.wav",))
+        # background_thread.start()
+        SRtest.startConv(app.config, profile_name, attack.getPurpose(), "Hello " +
+                         contact_name + " this is jason from " + attack.getPlace(),
+                         StopRecordEvent, contact_name, StopBackgroundEvent)
         return '', 204
 
     @main.route('/attack_dashboard', methods=['GET', 'POST'])
@@ -538,4 +547,3 @@ def execute_routes(main, app, data_storage):  # Function that executes all the r
     general_routes(main, app, data_storage)  # General pages navigation
     attack_generation_routes(main, app, data_storage)  # Attack generation pages navigation
     error_routes(main)  # Errors pages navigation
-    
