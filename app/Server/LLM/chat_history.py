@@ -1,5 +1,6 @@
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_core.prompts import MessagesPlaceholder, ChatPromptTemplate, PromptTemplate
+import os
 
 
 class chatHistory(object):
@@ -20,9 +21,9 @@ class chatHistory(object):
 
     def save_chat(self):
         if not os.path.exists(self.directory):
-            os.makedirs(directory)
+            os.makedirs(self.directory)
 
-        file_path = os.path.join(directory, f'chat_history-{self.name}.txt')
+        file_path = os.path.join(self.directory, f'chat_history-{self.name}.txt')
         with open(file_path, 'w') as f:
             for role, prompt in self.chat_history:
                 f.write(f'{role}: {prompt}\n')

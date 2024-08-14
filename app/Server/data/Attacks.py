@@ -137,9 +137,9 @@ class Attack:
     def get_attack_prompts(self) -> set[str]:
         if self.attack_purpose == "Bank":
             return {"We had a suspicious activity in your account and we need verification to make action",
-                    "We detected some suspicious transactions", "In order to continue further i need your id number",
+                    "We detected some suspicious transactions", "In order to continue further i need your ID",
                     "It is to confirm your identity", "Yes after we verify your identity", "Wait a second Umm",
-                    "Hold on a second Umm", "I need your social security number and account number",
+                    "Hold on a second Umm", "I need your ID and account number",
                     "Let me check umm"}
         elif self.attack_purpose == "Delivery":
             return {"We have your package and we need your address to send it", "we do not have that information",
@@ -148,12 +148,16 @@ class Attack:
                     "Hold on a second Umm", "I need your address", "Let me check umm"}
         elif self.attack_purpose == "Hospital":
             return {"We had a system reset and we need to verify our clients again",
-                    "We need your id for verification", "To make sure we get the correct information",
+                    "We need your ID for verification", "To make sure we get the correct information",
                     "So we can send you information", "We have that documented",
                     "Our system lost some data so we are verifying info", "Wait a second Umm", "Hold on a second Umm",
-                    "I need your social security number and address", "Let me check umm"}
+                    "I need your ID and address", "Let me check umm"}
         else:  # self.attack_purpose == "whatsapp"
-            return {""}
+            return {"We had a suspicious activity in your account and we need verification to make action",
+                    "We detected some suspicious transactions", "In order to continue further i need your ID",
+                    "It is to confirm your identity", "Yes after we verify your identity", "Wait a second Umm",
+                    "Hold on a second Umm", "I need your ID and account number",
+                    "Let me check umm"}
 
     def setRec(self):
         self.recordings = ("Attacker-" + self.mimic_profile.getName() + "-Target-"

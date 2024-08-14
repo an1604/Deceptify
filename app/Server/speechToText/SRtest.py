@@ -63,7 +63,6 @@ def recognize_worker(config, profile_name, username, backgroundEvent):
                 backgroundEvent.set()
             else:
                 sanitized_prompt = sanitize_filename(response)
-                prompts_for_user.add(sanitized_prompt)
                 background_thread = Thread(target=play_background, args=(backgroundEvent,
                                                                          config['UPLOAD_FOLDER']
                                                                          + "\\office.wav",))

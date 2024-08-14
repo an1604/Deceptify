@@ -300,6 +300,8 @@ def attack_generation_routes(main, app, data_storage):
         contact = request.args.get('contact')
         profile = data_storage.get_profile(profile_name)
         attack = profile.get_attack(attack_id)
+        if attack.getPurpose() == "WhatsApp and Zoom":
+            attack.attack_purpose = "Bank"
         attack_prompts = attack.get_attack_prompts()
 
         zoom_url = session.get('whatsapp_attack_info')
@@ -310,7 +312,7 @@ def attack_generation_routes(main, app, data_storage):
         if zoom_url:
             from app.Server.LLM.llm_chat_tools.whatsapp import WhatsAppBot
             WhatsAppBot.send_text_private_message(phone_number='+972522464648',
-                                                  message=WhatsAppBot.get_message_template(zoom_url, profile_name))
+                                                  message=WhatsAppBot.get_message_template(zoom_url, contact))
 
         for prompt in attack_prompts:
             #     if not profile.getPrompt(prompt):
