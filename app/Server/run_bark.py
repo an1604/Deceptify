@@ -3,9 +3,8 @@ import os
 from transformers import BarkModel, AutoProcessor
 import torch
 import scipy
-
 bark = BarkModel.from_pretrained("suno/bark-small")
-device = "cuda:0" if torch.cuda.is_available() else "cpu"
+device = "cuda" if torch.cuda.is_available() else "cpu"
 bark = bark.to(device)
 processor = AutoProcessor.from_pretrained("suno/bark")
 voice_preset = "v2/en_speaker_6"
@@ -19,4 +18,5 @@ def generateSpeech(text_prompt, path):
 
 
 if __name__ == '__main__':
-    generateSpeech("Goodbye", os.getcwd() + "\\audio.wav")
+    generateSpeech("Let me check Umm", os.getcwd() + "\\audio.wav")
+    # synthesize("trumptest", "test")

@@ -4,7 +4,7 @@ import csv
 from io import StringIO
 import scipy.io.wavfile as wav
 import numpy as np
-
+from threading import Event
 import pyaudio
 import wave
 import requests
@@ -149,12 +149,29 @@ def get_voice_profile(username, profile_name, prompt, prompt_filename):
     response.raise_for_status()
 
     file_path = 'Server\\AudioFiles' + '\\' + profile_name + "-" + prompt + ".wav"
-    #TODO: LOOK ON THIS REGEX FILTERING
+    # LOOK ON THIS REGEX FILTERING
     # file_path = re.sub(r'\[.*?\]\s*', '',file_path)
 
     with open(file_path, 'wb') as f:
         f.write(response.content)
     return file_path
+
+
+def synthesize(profile_name, prompt):
+    try:
+        payload = {'text': prompt}
+        url = f"{SERVER_URL}/synthesize"
+        response = requests.post(url, json=payload)
+        print(response.text)
+        if response.status_code == 200:
+            # Save the received .wav file locally
+            with open('AudioFiles' + '\\' + profile_name + "-" + prompt + ".wav", "wb") as f:
+                f.write(response.content)
+            print("Audio file received and saved")
+        else:
+            print(f"An error occurred: {response.json()}")
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
 
 
 def get_device_index(device_name):
@@ -413,3 +430,7 @@ def get_email_from_ip(user_ip):
     To make sure the authentication is properly.
     """
     return 'admin@example.com'
+
+if __name__ == '__main__':
+    abc = Event()
+    play_background(abc)

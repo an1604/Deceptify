@@ -313,23 +313,25 @@ def attack_generation_routes(main, app, data_storage):
                                                   message=WhatsAppBot.get_message_template(zoom_url, profile_name))
 
         for prompt in attack_prompts:
-            if not profile.getPrompt(prompt):
-                # response = generate_voice("oded", profile.profile_name, prompt)
-                # get_voice_profile("oded", profile.profile_name, prompt, response["file"])
+            #     if not profile.getPrompt(prompt):
+            # response = generate_voice("oded", profile.profile_name, prompt)
+            # get_voice_profile("oded", profile.profile_name, prompt, response["file"])
+            if not os.path.exists(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" + prompt + ".wav"):
                 generateSpeech(prompt, app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" + prompt + ".wav")
+            if not profile.getPrompt(prompt):
                 new_prompt = Prompt(prompt_desc=prompt, prompt_profile=profile.profile_name)
                 profile.addPrompt(new_prompt)
 
         starting_message = "Hello " + contact + " this is Jason from " + attack.getPlace()
 
-        if starting_message not in attack_prompts:
+        if not profile.getPrompt(starting_message):
             # response = generate_voice("oded", profile.profile_name, starting_message)
             # get_voice_profile("oded", profile.profile_name, starting_message, response["file"])
             generateSpeech(starting_message, app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
                            starting_message + ".wav")
             new_prompt = Prompt(prompt_desc=starting_message, prompt_profile=profile.profile_name)
             profile.addPrompt(new_prompt)
-            return jsonify({"status": "complete"})
+        return jsonify({"status": "complete"})
 
     @main.route('/start_attack', methods=['GET', 'POST'])
     def start_attack():
@@ -339,15 +341,14 @@ def attack_generation_routes(main, app, data_storage):
         contact_name = request.args.get('contact')
         profile = data_storage.get_profile(profile_name)
         attack = profile.get_attack(attack_id)
-        # recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
-        #                                                   "-Target-" + contact_name))
-        # recorder_thread.start()
-        # background_thread = Thread(target=play_background, args=(StopBackgroundEvent, app.config['UPLOAD_FOLDER']
-        #                                                         + "\\office.wav",))
-        # background_thread.start()
+        StopRecordEvent.clear()
+        StopBackgroundEvent.clear()
+        recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
+                                                           "-Target-" + contact_name))
+        recorder_thread.start()
         SRtest.startConv(app.config, profile_name, attack.getPurpose(), "Hello " +
                          contact_name + " this is jason from " + attack.getPlace(),
-                         StopRecordEvent, contact_name, StopBackgroundEvent)
+                         StopRecordEvent, contact_name)
         return '', 204
 
     @main.route('/attack_dashboard', methods=['GET', 'POST'])
