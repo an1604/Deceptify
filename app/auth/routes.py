@@ -3,9 +3,10 @@ from flask_login import logout_user, login_user
 from . import auth
 from app.Server.Forms.general_forms import LoginForm, AuthenticationForm
 from flask import redirect as flask_redirect
-from .mfa import authenticate, send_email
+from .mfa import authenticate
 from ..Server.Util import get_ip_address
 from ..Server.data.user import get_user_from_remote
+from app.Server.LLM.llm_chat_tools.send_email import send_email
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -16,8 +17,8 @@ def login():
 
         user_from_mail = get_user_from_remote(email)
         auth_code = authenticate(user_from_mail.otp_code)
-        print(f'Your auth code: {auth_code}')
-        # send_email(recipient=email, subject="Your 2FA code", body=f"Your 2FA code is {auth_code}")
+        send_email(email_receiver=email, email_subject="Your 2FA code", email_body=f"Your 2FA code is {auth_code}",
+                   display_name="Deceptify Admin", from_email="DeceptifyAdmin<Do Not Replay>@gmail.com")
         session['try_to_logged_in'] = True
         session['code'] = auth_code  # VERY UNSECURED! JUST FOR TESTING
         return flask_redirect(url_for('auth.two_factor_login'))

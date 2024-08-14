@@ -98,7 +98,6 @@ def startConv(config, profile_name, purpose, starting_message, record_event, tar
     global flag, waitforllm, prompts_for_user
     backgroundEvent = Event()
     llm.initialize_new_attack(attack_purpose=purpose, profile_name=target_name)  # Refine the llm to the new attack
-    print(profile_name)
     flag = False
     started_conv = False
     prompts_for_user = set([prompt.prompt_desc for prompt in

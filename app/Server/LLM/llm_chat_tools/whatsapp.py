@@ -18,9 +18,7 @@ class WhatsAppBot(object):
 
     @staticmethod
     def get_message_template(zoom_url, profile_name):
-        # current_directory = os.path.dirname(__file__)
-        # parent_directory = os.path.join(os.path.dirname(current_directory),"/prompts/whatsapp_invitation.txt")
-        # print(f'from get_message_template --> parent_directory = {parent_directory}')
-        return get_text_from_file(r'C:\colman\Final project\Deceptify\app\Server\LLM\prompts\whatsapp_invitation.txt').format(zoom_url= zoom_url,
-                                                                                                                              name= profile_name,
-                                                                                                                              target='Hemi')
+        current_directory = os.path.dirname(__file__)
+        parent_directory = os.path.dirname(current_directory) + "\prompts\whatsapp_invitation.txt"
+        return get_text_from_file(parent_directory).format(zoom_url=zoom_url, name=profile_name, target='Hemi')
+

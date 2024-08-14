@@ -25,22 +25,3 @@ def authenticate(onetime_code):
         return twofa_code
     except Exception as e:
         print(e)
-
-
-def send_email(recipient, subject, body):
-    msg = MIMEMultipart()
-    msg['From'] = SMTP_USERNAME
-    msg['To'] = recipient
-    msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
-
-    try:
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
-        server.login(SMTP_USERNAME, SMTP_PASSWORD)
-
-        server.send_message(msg)
-    except Exception as e:
-        print(f"Failed to send email: {e}")
-    finally:
-        server.quit()

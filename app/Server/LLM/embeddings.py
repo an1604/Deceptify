@@ -71,14 +71,10 @@ class embeddings(object):
 
     def get_faq(self):
         df = pd.read_csv(self.knowledgebase_file_path, sep=";").dropna()
-        if not os.path.isfile(self.json_filename_for_sentences_map):
-            faq = []
-            for x, y in df.values:
-                faq.append(x)
-                self.sentences_map[x] = y
-        else:
-            faq = [x for x, _ in df.values]
-            self.sentences_map = json.loads(self.json_filename_for_sentences_map)
+        faq = []
+        for x, y in df.values:
+            faq.append(x)
+            self.sentences_map[x] = y
         return faq
 
     def get_embedding(self, _input):

@@ -7,6 +7,7 @@ class chatHistory(object):
         self.chat_history = []
         self.role = None
         self.name = name
+        self.directory = "chat_history"
 
     def set_profile_name_for_transcript(self, profile_name):
         self.name = profile_name
@@ -18,16 +19,19 @@ class chatHistory(object):
         self.role = None
 
     def save_chat(self):
-        with open(f'chat_history-{self.name}.txt', 'w') as f:
-            for e in self.chat_history:
-                f.write(e + '\n')
+        if not os.path.exists(self.directory):
+            os.makedirs(directory)
+
+        file_path = os.path.join(directory, f'chat_history-{self.name}.txt')
+        with open(file_path, 'w') as f:
+            for role, prompt in self.chat_history:
+                f.write(f'{role}: {prompt}\n')
 
     def initialize_role(self, role: SystemMessage):
         self.role = role
 
     def add_human_message(self, msg: str):
         message = ("user", f"{msg}")
-        # self.chat_history.extend(message)
         self.chat_history.append(message)
 
     def add_system_message(self, msg: str):
@@ -35,7 +39,6 @@ class chatHistory(object):
 
     def add_ai_response(self, res: str):
         msg = ("assistant", f"{res}")
-        # self.chat_history.extend(msg)
         self.chat_history.append(msg)
 
     def get_window(self):
