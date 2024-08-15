@@ -1,6 +1,7 @@
 import json
 import os
 from functools import lru_cache
+from threading import Thread
 
 import faiss
 import numpy as np
@@ -13,6 +14,8 @@ from sentence_transformers import SentenceTransformer
 
 class embeddings(object):
     def __init__(self, knowledgebase=None):
+        self.learner = []  # list of tuples for active learning
+
         self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
         self.index = faiss.IndexFlatL2(384)
 
@@ -25,6 +28,8 @@ class embeddings(object):
         self.knowledgebase_file_path = None
         self.faq = None
 
+        self.active_learner_threshold = 1.19999  # Decide which threshold is valid to apply active learning.
+
     def get_nearest_neighbors(self, vector, k=3):
         index = faiss.read_index(
             os.path.join(os.path.dirname(os.path.abspath(__file__)), f'{self.knowledgebase}-faiss.index'))
@@ -33,6 +38,11 @@ class embeddings(object):
         return indices, distances
 
     def flush(self):
+        if len(self.learner) > 0:
+            active_learning_thread = Thread(target=self.apply_active_learning,
+                                            args=(self.knowledgebase_file_path, self.learner,))
+            active_learning_thread.start()
+
         self.save_sentences_map()  # Saving the sentence map for feature extraction (reduce computation).
         self.sentences_map = {}
 
@@ -41,6 +51,25 @@ class embeddings(object):
         self.faq = None
         self.knowledgebase = None
         self.index = faiss.IndexFlatL2(384)
+
+        if len(self.learner) > 0:
+            active_learning_thread.join()
+
+    @staticmethod
+    def apply_active_learning(knowledgebase_file_path, learner):
+        new_products = []
+        # Getting the Admins feedback
+        for question, answer in learner:
+            print(f'Question: {question} --> Answer: {answer}')
+            feedback = input("Was the response helpful? (yes/no): ").strip().lower()
+            if feedback == 'yes':
+                new_products.append((question, answer))
+
+        # Extending all the attractive outputs from the model to the knowledgebase.
+        with open(knowledgebase_file_path, 'a') as outfile:
+            for question, answer in new_products:
+                outfile.write(question + ';' + answer + '\n')
+            outfile.write('\n')
 
     def initialize_again(self, knowledgebase):
         self.knowledgebase = knowledgebase
@@ -100,4 +129,7 @@ class embeddings(object):
         else:
             answer = None
 
-        return answer
+        return answer, closest_distance > self.active_learner_threshold
+
+    def learn(self, param):
+        self.learner.append(param)  # Add the new tuple to the list for future inspection.

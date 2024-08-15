@@ -5,7 +5,7 @@ from app.Server.LLM.embeddings import embeddings
 from app.Server.LLM.prompts.prompts import Prompts
 
 # model_name = 'http://ollama:11434/'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
-model_name = 'llama3'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
+model_name = 'tinyllama'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
 
 # machine = 'ollama'  # REPLACE IT TO LOCALHOST IF YOU RUN LOCALLY
 machine = 'localhost'  # REPLACE IT TO LOCALHOST IF YOU RUN LOCALLY
@@ -54,7 +54,7 @@ class Llm(object):
             self.embedding_model.generate_faq_embedding()
             self.embedd_custom_knowledgebase = True
 
-        answer = self.embedding_model.get_answer_from_embedding(prompt)
+        answer, apply_active_learning = self.embedding_model.get_answer_from_embedding(prompt)
         if answer is None:
             # user_prompt = prompts.get_role(role=ROLE, history=history, prompt=prompt)
             chain = self.user_prompt | self.llm
@@ -75,6 +75,8 @@ class Llm(object):
 
         self.chat_history.add_ai_response(answer)
 
+        if apply_active_learning:
+            self.embedding_model.learn((prompt, answer))
         return answer
 
 
