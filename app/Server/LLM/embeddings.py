@@ -68,7 +68,7 @@ class embeddings(object):
         # Extending all the attractive outputs from the model to the knowledgebase.
         with open(knowledgebase_file_path, 'a') as outfile:
             for question, answer in new_products:
-                outfile.write(question + ';' + answer + '\n')
+                outfile.write(f"'{question}'" + ';' + f"'{answer}'" + '\n')
             outfile.write('\n')
 
     def initialize_again(self, knowledgebase):
