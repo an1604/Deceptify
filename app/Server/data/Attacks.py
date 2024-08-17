@@ -137,21 +137,21 @@ class Attack:
     def get_attack_prompts(self) -> set[str]:
         if self.attack_purpose == "Bank":
             return {"We had a suspicious activity in your account and we need verification to make action",
-                    "We detected some suspicious transactions", "In order to continue further i need your ID",
+                    "We detected some suspicious transactions",
+                    "In order to continue further i need your account number",
                     "It is to confirm your identity", "Yes after we verify your identity", "Wait a second Umm",
-                    "Hold on a second Umm", "I need your ID and account number",
+                    "Hold on a second Umm", "I need your account number", "Can you repeat that",
                     "Let me check umm"}
         elif self.attack_purpose == "Delivery":
             return {"We have your package and we need your address to send it", "we do not have that information",
                     "We need it to know where to send the package", "It is not provided in the package",
                     "Yes to ensure it’s delivered correctly", "It was on the shipping label", "Wait a second Umm",
-                    "Hold on a second Umm", "I need your address", "Let me check umm"}
+                    "Hold on a second Umm", "I need your address", "Let me check umm", "Can you repeat that"}
         elif self.attack_purpose == "Hospital":
-            return {"We had a system reset and we need to verify our clients again",
-                    "We need your ID for verification", "To make sure we get the correct information",
-                    "So we can send you information", "We have that documented",
-                    "Our system lost some data so we are verifying info", "Wait a second Umm", "Hold on a second Umm",
-                    "I need your ID and address", "Let me check umm"}
+            return {"We had an attack on our system and we need your ID to solve this issue",
+                    "There has been an attempt of a personal data theft",
+                    "I need your ID to reopen your account", "Your ID is the only way to open your account",
+                    "Wait a second Umm", "Hold on a second Umm", "Let me check umm", "Can you repeat that"}
         else:  # self.attack_purpose == "whatsapp"
             return {"We had a suspicious activity in your account and we need verification to make action",
                     "We detected some suspicious transactions", "In order to continue further i need your ID",

@@ -14,31 +14,35 @@ class CampaignForm(FlaskForm):
 
     campaign_name = StringField(
         label="Campaign Name",
-        validators=[DataRequired()]
+        validators=[DataRequired()],
+        default="My campaign"
     )
     mimic_profile = SelectField(
         label="Mimic Profile",
-        validators=[DataRequired()]
+        validators=[DataRequired()],
     )
     target_profile = SelectField(
         label="Target Profile",
-        validators=[DataRequired()]
+        validators=[DataRequired()],
     )
     target_name = StringField(
         label="Target Name",
-        validators=[DataRequired()]
+        validators=[DataRequired()],
+        default="Aviv"
     )
     voice_type = SelectField(
         label="Voice type (Clone for cloned voice attack, AI for default voice AI attack)",
         choices=[("Clone", "Clone"), ("AI", "AI")],
-        validators=[DataRequired()]
+        validators=[DataRequired()],
+        default="AI"
     )
     attack_purpose = SelectField(
         label="Attack Purpose (Fill in case of AI attack. Bank for Id and account number, Delivery for address,"
               "Hospital for Id and address)",
         choices=[("Bank", "Bank"), ("Delivery", "Delivery"),
                  ("Hospital", "Hospital"), ("WhatsApp and Zoom", "WhatsApp and Zoom")],
-        validators=[DataRequired()]
+        validators=[DataRequired()],
+        default="Bank"
     )
     place = StringField(
         label="Place (Fill in case of AI attack. This represents the place the AI calls from, e.g. Bank name for "
@@ -49,7 +53,8 @@ class CampaignForm(FlaskForm):
             Regexp(r'^[A-Za-z]+( [A-Za-z]+)*$', message="Place must contain words separated by a single space, "
                                                         "and start and end with a letter."),
             # Reference the custom validator method without `self`
-        ]
+        ],
+        default="Discount bank"
     )
     # phone_number = StringField('Phone Number', validators=[
     #     DataRequired(),
@@ -57,7 +62,8 @@ class CampaignForm(FlaskForm):
     # ])
     campaign_description = TextAreaField(
         label="Campaign Description",
-        validators=[DataRequired()]
+        validators=[DataRequired()],
+        default="This is the campaign description"
     )
     submit = SubmitField("Submit")
 
@@ -66,7 +72,7 @@ class ViewAttacksForm(FlaskForm):
     attack_list = SelectField(
         label="Select Attack",
         choices=Data().get_data_object().get_attacks(),
-        validators=[DataRequired()]
+        validators=[DataRequired()],
     )
     submit = SubmitField("View Info")
 
@@ -74,7 +80,7 @@ class ViewAttacksForm(FlaskForm):
 class AttackDashboardForm(FlaskForm):
     prompt_field = SelectField(
         label="Select prompt to activate",
-        validators=[DataRequired()]
+        validators=[DataRequired()],
     )
     submit = SubmitField('Submit')
 
@@ -236,4 +242,3 @@ class InitDemoForm(FlaskForm):
     profile_name = StringField('The name of the mimic for the Demo',
                                validators=[DataRequired()])
     submit = SubmitField("Submit")
-
