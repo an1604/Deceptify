@@ -54,7 +54,7 @@ class Llm(object):
             self.embedding_model.generate_faq_embedding()
             self.embedd_custom_knowledgebase = True
 
-        answer = self.embedding_model.get_answer_from_embedding(prompt)
+        answer, apply_active_learning = self.embedding_model.get_answer_from_embedding(prompt)
         if answer is None:
             # user_prompt = prompts.get_role(role=ROLE, history=history, prompt=prompt)
             chain = self.user_prompt | self.llm
@@ -75,6 +75,8 @@ class Llm(object):
 
         self.chat_history.add_ai_response(answer)
 
+        if apply_active_learning:
+            self.embedding_model.learn((prompt, answer))
         return answer
 
 

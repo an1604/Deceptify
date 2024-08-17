@@ -544,9 +544,11 @@ def attack_generation_routes(main, app, data_storage):
             session.pop('message_body_for_demo', None)
         elif form.validate_on_submit():
             message = form.message.data
-            llm.get_answer(message)
-            # return flask_redirect(url_for('main.existing_demo_chat'))
-        print(llm.get_chat_history())
+            answer = llm.get_answer(message)
+            if 'bye' in answer.lower() or 'bye' in message.lower():
+                session.pop('message_body_for_demo', None)
+                llm.flush()
+                return flask_redirect(url_for('main.index'))
         return render_template('demos/existing_demo_chat.html', form=form, messages=llm.get_chat_history(),
                                init_msg=llm.get_init_msg())
 
