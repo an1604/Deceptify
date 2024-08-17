@@ -56,3 +56,6 @@ class chatHistory(object):
 
     def get_prompt(self):
         return self.role
+
+    def get_transcription(self):
+        return "\n".join(f"{role}: {msg}" for role, msg in self.chat_history) + "\n"

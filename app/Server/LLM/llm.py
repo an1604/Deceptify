@@ -21,12 +21,14 @@ class Llm(object):
         self.embedd_custom_knowledgebase = False
         self.mimic_name = 'Donald'  # Default value
         self.init_msg = None
+        self.end_conv = False
 
     def flush(self):
         self.chat_history.flush()
         self.embedding_model.flush()
 
     def initialize_new_attack(self, attack_purpose, profile_name):
+        self.end_conv = False
         self.mimic_name = profile_name
         Prompts.set_role(attack_purpose=attack_purpose)  # Defining the new role according to the purpose.
 
@@ -77,7 +79,15 @@ class Llm(object):
 
         if apply_active_learning:
             self.embedding_model.learn((prompt, answer))
+
+        if 'bye' in answer.lower() or 'bye' in prompt.lower():
+            self.end_conv = True
+            self.flush()
+
         return answer
+
+    def is_conversation_done(self):
+        return self.end_conv
 
 
 llm = Llm()

@@ -233,7 +233,12 @@ class InitDemoForm(FlaskForm):
                  ("Hospital", "Hospital")],
         validators=[DataRequired()]
     )
+    runs_on = SelectField(
+        label="The Attack Will Runs On",
+        choices=[("Local Chat", "Local Chat"),
+                 ("Telegram", "Telegram"),
+                 ("WhatsApp", "WhatsApp")]
+    )
     profile_name = StringField('The name of the mimic for the Demo',
                                validators=[DataRequired()])
     submit = SubmitField("Submit")
-
