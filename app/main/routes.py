@@ -1,5 +1,4 @@
 import base64
-import os
 import os.path
 import uuid
 import urllib
@@ -7,14 +6,12 @@ import urllib
 from flask import redirect as flask_redirect, jsonify, session, send_file, abort, render_template, url_for, flash, \
     request, send_from_directory
 from werkzeug.utils import secure_filename
-from flask_login import login_required, current_user
-from threading import Thread, Event
-from dotenv import load_dotenv
-import requests
+from flask_login import login_required
+from threading import Thread
 
 from app.Server.LLM.llm import llm
 
-from app.Server.CamScript import RunVideo, ResetVirtualCam, virtual_cam
+from app.Server.CamScript import ResetVirtualCam
 
 from zoom_req import *
 
@@ -522,9 +519,20 @@ def attack_generation_routes(main, app, data_storage):
         if form.validate_on_submit():
             attack_purpose = form.purpose.data
             profile_name = form.profile_name.data
+
             llm.initialize_new_attack(attack_purpose, profile_name)  # Initialize a new chat-demo attack.
-            return flask_redirect(url_for('main.new_chat_demo'))
+            runs_on = form.runs_on.data
+            if 'Local Chat' in runs_on:
+                return flask_redirect(url_for('main.new_chat_demo'))
+            elif 'Telegram' in runs_on:
+                return flask_redirect(url_for('main.telegram_chat_demo'))
+            else:  # TODO: CREATE WHATSAPP CASE
+                pass
         return render_template('demos/init_chat_demo.html', form=form)
+
+    @main.route('/telegram_chat_demo', methods=["GET", "POST"])
+    def telegram_chat_demo():
+        return render_template('demos/telegram_chat_demo.html')
 
     @main.route('/new_chat_demo', methods=["GET", "POST"])
     def new_chat_demo():
