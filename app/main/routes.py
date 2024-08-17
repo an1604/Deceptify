@@ -6,12 +6,12 @@ import urllib
 from flask import redirect as flask_redirect, jsonify, session, send_file, abort, render_template, url_for, flash, \
     request, send_from_directory
 from werkzeug.utils import secure_filename
-from flask_login import login_required, current_user
-from threading import Thread, Event
+from flask_login import login_required
+from threading import Thread
 
 from app.Server.LLM.llm import llm
 
-from app.Server.CamScript import RunVideo, ResetVirtualCam, virtual_cam
+from app.Server.CamScript import ResetVirtualCam
 
 from zoom_req import *
 
@@ -23,7 +23,6 @@ from app.Server.data.Attacks import AttackFactory
 from app.Server.data.Profile import Profile
 from app.Server.speechToText import SRtest
 from app.Server.run_bark import generateSpeech
-from app.Server.LLM.llm_chat_tools.telegram_chatbot import telegram_bot
 
 load_dotenv()
 

@@ -90,4 +90,12 @@ class Llm(object):
         return self.end_conv
 
 
+class llm_factory(object):
+    @staticmethod
+    def generate_new_attack(attack_type, profile_name):
+        llm = Llm()
+        llm.initialize_new_attack(attack_type, profile_name)
+        return llm
+
+
 llm = Llm()

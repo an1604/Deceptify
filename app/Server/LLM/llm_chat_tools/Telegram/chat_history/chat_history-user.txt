@@ -1,0 +1,14 @@
+user: hello
+assistant: We had a suspicious activity in your account and we need verification to make action
+user: what activity
+assistant: We detected some suspicious transactions
+user: what transactions
+assistant: I need to verify your identity before I can provide details
+user: what do you need
+assistant: I need your ID and account number
+user: hello there
+assistant: We had a suspicious activity in your account and we need verification to make action
+user: why do you need it
+assistant: It is to confirm your identity
+user: goodbye
+assistant: Goodbye
