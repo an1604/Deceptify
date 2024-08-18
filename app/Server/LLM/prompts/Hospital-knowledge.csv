@@ -12,6 +12,7 @@
 "what verification do you need";"I need your ID to reopen your account"
 "what do you need from me";"I need your ID to reopen your account"
 "why do you need my ID";"Your ID is the only way to open your account"
+"why do you need it";"Your ID is the only way to open your account"
 "Is there another way to reopen the account";"No, your ID is the only way"
 "Why are you calling me?";"We had an attack on our system and we need your ID to solve this issue"
 "Why didn't you notify me earlier?";"We are contacting all affected patients now"
@@ -23,3 +24,6 @@
 "Bye";"Goodbye"
 "GoodBye";"Goodbye"
 "Later";"Goodbye"
+'i gave you my ID';'I apologize but I missed that, can you repeat it'
+'do you need the full number';'Yes i need the full ID'
+

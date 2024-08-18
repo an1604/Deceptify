@@ -43,7 +43,6 @@ class embeddings(object):
                                             args=(self.knowledgebase_file_path, self.learner,))
             active_learning_thread.start()
 
-        self.save_sentences_map()  # Saving the sentence map for feature extraction (reduce computation).
         self.sentences_map = {}
 
         self.knowledgebase_file_path = None
