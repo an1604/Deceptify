@@ -28,7 +28,7 @@
 "bye";"Goodbye"
 "goodbye";"Goodbye"
 "later";"Goodbye"
-'i gave you my number';'I apologize but I missed that, can you repeat it'
-'do you need the whole number';'Last 6 digits of account number needed'
+"i gave you my number";"I apologize but I missed that, can you repeat it"
+"do you need the whole number";"I only need last 6 digits of the account number"
 
 
