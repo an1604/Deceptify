@@ -42,6 +42,7 @@ class Llm(object):
 
         self.embedd_custom_knowledgebase = False
         self.init_msg = f"Hello {self.mimic_name}, its Jason from {attack_purpose}."
+        self.chat_history.add_ai_response(self.init_msg)
 
     def validate_number(self, prompt):
         # Regular expression to find the number
