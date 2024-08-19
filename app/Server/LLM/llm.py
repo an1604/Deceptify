@@ -49,16 +49,18 @@ class Llm(object):
         number = re.findall(r'\d+', prompt.replace(" ", ""))
         # Convert the first match to an integer (or float if needed)
         if number:
-            # number = int(number[0])  # change number to string
-            if int(number[0]) == 0:
-                return "This is not a real number"
             if self.purpose == "Bank":  # account number
-                if len(number[0]) == 6:
+                if int(number[0]) == 0:
+                    return "This is not a real number"
+                elif len(number[0]) == 6:
                     return "Thank you, we have solved the issue. Goodbye"
+
                 else:
                     return "I need a 6 digit account number"
             elif self.purpose == "Hospital":
-                if len(number[0]) == 9:  # check for 0 at the start of the number
+                if int(number[0]) == 0:
+                    return "This is not a real number"
+                elif len(number[0]) == 9:  # check for 0 at the start of the number
                     return "Thank you, we have opened your account. Goodbye"
                 else:
                     return "I need a 9 digit ID"
