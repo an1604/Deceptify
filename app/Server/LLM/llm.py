@@ -46,17 +46,19 @@ class Llm(object):
 
     def validate_number(self, prompt):
         # Regular expression to find the number
-        number = re.findall(r'\d+', prompt)
+        number = re.findall(r'\d+', prompt.replace(" ", ""))
         # Convert the first match to an integer (or float if needed)
         if number:
-            number = int(number[0])
+            # number = int(number[0])  # change number to string
+            if int(number[0]) == 0:
+                return "This is not a real number"
             if self.purpose == "Bank":  # account number
-                if 100000 <= number <= 999999:
+                if len(number[0]) == 6:
                     return "Thank you, we have solved the issue. Goodbye"
                 else:
                     return "I need a 6 digit account number"
             elif self.purpose == "Hospital":
-                if 100000000 <= number <= 999999999:
+                if len(number[0]) == 9:  # check for 0 at the start of the number
                     return "Thank you, we have opened your account. Goodbye"
                 else:
                     return "I need a 9 digit ID"
@@ -125,3 +127,8 @@ class llm_factory(object):
 
 
 llm = Llm()
+
+# if __name__ == '__main__':
+#     llm = Llm()
+#     llm.initialize_new_attack("Bank",  "Oded warem")
+#     llm.get_answer("my account number is 0 0 0 0 0 0")
