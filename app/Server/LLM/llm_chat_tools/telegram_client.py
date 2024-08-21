@@ -35,6 +35,9 @@ class telegram_client(object):
         self.handle_routes(self.client)
         self.run_client()
 
+    async def send_audio(self, audiofile_path):
+        await self.client.send_file('me', audiofile_path)
+
     async def send_message(self):
         # while not self.stop:
         #     await self.received_response.wait()
