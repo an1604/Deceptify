@@ -23,7 +23,7 @@ from app.Server.data.Attacks import AttackFactory
 from app.Server.data.Profile import Profile
 from app.Server.speechToText import SRtest
 from app.Server.run_bark import generateSpeech
-from app.Server.LLM.llm_chat_tools.telegram_client import telegram_client
+from app.Server.LLM.llm_chat_tools.telegramclienthandler import TelegramClientHandler
 
 load_dotenv()
 
@@ -169,7 +169,7 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
     def telegram_info():
         return render_template('telegram/telegram_info.html')
 
-    @main.route('/telegram_init_client')
+    @main.route('/telegram_init_client', methods=['GET', 'POST'])
     @login_required
     def telegram_init_client():
         form = TelegramClientBasicForm()
@@ -179,14 +179,14 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
             profile_name = form.profile_name.data
             phone_number = form.phone_number.data
 
-            t_client = telegram_client(app_id, app_hash, profile_name, phone_number)
+            t_client = TelegramClientHandler(app_id, app_hash, profile_name, phone_number)
             data_storage.update_profile(profile_name, t_client)  # Updates the data_storage with the new client
             # to extract it after with the profile_name easily without involving the session object.
             return flask_redirect(url_for("main.telegram_advanced_configs",
                                           profile_name=profile_name))
         return render_template("telegram/telegram_init_client.html", form=form)
 
-    @main.route('/telegram_advanced_configs')
+    @main.route('/telegram_advanced_configs', methods=['GET', 'POST'])
     @login_required
     def telegram_advanced_configs():
         profile_name = request.args.get('profile_name')
