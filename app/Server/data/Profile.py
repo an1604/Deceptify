@@ -23,24 +23,12 @@ class Profile:
         self.Attacks: List = list()
         self.prompts: Set[Prompt] = set()
         self.audio_data_path: str = audio_data_path
-        self.video_data_path: str = video_data_path
-        self.setDefaultPrompts()
-        self.defaultVideo = self.profile_name + ".mp4"  # in case of using video profile this will be used
+        self.telegram_client = None
         # Create a voice profile on the server
-        if video_data_path is None:
-            Util.createvoice_profile("oded", profile_name, audio_data_path)
-            for prompt in self.prompts:
-                response = Util.generate_voice("oded", self.profile_name, prompt.prompt_desc)
-                Util.get_voice_profile("oded", self.profile_name, prompt.prompt_desc, response['file'])
-        else:
-            Util.createvoice_profile("oded", profile_name, audio_data_path)
-            for prompt in self.prompts:
-                response = Util.generate_voice("oded", self.profile_name, prompt.prompt_desc)
-                Util.get_voice_profile("oded", self.profile_name, prompt.prompt_desc, response['file'])
-            # Util.createvideo_profile("oded", profile_name, audio_data_path, video_data_path)
-            # TODO: add the video generation of the prompts from the server
-
-        # Generate voice for each default prompt
+        Util.createvoice_profile("oded", profile_name, audio_data_path)
+        for prompt in self.prompts:
+            response = Util.generate_voice("oded", self.profile_name, prompt.prompt_desc)
+            Util.get_voice_profile("oded", self.profile_name, prompt.prompt_desc, response['file'])
 
     def getName(self) -> str:
         """
@@ -59,14 +47,6 @@ class Profile:
         """
         return self.audio_data_path
 
-    def get_video_data(self):
-        """
-        Get the path to the profile video data.
-
-        :returns: The path to the profile video data.
-        """
-        return self.video_data_path
-
     def getGeneralInfo(self) -> str:
         """
         Get the general information of the profile.
@@ -76,6 +56,11 @@ class Profile:
         """
         return self.general_info
 
+    def setTelegram(self, telegram_client):
+        self.telegram_client = telegram_client
+
+    def getTelgram(self):
+        return self.telegram_client
     def addAttack(self, attack) -> None:
         """
         Add an attack to the profile.
@@ -187,6 +172,7 @@ class Profile:
             "profile_name": self.profile_name,
             "general_info": self.general_info,
             "data": self.audio_data_path,
+            "t_client": self.telegram_client
         }
 
     def to_json(self) -> str:
@@ -227,4 +213,5 @@ class Profile:
             json_profile["profile_name"],
             json_profile["general_info"],
             json_profile["data_path"],
+            json_profile["t_client"]
         )

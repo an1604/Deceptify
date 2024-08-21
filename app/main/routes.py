@@ -24,6 +24,7 @@ from app.Server.data.Profile import Profile
 from app.Server.speechToText import SRtest
 from app.Server.run_bark import generateSpeech
 from app.Server.LLM.llm_chat_tools.telegramclienthandler import TelegramClientHandler
+from app.Server.data.DataStorage import DataStorage
 
 load_dotenv()
 
@@ -180,8 +181,8 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
             phone_number = form.phone_number.data
 
             t_client = TelegramClientHandler(app_id, app_hash, profile_name, phone_number)
-            data_storage.update_profile(profile_name, t_client)  # Updates the data_storage with the new client
-            # to extract it after with the profile_name easily without involving the session object.
+            data_storage.get_profile(profile_name).setTelegram(t_client)
+
             return flask_redirect(url_for("main.telegram_advanced_configs",
                                           profile_name=profile_name))
         return render_template("telegram/telegram_init_client.html", form=form)
@@ -195,8 +196,8 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
             target_name = form.target_name.data
             attack_purpose = form.attack_purpose.data
             clone_voice_for_record = form.clone_voice_for_record.data
-            (data_storage.get_profile(profile_name).get_t_client.
-             set_advanced_params(target_name, attack_purpose))
+            data_storage.get_profile(profile_name).getTelgram().set_advanced_params(target_name, attack_purpose,
+                                                                                    clone_voice_for_record)
             if clone_voice_for_record:
                 return flask_redirect(url_for('main.upload_voice_file'))
             return flask_redirect(url_for('main.run_telegram_attack'))
@@ -606,7 +607,7 @@ def attack_generation_routes(main, app, data_storage):
                                init_msg=llm.get_init_msg())
 
 
-def execute_routes(main, app, data_storage):  # Function that executes all the routes.
+def execute_routes(main, app, data_storage: DataStorage):  # Function that executes all the routes.
     general_routes(main, app, data_storage)  # General pages navigation
     attack_generation_routes(main, app, data_storage)  # Attack generation pages navigation
     error_routes(main)  # Errors pages navigation
