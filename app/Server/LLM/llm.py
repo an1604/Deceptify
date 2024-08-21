@@ -25,12 +25,15 @@ class Llm(object):
         self.end_conv = False
         self.purpose = None
 
+        self.finish_msg = None
+
     def flush(self):
         self.chat_history.flush()
         self.embedding_model.flush()
 
     def initialize_new_attack(self, attack_purpose, profile_name):
         self.end_conv = False
+        self.finish_msg = None
         self.mimic_name = profile_name
         Prompts.set_role(attack_purpose=attack_purpose)  # Defining the new role according to the purpose.
         self.purpose = attack_purpose
@@ -115,6 +118,10 @@ class Llm(object):
             self.flush()
 
         return answer
+
+    def get_finish_msg(self):
+        if self.end_conv:
+            return self.finish_msg
 
     def is_conversation_done(self):
         return self.end_conv
