@@ -1,4 +1,0 @@
-user: hello
-assistant: We had a system reset and we need to verify our clients again
-user: bye
-assistant: Goodbye
