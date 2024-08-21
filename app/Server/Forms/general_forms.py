@@ -6,50 +6,71 @@ from wtforms.validators import DataRequired, Email, ValidationError, Regexp
 from app.Server.data.DataStorage import Data
 
 
-class CampaignForm(FlaskForm):
+class CloneAttackForm(FlaskForm):
+    submit = SubmitField("Submit")
 
-    def validate_place(self, field):
-        if self.voice_type.data == "AI" and not field.data:
-            raise ValidationError("Place is required when Voice Type is set to AI.")
+
+class AiAttackForm(FlaskForm):
+
+    def validate_message_name(self, field):
+        if self.message_type.data == "Email":
+            try:
+                Email(field)
+            except ValidationError:
+                raise ValidationError("Invalid email address.")
+        else:
+            phone_validator = Regexp(r'^\+972\d{9}$')
+            try:
+                # Manually apply the regular expression validator
+                phone_validator.__call__(self, field)
+            except ValidationError:
+                # Raise a validation error if the phone number doesn't match the pattern
+                raise ValidationError("Invalid phone number format. It should start with +972 and be followed "
+                                      "by 9 digits.")
 
     campaign_name = StringField(
         label="Campaign Name",
         validators=[DataRequired()],
         default="My campaign"
     )
-    mimic_profile = SelectField(
-        label="Mimic Profile",
-        validators=[DataRequired()],
-    )
-    target_profile = SelectField(
-        label="Target Profile",
-        validators=[DataRequired()],
-    )
+    # mimic_profile = SelectField(
+    #     label="Mimic Profile",
+    #     validators=[DataRequired()],
+    # )
+    # target_profile = SelectField(
+    #     label="Target Profile",
+    #     validators=[DataRequired()],
+    # )
     target_name = StringField(
-        label="Target Name",
+        label="Target Name(Full name recommended)",
         validators=[DataRequired()],
-        default="Aviv"
+        default="Aviv Nataf"
     )
-    voice_type = SelectField(
-        label="Voice type (Clone for cloned voice attack, AI for default voice AI attack)",
-        choices=[("Clone", "Clone"), ("AI", "AI")],
-        validators=[DataRequired()],
-        default="AI"
+
+    message_type = SelectField(
+        label="Message Type",
+        choices=[("Whatsapp", "Whatsapp"), ("Email", "Email")],
+        default="Email"
     )
+
+    message_name = StringField(
+        label="message name (Whatsapp phone for whatsapp with +972 prefix, and email address for email)",
+        validators=[validate_message_name],
+        default="nataf12386@gmail.com"
+    )
+
     attack_purpose = SelectField(
-        label="Attack Purpose (Fill in case of AI attack. Bank for Id and account number, Delivery for address,"
-              "Hospital for Id and address)",
+        label="Attack Purpose (Bank for account number, Delivery for address,"
+              " Hospital for Id)",
         choices=[("Bank", "Bank"), ("Delivery", "Delivery"),
                  ("Hospital", "Hospital"), ("WhatsApp and Zoom", "WhatsApp and Zoom")],
-        validators=[DataRequired()],
         default="Bank"
     )
     place = StringField(
-        label="Place (Fill in case of AI attack. This represents the place the AI calls from, e.g. Bank name for "
+        label="Place (This represents the place the AI calls from, e.g. Bank name for "
               "Bank, Airport name for Delivery, and Hospital name for Hospital. The place should be related to the "
               "target)",
         validators=[
-            validate_place,
             Regexp(r'^[A-Za-z]+( [A-Za-z]+)*$', message="Place must contain words separated by a single space, "
                                                         "and start and end with a letter."),
             # Reference the custom validator method without `self`
@@ -60,11 +81,12 @@ class CampaignForm(FlaskForm):
     #     DataRequired(),
     #     Regexp(r'^\+972\d{9}$', message="Please enter a valid phone number with the +972 prefix")
     # ])
-    campaign_description = TextAreaField(
-        label="Campaign Description",
-        validators=[DataRequired()],
-        default="This is the campaign description"
-    )
+
+    # campaign_description = TextAreaField(
+    #    label="Campaign Description",
+    #    validators=[DataRequired()],
+    #    default="This is the campaign description"
+    # )
     submit = SubmitField("Submit")
 
 

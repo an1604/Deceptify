@@ -8,7 +8,7 @@ class chatHistory(object):
         self.chat_history = []
         self.role = None
         self.name = name
-        self.directory = "chat_history"
+        self.directory = "attack_records"
 
     def set_profile_name_for_transcript(self, profile_name):
         self.name = profile_name
@@ -23,7 +23,7 @@ class chatHistory(object):
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
 
-        file_path = os.path.join(self.directory, f'chat_history-{self.name}.txt')
+        file_path = os.path.join(self.directory, "transcript.txt")
         with open(file_path, 'w') as f:
             for role, prompt in self.chat_history:
                 f.write(f'{role}: {prompt}\n')

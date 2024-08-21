@@ -36,6 +36,10 @@ class DataStorage:
     def get_attacks(self) -> Set[Attack]:
         return self.attacks
 
+    def get_attack(self, attack_id):
+        attack = [attack for attack in self.attacks if attack.getID() == int(attack_id)][0]
+        return attack
+
     def delete_attack(self, attackID: int) -> None:
         attack_to_remove = None
         for attack in self.attacks:
@@ -61,12 +65,6 @@ class DataStorage:
         for profile in self.profiles:
             if profile.getName() == profile_name:
                 return profile
-        return None
-
-    def get_attack(self, attack_id: int) -> Optional[Attack]:
-        for attack in self.attacks:
-            if attack.getID() == attack_id:
-                return attack
         return None
 
     def prepare_data_to_remote_server(self) -> str:

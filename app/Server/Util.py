@@ -399,8 +399,7 @@ def record_call(event, fname):
         filename = fname
 
         # Saving both JSON and WAV in the same name, in the same directory.
-        JSON_OUTPUT_FILENAME = os.path.join(RECORDS_DIR, f"{filename}.json")
-        WAVE_OUTPUT_FILENAME = os.path.join(RECORDS_DIR, f'{filename}.wav')
+        WAVE_OUTPUT_FILENAME = os.path.join(RECORDS_DIR, f'{filename}')
         print(WAVE_OUTPUT_FILENAME)
         with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
             wf.setnchannels(CHANNELS)

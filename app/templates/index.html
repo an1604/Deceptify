@@ -24,8 +24,12 @@
             <!--    </a>-->
 
 
-            <a href="{{ url_for('main.information_gathering') }}">
-                <button type="button">Start Attack Generation Process</button>
+            <a href="{{ url_for('main.new_ai_attack') }}">
+                <button type="button">Generate AI attack</button>
+            </a>
+
+            <a href="{{ url_for('main.new_clone_attack') }}">
+                <button type="button">Generate voice attack</button>
             </a>
 
             <a href="{{ url_for('main.new_profile') }}">

@@ -10,6 +10,7 @@ import re
 from app.Server.data.DataStorage import Data
 from app.Server.LLM.llm import llm
 from app.Server.run_bark import generateSpeech
+import requests
 
 r = sr.Recognizer()
 audio_queue = Queue()
@@ -36,7 +37,7 @@ def sanitize_filename(filename):
     return re.sub(r'[<>:"/\\|?*]', '_', filename).strip()
 
 
-def recognize_worker(config, profile_name, username, backgroundEvent):
+def recognize_worker(config, username, backgroundEvent):
     global flag, waitforllm, data_storage, prompts_for_user
     fillers = ["Wait a second Umm", "Let me check umm", "Hold on a second Umm"]
     index = 0
@@ -58,7 +59,7 @@ def recognize_worker(config, profile_name, username, backgroundEvent):
                                                                          config['UPLOAD_FOLDER']
                                                                          + "\\office.wav",))
                 background_thread.start()
-                play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" +
                                            response + ".wav")
                 backgroundEvent.set()
             else:
@@ -68,17 +69,14 @@ def recognize_worker(config, profile_name, username, backgroundEvent):
                                                                          + "\\office.wav",))
                 background_thread.start()
                 start_filler = Thread(target=play_audio_through_vbcable,
-                                      args=(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                                      args=(config['UPLOAD_FOLDER'] + "\\" +
                                             fillers[index] + ".wav", "CABLE Input"))
                 start_filler.daemon = True
                 start_filler.start()
                 index = (index + 1) % 3
-                # serv_response = generate_voice(username, profile_name, response)
-                # get_voice_profile(username, profile_name, "prompt", serv_response["file"])
                 generateSpeech(text_prompt=response,
-                               path=config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" + 'prompt' + ".wav")
-                play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-                                           'prompt' + ".wav")
+                               path=config['UPLOAD_FOLDER'] + "\\prompt.wav")
+                play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\prompt.wav")
                 backgroundEvent.set()
             if not waitforllm.is_set():
                 waitforllm.set()
@@ -92,22 +90,21 @@ def recognize_worker(config, profile_name, username, backgroundEvent):
             print(f'Exception from recognize_worker: {e}')
 
 
-def startConv(config, profile_name, purpose, starting_message, record_event, target_name,
+def startConv(config, attack_prompts, purpose, starting_message, record_event, target_name,
               username="oded"):
     global flag, waitforllm, prompts_for_user
     backgroundEvent = Event()
     llm.initialize_new_attack(attack_purpose=purpose, profile_name=target_name)  # Refine the llm to the new attack
     flag = False
     started_conv = False
-    prompts_for_user = set([prompt.prompt_desc for prompt in
-                            data_storage.get_profile(profile_name).getPrompts()])
+    prompts_for_user = attack_prompts
 
-    recognize_thread = Thread(target=recognize_worker, args=(config, profile_name, username, backgroundEvent,))
+    recognize_thread = Thread(target=recognize_worker, args=(config, username, backgroundEvent,))
     recognize_thread.daemon = True
     recognize_thread.start()
     device_index = get_device_index()
 
-    with sr.Microphone(device_index=device_index) as source:
+    with sr.Microphone() as source:
         print("Adjusting for ambient noise, please wait...")
         print("Listening for speech...")
         # r.adjust_for_ambient_noise(source)
@@ -119,7 +116,7 @@ def startConv(config, profile_name, purpose, starting_message, record_event, tar
                                                                              config['UPLOAD_FOLDER']
                                                                              + "\\office.wav",))
                     background_thread.start()
-                    play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
+                    play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" +
                                                starting_message + ".wav", "CABLE Input")
                     backgroundEvent.set()
                     # need to generate on attack phase
@@ -136,8 +133,30 @@ def startConv(config, profile_name, purpose, starting_message, record_event, tar
                 continue
 
     record_event.set()
+    print("1")
     backgroundEvent.set()
+    print("2")
+    is_success = None
+    final_msg = llm.get_finish_msg()
+    if purpose == "Bank":
+        if final_msg == "Thank you, we have solved the issue. Goodbye":
+            is_success = True
+        else:
+            is_success = False
+    elif purpose == "Hospital":
+        if final_msg == "Thank you, we have opened your account. Goodbye":
+            is_success = True
+        else:
+            is_success = False
+    else:
+        is_success = llm.get_answer(
+            "Based on your history can you tell me with a true or false answer if the person gave you its address")
+        if is_success.lower() == "true":
+            is_success = True
+        else:
+            is_success = False
     llm.flush()  # Cleaning the llm's previous information.
-    audio_queue.join()  # Block until all current audio processing jobs are done
     audio_queue.put(None)  # Tell the recognize_thread to stop
+    # audio_queue.join()  # Block until all current audio processing jobs are done
     recognize_thread.join()  # Wait for the recognize_thread to actually stop
+    return is_success

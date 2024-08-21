@@ -29,7 +29,7 @@ def create_video_file():
 
 def create_attack_file():
     project_dir = os.path.dirname(os.path.realpath(__file__))
-    attack_dir = "Server/attack_records"
+    attack_dir = "attack_records"
     attack_dir_path = os.path.join(project_dir, attack_dir)
     if not os.path.exists(attack_dir_path):
         os.makedirs(attack_dir_path)

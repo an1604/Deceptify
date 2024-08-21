@@ -8,7 +8,7 @@ from flask import redirect as flask_redirect, jsonify, session, send_file, abort
 from werkzeug.utils import secure_filename
 from flask_login import login_required
 from threading import Thread
-
+from app.Server.data.DataStorage import DataStorage
 from app.Server.LLM.llm import llm
 
 from app.Server.CamScript import ResetVirtualCam
@@ -44,9 +44,9 @@ BASE_ZOOM_URL = os.getenv('BASE_ZOOM_API_REQ_URL')
 
 
 def error_routes(main):  # Error handlers routes
-    @main.errorhandler(404)
-    def not_found(error):
-        return render_template("errors/404.html"), 404
+    # @main.errorhandler(404)
+    # def not_found(error):
+    #     return render_template("errors/404.html"), 404
 
     @main.errorhandler(500)
     def internal_error(error):
@@ -158,6 +158,12 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
     def serve_mp3(filename):
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+    @main.route('/download_file/<filename>')
+    @login_required
+    def download_file(filename):
+        print(filename)
+        return send_file(app.config["ATTACK_RECS"] + "\\" + filename)
+
     @main.route('/video/<path:filename>')  # Serve the video files statically
     @login_required
     def serve_video(filename):
@@ -167,10 +173,7 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
     @login_required
     def zoom_authorization():
         session['whatsapp_attack_info'] = {
-            'profile': request.args.get('profile'),
-            'contact': request.args.get('contact'),
-            'campaign_unique_id': request.args.get('id'),
-            'voice_type': request.args.get('type')
+            'attack_id': request.args.get('id')
         }
         auth_url = f'{AUTH_URL}?response_type=code&client_id={ZOOM_CLIENT_ID}&redirect_uri={REDIRECT_URI}'
         return flask_redirect(auth_url)
@@ -231,72 +234,77 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
 
 
 def attack_generation_routes(main, app, data_storage):
-    @main.route("/newattack", methods=["GET", "POST"])  # The new chat route.
+    @main.route("/new_ai_attack", methods=["GET", "POST"])  # The new chat route.
     @login_required
-    def newattack():
-        form = CampaignForm()
-        profNames = data_storage.getAllProfileNames()
-        form.mimic_profile.choices = profNames
-        form.target_profile.choices = profNames
+    def new_ai_attack():
+        form = AiAttackForm()
         if form.validate_on_submit():
             campaign_name = form.campaign_name.data
-            mimic_profile = data_storage.get_profile(form.mimic_profile.data)
-            target_profile = data_storage.get_profile(form.target_profile.data)
-            campaign_description = form.target_name.data
+            target_name = form.target_name.data
+            message_type = form.message_type.data
+            message_name = form.message_name.data
             attack_purpose = form.attack_purpose.data
-            campaign_unique_id = int(uuid.uuid4())
-            voice_type = form.voice_type.data
             place = form.place.data
-            # phone_number = form.phone_number.data
+            attack_id = int(uuid.uuid4())
             attack = AttackFactory.create_attack(
-                "Voice",
+                "AI",
                 campaign_name,
-                mimic_profile,
-                target_profile,
-                campaign_description,
+                target_name,
+                message_type,
+                message_name,
                 attack_purpose,
-                campaign_unique_id,
-                voice_type,
-                place
-                # phone_number,
+                place,
+                attack_id,
             )
             data_storage.add_attack(attack)
 
-            redirect_url = 'main.attack_dashboard_transition' if not ('whatsapp' in
-                                                                      attack_purpose.lower()) else 'main.zoom_authorization'
-            return flask_redirect(
-                url_for(redirect_url, profile=form.mimic_profile.data,
-                        contact=form.target_name.data, id=campaign_unique_id, type=voice_type))
-        return render_template('attack_pages/newattack.html', form=form)
+            return flask_redirect(url_for("main.zoom_authorization", id=attack_id))
+        return render_template('attack_pages/new_ai_attack.html', form=form)
+
+    @main.route("/new_clone_attack", methods=["GET", "POST"])  # New voice attack page.
+    @login_required
+    def new_clone_attack():
+        form = CloneAttackForm()
+        if form.validate_on_submit():
+            return None
+        return render_template("attack_pages/new_voice_attack.html", form=form)
 
     @main.route('/attack_dashboard_transition', methods=['GET'])
     @login_required
     def attack_dashboard_transition():
-        profile_name = session['whatsapp_attack_info']['profile'] if not request.args.get(
-            "profile") else request.args.get("profile")
-        contact_name = request.args.get("contact") if request.args.get("contact") else session['whatsapp_attack_info'][
-            'contact']
+        print("attacks:")
+        print(data_storage.get_attacks())
         attack_id = request.args.get("id") if request.args.get('id') else session['whatsapp_attack_info'][
-            'campaign_unique_id']
-        attack_type = request.args.get("type") if request.args.get('type') else session['whatsapp_attack_info'][
-            'voice_type']
-
+            'attack_id']
+        attack_type = data_storage.get_attack(attack_id).getType()
         zoom_url = session.get('whatsapp_attack_info')
         if zoom_url:
             zoom_url = zoom_url.get('zoom_url')
 
         if session.get("started_call"):
             session.pop("started_call")
-        return render_template('attack_pages/attack_dashboard_transition.html', profile=profile_name,
-                               contact=contact_name, id=attack_id, type=attack_type, zoom_url=zoom_url)
+        return render_template('attack_pages/attack_dashboard_transition.html',
+                               id=attack_id, type=attack_type, zoom_url=zoom_url)
+
+    @main.route('/results_redirect', methods=['GET'])
+    @login_required
+    def results_redirect():
+        is_success = request.args.get('is_success')
+        print("redirecting")
+        return flask_redirect(url_for('main.download_page', is_success=is_success))
+
+    @main.route('/results', methods=['GET'])
+    @login_required
+    def results():
+        is_success = request.args.get('is_success')
+        print(is_success)
+        return render_template('attack_pages/results.html', is_success=is_success)
 
     @main.route('/generate_attack_type', methods=['GET'])
+    @login_required
     def generate_attack_type():
-        profile_name = request.args.get('profile')
         attack_id = request.args.get('attack_id')
-        contact = request.args.get('contact')
-        profile = data_storage.get_profile(profile_name)
-        attack = profile.get_attack(attack_id)
+        attack = data_storage.get_attack(attack_id)
         if attack.getPurpose() == "WhatsApp and Zoom":
             attack.attack_purpose = "Bank"
         attack_prompts = attack.get_attack_prompts()
@@ -306,49 +314,32 @@ def attack_generation_routes(main, app, data_storage):
             zoom_url = zoom_url.get('zoom_url')
 
         # phone_number = attack.getPhoneNumber()
-        if zoom_url:
-            from app.Server.LLM.llm_chat_tools.whatsapp import WhatsAppBot
-            WhatsAppBot.send_text_private_message(phone_number='+972522464648',
-                                                  message=WhatsAppBot.get_message_template(zoom_url, contact))
+        # if zoom_url:
+        #    from app.Server.LLM.llm_chat_tools.whatsapp import WhatsAppBot
+        #    WhatsAppBot.send_text_private_message(phone_number='+972522464648',
+        #                                          message=WhatsAppBot.get_message_template(zoom_url, contact))
 
         for prompt in attack_prompts:
-            #     if not profile.getPrompt(prompt):
-            # response = generate_voice("oded", profile.profile_name, prompt)
-            # get_voice_profile("oded", profile.profile_name, prompt, response["file"])
-            if not os.path.exists(app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" + prompt + ".wav"):
-                generateSpeech(prompt, app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" + prompt + ".wav")
-            if not profile.getPrompt(prompt):
-                new_prompt = Prompt(prompt_desc=prompt, prompt_profile=profile.profile_name)
-                profile.addPrompt(new_prompt)
-
-        starting_message = "Hello " + contact + " this is Jason from " + attack.getPlace()
-
-        if not profile.getPrompt(starting_message):
-            # response = generate_voice("oded", profile.profile_name, starting_message)
-            # get_voice_profile("oded", profile.profile_name, starting_message, response["file"])
-            generateSpeech(starting_message, app.config['UPLOAD_FOLDER'] + "\\" + profile_name + "-" +
-                           starting_message + ".wav")
-            new_prompt = Prompt(prompt_desc=starting_message, prompt_profile=profile.profile_name)
-            profile.addPrompt(new_prompt)
+            if not os.path.exists(app.config['UPLOAD_FOLDER'] + "\\" + prompt + ".wav"):
+                generateSpeech(prompt, app.config['UPLOAD_FOLDER'] + "\\" + prompt + ".wav")
+        starting_message = "Hello " + attack.getTargetName() + " this is Jason from " + attack.getPlace()
+        if not os.path.exists(app.config['UPLOAD_FOLDER'] + "\\" + starting_message + ".wav"):
+            generateSpeech(starting_message, app.config['UPLOAD_FOLDER'] + "\\" + starting_message + ".wav")
         return jsonify({"status": "complete"})
 
     @main.route('/start_attack', methods=['GET', 'POST'])
+    @login_required
     def start_attack():
-        profile_name = request.args.get('profile')
         attack_id = request.args.get('attack_id')
-        voice_type = request.args.get('voice_type')
-        contact_name = request.args.get('contact')
-        profile = data_storage.get_profile(profile_name)
-        attack = profile.get_attack(attack_id)
+        attack = data_storage.get_attack(attack_id)
         StopRecordEvent.clear()
         StopBackgroundEvent.clear()
-        recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "Attacker-" + profile_name +
-                                                           "-Target-" + contact_name))
+        recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "recording.wav"))
         recorder_thread.start()
-        SRtest.startConv(app.config, profile_name, attack.getPurpose(), "Hello " +
-                         contact_name + " this is jason from " + attack.getPlace(),
-                         StopRecordEvent, contact_name)
-        return '', 204
+        is_success = SRtest.startConv(app.config, attack.get_attack_prompts(), attack.getPurpose(), "Hello " +
+                                      attack.target_name + " this is Jason from " + attack.getPlace(),
+                                      StopRecordEvent, attack.target_name)
+        return jsonify({'is_success': is_success})
 
     @main.route('/attack_dashboard', methods=['GET', 'POST'])
     @login_required
@@ -385,11 +376,6 @@ def attack_generation_routes(main, app, data_storage):
     def send_prompt():
         prompt_path = request.args.get("prompt_path")
         return play_audio_through_vbcable(prompt_path)
-
-    @main.route("/information_gathering", methods=["GET", "POST"])
-    @login_required
-    def information_gathering():
-        return flask_redirect(url_for("main.newattack"))
 
     @main.route("/collect_video", methods=["GET", "POST"])
     @login_required
@@ -561,7 +547,7 @@ def attack_generation_routes(main, app, data_storage):
                                init_msg=llm.get_init_msg())
 
 
-def execute_routes(main, app, data_storage):  # Function that executes all the routes.
+def execute_routes(main, app, data_storage: DataStorage):  # Function that executes all the routes.
     general_routes(main, app, data_storage)  # General pages navigation
     attack_generation_routes(main, app, data_storage)  # Attack generation pages navigation
     error_routes(main)  # Errors pages navigation

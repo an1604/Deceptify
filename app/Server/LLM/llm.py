@@ -44,8 +44,8 @@ class Llm(object):
         self.user_prompt = self.chat_history.get_prompt()
 
         self.embedd_custom_knowledgebase = False
-        self.init_msg = f"Hello {self.mimic_name}, its Jason from {attack_purpose}."
-        self.chat_history.add_ai_response(self.init_msg)
+        # self.init_msg = f"Hello {self.mimic_name}, its Jason from {attack_purpose}."
+        # self.chat_history.add_ai_response(self.init_msg)
 
     def validate_number(self, prompt):
         # Regular expression to find the number
@@ -84,7 +84,7 @@ class Llm(object):
             self.embedding_model.generate_faq_embedding()
             self.embedd_custom_knowledgebase = True
 
-        answer, apply_active_learning = self.embedding_model.get_answer_from_embedding(prompt)
+        answer = self.embedding_model.get_answer_from_embedding(prompt)
         if answer is None:
             # user_prompt = prompts.get_role(role=ROLE, history=history, prompt=prompt)
             chain = self.user_prompt | self.llm
@@ -110,12 +110,10 @@ class Llm(object):
         print(answer)
         self.chat_history.add_ai_response(answer)
 
-        if apply_active_learning:
-            self.embedding_model.learn((prompt, answer))
-
         if 'bye' in answer.lower() or 'bye' in prompt.lower():
             self.end_conv = True
-            self.flush()
+            self.finish_msg = answer
+            # self.flush()
 
         return answer
 
@@ -138,6 +136,8 @@ class llm_factory(object):
 llm = Llm()
 
 # if __name__ == '__main__':
-#     llm = Llm()
-#     llm.initialize_new_attack("Bank",  "Oded warem")
-#     llm.get_answer("my account number is 0 0 0 0 0 0")
+#    llm = Llm()
+#    llm.initialize_new_attack("Bank", "Oded warem")
+#    llm.get_answer("goodbye")
+#    llm.get_answer(
+#        "Based on your history can you tell me with a true or false answer if the person gave you the information")
