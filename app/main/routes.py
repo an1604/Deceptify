@@ -23,6 +23,7 @@ from app.Server.data.Attacks import AttackFactory
 from app.Server.data.Profile import Profile
 from app.Server.speechToText import SRtest
 from app.Server.run_bark import generateSpeech
+from app.Server.LLM.llm_chat_tools.telegram_client import telegram_client
 
 load_dotenv()
 
@@ -162,6 +163,50 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
     @login_required
     def serve_video(filename):
         return send_from_directory(app.config['VIDEO_UPLOAD_FOLDER'], filename)
+
+    @main.route('/telegram_info')
+    @login_required
+    def telegram_info():
+        return render_template('telegram/telegram_info.html')
+
+    @main.route('/telegram_init_client')
+    @login_required
+    def telegram_init_client():
+        form = TelegramClientBasicForm()
+        if form.validate_on_submit():
+            app_id = form.app_id.data
+            app_hash = form.app_hash.data
+            profile_name = form.profile_name.data
+            phone_number = form.phone_number.data
+
+            t_client = telegram_client(app_id, app_hash, profile_name, phone_number)
+            data_storage.update_profile(profile_name, t_client)  # Updates the data_storage with the new client
+            # to extract it after with the profile_name easily without involving the session object.
+            return flask_redirect(url_for("main.telegram_advanced_configs",
+                                          profile_name=profile_name))
+        return render_template("telegram/telegram_init_client.html", form=form)
+
+    @main.route('/telegram_advanced_configs')
+    @login_required
+    def telegram_advanced_configs():
+        profile_name = request.args.get('profile_name')
+        form = TelegramClientAdvancedForm()
+        if form.validate_on_submit():
+            target_name = form.target_name.data
+            attack_purpose = form.attack_purpose.data
+            clone_voice_for_record = form.clone_voice_for_record.data
+            (data_storage.get_profile(profile_name).get_t_client.
+             set_advanced_params(target_name, attack_purpose))
+            if clone_voice_for_record:
+                return flask_redirect(url_for('main.upload_voice_file'))
+            return flask_redirect(url_for('main.run_telegram_attack'))
+        return render_template('telegram/telegram_advanced_configs.html')
+
+    # TODO: IMPLEMENT THE RUN_ATTACK ROUTE
+    @main.route('run_telegram_attack')
+    @login_required
+    def run_telegram_attack():
+        pass
 
     @main.route('/zoom_authorization')
     @login_required
@@ -432,7 +477,7 @@ def attack_generation_routes(main, app, data_storage):
                 file_path = os.path.join(wavs_filepath, filename)
                 file.save(file_path)
             create_csv(wavs_filepath, profile_directory)
-            return flask_redirect(url_for("main.newattack"))
+            return flask_redirect(url_for("main.run_telegram_attack"))
         return render_template("data_collection_pages/upload_voice_file.html", form=form)
 
     @main.route(

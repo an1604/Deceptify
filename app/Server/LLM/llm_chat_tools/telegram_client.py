@@ -4,8 +4,8 @@ from app.Server.LLM.llm import llm_factory
 
 
 class telegram_client(object):
-    def __init__(self, api_id, api_hash, phone_number, profile_name, attack_purpose,
-                 telegram_target):
+    def __init__(self, api_id, api_hash, profile_name, phone_number, attack_purpose=None,
+                 telegram_target=None):
         """
         This telegram client class can log in for a specific user and send messages to mimic
          such as voice records, regular messages, etc.
@@ -33,10 +33,13 @@ class telegram_client(object):
 
         self.client = TelegramClient(f'session-{self.profile_name}', api_id, api_hash)
         self.handle_routes(self.client)
-        self.run_client()
 
-    async def send_audio(self, audiofile_path):
-        await self.client.send_file('me', audiofile_path)
+    def set_advanced_params(self, target, attack):
+        self.telegram_target = target
+        self.attack_purpose = attack
+
+        async def send_audio(self, audiofile_path):
+            await self.client.send_file('me', audiofile_path)
 
     async def send_message(self):
         # while not self.stop:
