@@ -199,15 +199,30 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
             data_storage.get_profile(profile_name).getTelgram().set_advanced_params(target_name, attack_purpose,
                                                                                     clone_voice_for_record)
             if clone_voice_for_record:
-                return flask_redirect(url_for('main.upload_voice_file'))
-            return flask_redirect(url_for('main.run_telegram_attack'))
+                return flask_redirect(url_for('main.upload_voice_file',
+                                              profile_name=profile_name))
+            return flask_redirect(url_for('main.run_telegram_attack',
+                                          profile_name=profile_name))
         return render_template('telegram/telegram_advanced_configs.html')
 
     # TODO: IMPLEMENT THE RUN_ATTACK ROUTE
-    @main.route('run_telegram_attack')
+    @main.route('run_telegram_attack', methods=['GET', 'POST'])
     @login_required
     def run_telegram_attack():
-        pass
+        profile_name = request.args.get('profile_name')
+        # step0 -> load the profile
+        t_client = data_storage.get_profile(profile_name).getTelgram()
+        # step1 -> if its the first enter, we need to generate the voice clone record
+        if t_client.is_first_msg:
+            pass
+        # step2 -> send the record after client accept
+
+        # step3 -> wait for the user's response
+
+        # step4 -> loop and generate answers according to the client's requests (records or text (llm))
+
+        # step5 -> terminate the attack while clicking on buuton (t_client.stop() in this event)
+
 
     @main.route('/zoom_authorization')
     @login_required
@@ -470,14 +485,17 @@ def attack_generation_routes(main, app, data_storage):
     @main.route("/upload_voice_file", methods=["GET", "POST"])
     @login_required
     def upload_voice_file():
+        profile_name = request.args.get('profile_name')
+
         form = VoiceUploadForm()
         if form.validate_on_submit():
-            wavs_filepath, profile_directory = create_wavs_directory_for_dataset(app.config['UPLOAD_FOLDER'])
+            profile_name_voice_dir = os.path.join(app.config['UPLOAD_FOLDER'], profile_name + '-clone')
+            os.makedirs(profile_name_voice_dir, exist_ok=True)
+
             for file in form.files.data:
                 filename = secure_filename(file.filename)
-                file_path = os.path.join(wavs_filepath, filename)
+                file_path = os.path.join(profile_name_voice_dir, filename)
                 file.save(file_path)
-            create_csv(wavs_filepath, profile_directory)
             return flask_redirect(url_for("main.run_telegram_attack"))
         return render_template("data_collection_pages/upload_voice_file.html", form=form)
 
