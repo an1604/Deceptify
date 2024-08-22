@@ -196,7 +196,7 @@ def general_routes(main, app, data_storage, file_manager):  # This function stor
                                               profile_name=profile_name))
             return flask_redirect(url_for('main.run_telegram_attack',
                                           profile_name=profile_name))
-        return render_template('telegram/telegram_advanced_configs.html')
+        return render_template('telegram/telegram_advanced_configs.html',form=form)
 
     # TODO: IMPLEMENT THE RUN_ATTACK ROUTE
     @main.route('/run_telegram_attack', methods=['GET', 'POST'])
