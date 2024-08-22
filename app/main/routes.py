@@ -86,18 +86,8 @@ def general_routes(main, app, data_storage, file_manager):  # This function stor
             # Save the voice sample
             file_path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(data.filename))
             data.save(file_path)
-            if video is not None:
-                video_path = os.path.join(app.config["VIDEO_UPLOAD_FOLDER"], secure_filename(video.filename))
-                video.save(video_path)
-                createvoice_profile(username="oded", profile_name=name, file_path=file_path)
-                data_storage.add_profile(Profile(name, gen_info, str(file_path), video_data_path=str(video_path)))
-            # else:
-            # createvoice_profile(username="oded", profile_name=name, file_path=file_path)
-            # data_storage.add_profile(Profile(name, gen_info, str(file_path)))
-            # if gen_info:
-            #     response = llm.generate_knowledgebase(gen_info)
-            #     rows = create_knowledgebase(response)
-            # redirect to ollama
+            createvoice_profile(username="oded", profile_name=name, file_path=file_path)
+            data_storage.add_profile(Profile(name, gen_info, str(file_path)))
             flash("Profile created successfully")
             return flask_redirect(url_for("main.index"))
             # TODO: return flask_redirect(url_for('upload_voice_file')) FOR UPLOAD VOICE FILES FOR DATASET
