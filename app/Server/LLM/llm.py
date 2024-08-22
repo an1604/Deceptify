@@ -1,3 +1,4 @@
+from datetime import datetime
 from langchain_community.llms import Ollama
 from time import time
 from app.Server.LLM.chat_history import chatHistory
@@ -49,7 +50,7 @@ class Llm(object):
 
     def validate_number(self, prompt):
         # Regular expression to find the number
-        number = re.findall(r'\d+', prompt.replace(" ", ""))
+        number = re.findall(r'\d+', prompt.replace(" ", "").replace("/", "").replace("\\", ""))
         # Convert the first match to an integer (or float if needed)
         if number:
             if self.purpose == "Bank":  # account number
@@ -101,6 +102,7 @@ class Llm(object):
                     # 'target': 'address',  # Default value
                     # 'connection': 'co-worker',  # Default value,
                     # 'principles': prompts.get_principles(),
+                    "time": datetime.now().time(),
                     "context": prompt
                 })
             print(time() - time1)
