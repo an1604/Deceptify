@@ -23,7 +23,7 @@ from app.Server.data.Attacks import AttackFactory
 from app.Server.data.Profile import Profile
 from app.Server.speechToText import SRtest
 from app.Server.run_bark import generateSpeech
-from app.Server.LLM.llm_chat_tools.telegramclienthandler import TelegramClientHandler
+from app.Server.LLM.llm_chat_tools.telegramclienthandler import TelegramClientHandler, send_record
 from app.Server.data.DataStorage import DataStorage
 
 load_dotenv()
@@ -33,7 +33,8 @@ StopRecordEvent = Event()
 CutVideoEvent = Event()
 GetAnswerEvent = Event()
 StopBackgroundEvent = Event()
-load_dotenv()
+UpdatesFromTelegramClientEvent = Event()
+
 cam_thread = None
 # Credentials For Zoom API
 ZOOM_CLIENT_ID = os.getenv('ZOOM_CLIENT_ID')
@@ -55,7 +56,7 @@ def error_routes(main):  # Error handlers routes
         return render_template("errors/500.html"), 500
 
 
-def general_routes(main, app, data_storage):  # This function stores all the general routes.
+def general_routes(main, app, data_storage, file_manager):  # This function stores all the general routes.
     @main.route("/", methods=["GET", "POST"])  # The root router (welcome page).
     def index():
         return render_template("index.html")
@@ -212,17 +213,25 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
         profile_name = request.args.get('profile_name')
         # step0 -> load the profile
         t_client = data_storage.get_profile(profile_name).getTelgram()
+        client_thread = t_client.run_telegram_client(
+            UpdatesFromTelegramClientEvent)  # Method that checks if the client is running
+        # and returns its thread
+
         # step1 -> if its the first enter, we need to generate the voice clone record
-        if t_client.is_first_msg:
-            pass
-        # step2 -> send the record after client accept
+        if t_client.need_to_send_record():
+            voice_clone_record = file_manager.get_audiofile_path_from_profile_name(profile_name)
+            if voice_clone_record:
+                # step2 -> send the record after the client accept
+                send_record(telegram_client=t_client, audio_filepath=voice_clone_record)
+                print(f"Sent first record from {voice_clone_record} to the target.")
+                return render_template('telegram/confirm_send.html', profile_name=profile_name,
+                                       voice_clone_record=voice_clone_record)
 
         # step3 -> wait for the user's response
 
         # step4 -> loop and generate answers according to the client's requests (records or text (llm))
 
         # step5 -> terminate the attack while clicking on buuton (t_client.stop() in this event)
-
 
     @main.route('/zoom_authorization')
     @login_required
@@ -291,7 +300,7 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
         return abort(404)  # Aborting if we got no access token
 
 
-def attack_generation_routes(main, app, data_storage):
+def attack_generation_routes(main, app, data_storage, file_manager):
     @main.route("/newattack", methods=["GET", "POST"])  # The new chat route.
     @login_required
     def newattack():
@@ -625,7 +634,7 @@ def attack_generation_routes(main, app, data_storage):
                                init_msg=llm.get_init_msg())
 
 
-def execute_routes(main, app, data_storage: DataStorage):  # Function that executes all the routes.
-    general_routes(main, app, data_storage)  # General pages navigation
-    attack_generation_routes(main, app, data_storage)  # Attack generation pages navigation
+def execute_routes(main, app, data_storage: DataStorage, files_manager):  # Function that executes all the routes.
+    general_routes(main, app, data_storage, files_manager)  # General pages navigation
+    attack_generation_routes(main, app, data_storage, files_manager)  # Attack generation pages navigation
     error_routes(main)  # Errors pages navigation

@@ -4,7 +4,10 @@ import os
 from dotenv import load_dotenv
 from flask_login import LoginManager
 from datetime import timedelta
+
+from app.Server.data.fs import FilesManager
 from app.Server.data.user import get_user_from_remote, User
+from flask_socketio import SocketIO, emit
 
 load_dotenv()
 
@@ -56,22 +59,28 @@ def create_app():
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
     audio_file_path = create_audio_file()
     video_file_path = create_video_file()
+
     app.config["UPLOAD_FOLDER"] = audio_file_path
     app.config["VIDEO_UPLOAD_FOLDER"] = video_file_path
     app.config["ATTACK_RECS"] = create_attack_file()
+
+    file_manager = FilesManager(audios_dir=audio_file_path, video_dir=video_file_path,
+                                app_dir=os.path.dirname(os.path.realpath(__file__)))
 
     bootstrap = Bootstrap(app)
     login_manager.init_app(app)
 
     # Register main blueprint
     from app.main import create_blueprint
-    main_blueprint = create_blueprint(app)
+    main_blueprint = create_blueprint(app, file_manager)
     app.register_blueprint(main_blueprint)
 
     # Register authentication blueprint
     from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
 
+    # Combine the app with a real time communication service (SocketIO)
+    socketio = SocketIO(app, async_mode=None)
     app.run(debug=True, use_reloader=True, host='0.0.0.0',
             threaded=True)  # Running the application.
     return app
