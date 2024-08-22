@@ -22,21 +22,19 @@ class TelegramClientHandler(object):
         self.profile_name = profile_name
         self.attack_purpose = attack_purpose
         self.send_record = send_audio
-        self.llm = llm_factory.generate_new_attack(attack_purpose, profile_name)
 
         self.is_first_msg = True
         self.messages_received = []
 
+        self.loop = None
         self.is_initialized = False
         self.updates_event = None
         self.initialized_thread = None
 
         self.audio_path = None
 
-        self.client = TelegramClient(f'session-{self.profile_name}', app_id, app_hash)
-        self.handle_routes(self.client)
+        self.client = None
         self.run_client_thread = Thread(target=self.run)
-        self.loop = asyncio.new_event_loop()
 
     def need_to_send_record(self):
         if self.is_first_msg and self.send_record:
@@ -51,6 +49,7 @@ class TelegramClientHandler(object):
         self.telegram_target = target_name
         self.attack_purpose = attack_purpose
         self.send_record = clone_voice_for_record
+        self.llm = llm_factory.generate_new_attack(attack_purpose, self.profile_name)
 
     async def send_message(self, message):
         await self.client.send_message(self.telegram_target, message)
@@ -60,7 +59,6 @@ class TelegramClientHandler(object):
         print(f'Sending audio file to {self.telegram_target}')
         await self.client.connect()
         print("Client connected")
-        # while not await self.client.is_user_authorized():
         if await self.client.is_user_authorized():
             if os.path.exists(self.audio_path):
                 print("Audio file found!")
@@ -97,7 +95,12 @@ class TelegramClientHandler(object):
 
     def run(self):
         # This method runs the asyncio event loop to start the client and handle additional tasks
+        self.client = TelegramClient(f'session-{self.profile_name}', self.app_id, self.app_hash)
         with self.client:
+            self.handle_routes(self.client)
+
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
             self.client.loop.run_until_complete(self.run_client())
 
     async def stop_client(self):
@@ -124,7 +127,6 @@ async def send_record(telegram_client, audio_filepath=None):
 async def send_message(telegram_client, message):
     await asyncio.to_thread(telegram_client.send_message, message)
 
-
 # if __name__ == '__main__':
 #     telegram_client = TelegramClientHandler(
 #         app_id=default_app_id,
@@ -140,4 +142,3 @@ async def send_message(telegram_client, message):
 #     print("line 108")
 #
 #     telegram_client.run()
-

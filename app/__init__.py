@@ -7,7 +7,7 @@ from datetime import timedelta
 
 from app.Server.data.fs import FilesManager
 from app.Server.data.user import get_user_from_remote, User
-from flask_socketio import SocketIO, emit
+from app.socketio_tasks import socketio, SocketIO_Manager
 
 load_dotenv()
 
@@ -50,6 +50,8 @@ def load_user(user_id):
 
 
 def create_app():
+    global socketio
+
     app = Flask(
         __name__
     )  # The application as an object, Now can use this object to route and staff.
@@ -80,7 +82,7 @@ def create_app():
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
 
     # Combine the app with a real time communication service (SocketIO)
-    socketio = SocketIO(app, async_mode=None)
+    socketio = SocketIO_Manager(app)
     app.run(debug=True, use_reloader=True, host='0.0.0.0',
             threaded=True)  # Running the application.
     return app

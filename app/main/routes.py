@@ -25,6 +25,7 @@ from app.Server.speechToText import SRtest
 from app.Server.run_bark import generateSpeech
 from app.Server.LLM.llm_chat_tools.telegramclienthandler import TelegramClientHandler, send_record
 from app.Server.data.DataStorage import DataStorage
+from app.socketio_tasks import socketio
 
 load_dotenv()
 
@@ -207,7 +208,7 @@ def general_routes(main, app, data_storage, file_manager):  # This function stor
         return render_template('telegram/telegram_advanced_configs.html')
 
     # TODO: IMPLEMENT THE RUN_ATTACK ROUTE
-    @main.route('run_telegram_attack', methods=['GET', 'POST'])
+    @main.route('/run_telegram_attack', methods=['GET', 'POST'])
     @login_required
     def run_telegram_attack():
         profile_name = request.args.get('profile_name')
@@ -217,6 +218,8 @@ def general_routes(main, app, data_storage, file_manager):  # This function stor
             UpdatesFromTelegramClientEvent)  # Method that checks if the client is running
         # and returns its thread
 
+        socketio.set_telegram_client(t_client)
+
         # step1 -> if its the first enter, we need to generate the voice clone record
         if t_client.need_to_send_record():
             voice_clone_record = file_manager.get_audiofile_path_from_profile_name(profile_name)
@@ -224,14 +227,14 @@ def general_routes(main, app, data_storage, file_manager):  # This function stor
                 # step2 -> send the record after the client accept
                 send_record(telegram_client=t_client, audio_filepath=voice_clone_record)
                 print(f"Sent first record from {voice_clone_record} to the target.")
-                return render_template('telegram/confirm_send.html', profile_name=profile_name,
-                                       voice_clone_record=voice_clone_record)
 
         # step3 -> wait for the user's response
-
+        socketio.emit_event('new_telegram_updates_request_from_user')
         # step4 -> loop and generate answers according to the client's requests (records or text (llm))
 
-        # step5 -> terminate the attack while clicking on buuton (t_client.stop() in this event)
+        # step5 -> terminate the attack while clicking on button (t_client.stop() in this event)
+        return render_template('telegram/run_telegram_attack.html', profile_name=profile_name,
+                               async_mode=socketio.async_mode)
 
     @main.route('/zoom_authorization')
     @login_required

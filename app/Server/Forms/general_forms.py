@@ -254,7 +254,7 @@ class InitDemoForm(FlaskForm):
 class TelegramClientBasicForm(FlaskForm):
     app_id = StringField("Your App API", validators=[DataRequired()])
     app_hash = StringField("Your App Hash", validators=[DataRequired()])
-    profile_name = StringField("The name of the mimic for the Demo", validators=[DataRequired()])
+    profile_name = StringField("Your profile name", validators=[DataRequired()])
     phone_number = StringField("Your phone number", validators=[DataRequired()])
 
     submit = SubmitField("Submit")
