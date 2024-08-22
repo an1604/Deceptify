@@ -86,7 +86,7 @@ def general_routes(main, app, data_storage, file_manager):  # This function stor
             # Save the voice sample
             file_path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(data.filename))
             data.save(file_path)
-            createvoice_profile(username="oded", profile_name=name, file_path=file_path)
+            # createvoice_profile(username="oded", profile_name=name, file_path=file_path)
             data_storage.add_profile(Profile(name, gen_info, str(file_path)))
             flash("Profile created successfully")
             return flask_redirect(url_for("main.index"))

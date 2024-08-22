@@ -8,7 +8,7 @@ from app.Server.data.Attacks import Attack
 
 # TODO: fix when saving to pkl file and getting from pkl file
 class Profile:
-    def __init__(self, profile_name: str, general_info: str, audio_data_path: str, video_data_path: str = None) -> None:
+    def __init__(self, profile_name: str, general_info: str, audio_data_path: str,) -> None:
         """
         Initialize a Profile object.
 
@@ -16,7 +16,6 @@ class Profile:
             profile_name (str): Name of the profile.
             general_info (str): Some description about the profile.
             audio_data_path (str): Path to the audio file.
-            video_data_path (str): Path to the video file.
         """
         self.profile_name: str = profile_name
         self.general_info: str = general_info
@@ -25,10 +24,11 @@ class Profile:
         self.audio_data_path: str = audio_data_path
         self.telegram_client = None
         # Create a voice profile on the server
-        Util.createvoice_profile("oded", profile_name, audio_data_path)
-        for prompt in self.prompts:
-            response = Util.generate_voice("oded", self.profile_name, prompt.prompt_desc)
-            Util.get_voice_profile("oded", self.profile_name, prompt.prompt_desc, response['file'])
+        self.setDefaultPrompts()
+        # Util.createvoice_profile("oded", profile_name, audio_data_path)
+        # for prompt in self.prompts:
+        # response = Util.generate_voice("oded", self.profile_name, prompt.prompt_desc)
+        # Util.get_voice_profile("oded", self.profile_name, prompt.prompt_desc, response['file'])
 
     def getName(self) -> str:
         """
@@ -61,6 +61,7 @@ class Profile:
 
     def getTelgram(self):
         return self.telegram_client
+
     def addAttack(self, attack) -> None:
         """
         Add an attack to the profile.
@@ -114,13 +115,8 @@ class Profile:
             "Goodbye", "What did you say", "Can you repeat that",
             "Yes", "No", "Wait a second", "Hold on a second",
         ]
-        if self.video_data_path is None:
-            for prompt_desc in default_prompts:
-                self.addPrompt(Prompt(prompt_desc=prompt_desc, prompt_profile=self.profile_name, is_deletable=False))
-        else:
-            for prompt_desc in default_prompts:
-                self.addPrompt(Prompt(prompt_desc=prompt_desc, prompt_profile=self.profile_name, is_video=True,
-                                      is_deletable=False))
+        for prompt_desc in default_prompts:
+            self.addPrompt(Prompt(prompt_desc=prompt_desc, prompt_profile=self.profile_name, is_deletable=False))
 
     def deletePrompt(self, desc: str) -> None:
         """
@@ -145,7 +141,7 @@ class Profile:
             str: The string representation of the profile.
         """
         return (f"Profile: {self.profile_name}, {self.general_info}, {self.audio_data_path},"
-                f" {self.video_data_path}, {self.get_attacks()}")
+                f" {self.get_attacks()}")
 
     def get_attacks(self) -> List:
         """
