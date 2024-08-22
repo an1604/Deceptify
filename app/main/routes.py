@@ -183,6 +183,7 @@ def general_routes(main, app, data_storage, file_manager):  # This function stor
             phone_number = form.phone_number.data
 
             t_client = TelegramClientHandler(app_id, app_hash, profile_name, phone_number)
+
             data_storage.get_profile(profile_name).setTelegram(t_client)
 
             return flask_redirect(url_for("main.telegram_advanced_configs",
