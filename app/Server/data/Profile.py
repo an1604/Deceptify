@@ -3,12 +3,12 @@ from typing import Optional, Set, List
 
 from app.Server import Util
 from app.Server.data.prompt import Prompt
-from app.Server.data.Attacks import Attack
+from app.Server.data.AiAttack import Attack
 
 
 # TODO: fix when saving to pkl file and getting from pkl file
 class Profile:
-    def __init__(self, profile_name: str, general_info: str, audio_data_path: str, video_data_path: str = None) -> None:
+    def __init__(self, profile_name: str, general_info: str, audio_data_path: str) -> None:
         """
         Initialize a Profile object.
 
@@ -20,10 +20,8 @@ class Profile:
         """
         self.profile_name: str = profile_name
         self.general_info: str = general_info
-        self.Attacks: List = list()
         self.prompts: Set[Prompt] = set()
         self.audio_data_path: str = audio_data_path
-        self.video_data_path: str = video_data_path
         self.setDefaultPrompts()
         self.defaultVideo = self.profile_name + ".mp4"  # in case of using video profile this will be used
         # Create a voice profile on the server

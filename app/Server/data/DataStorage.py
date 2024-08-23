@@ -4,7 +4,7 @@ import pickle
 from typing import Set, List, Optional, Type
 
 from app.Server.data.Profile import Profile
-from app.Server.data.Attacks import Attack
+from app.Server.data.AiAttack import AiAttack
 
 
 class DataStorage:
@@ -23,34 +23,30 @@ class DataStorage:
     def __init__(self):
         if not self._initialized:
             self.profiles: Set[Profile] = set()
-            self.attacks: Set = set()
+            self.ai_attacks: Set = set()
             self._initialized = True
 
     def add_profile(self, profile: Profile) -> None:
         self.profiles.add(profile)
 
-    def add_attack(self, new_attack: Attack) -> None:
-        self.attacks.add(new_attack)
-        # print(f'dataStorage attacks: {self.attacks}')
+    def add_ai_attack(self, new_ai_attack: AiAttack) -> None:
+        self.ai_attacks.add(new_ai_attack)
 
-    def get_attacks(self) -> Set[Attack]:
-        return self.attacks
+    def get_ai_attacks(self) -> Set[AiAttack]:
+        return self.ai_attacks
 
-    def get_attack(self, attack_id):
-        attack = [attack for attack in self.attacks if attack.getID() == int(attack_id)][0]
+    def get_ai_attack(self, attack_id):
+        attack = [attack for attack in self.ai_attacks if attack.getID() == int(attack_id)][0]
         return attack
 
-    def delete_attack(self, attackID: int) -> None:
+    def delete_ai_attack(self, attackID: int) -> None:
         attack_to_remove = None
-        for attack in self.attacks:
+        for attack in self.ai_attacks:
             if attack.getID() == attackID:
                 attack_to_remove = attack
                 break
         if attack_to_remove:
-            self.attacks.remove(attack_to_remove)
-
-    def get_AllProfiles(self) -> Set[Profile]:
-        return self.profiles
+            self.ai_attacks.remove(attack_to_remove)
 
     def get_profiles(self) -> Set[Profile]:
         return self.profiles

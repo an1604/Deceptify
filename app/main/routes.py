@@ -19,7 +19,7 @@ from app.Server.Forms.general_forms import *
 from app.Server.Forms.upload_data_forms import *
 from app.Server.Util import *
 from app.Server.data.prompt import Prompt
-from app.Server.data.Attacks import AttackFactory
+from app.Server.data.AiAttack import AiAttack
 from app.Server.data.Profile import Profile
 from app.Server.speechToText import SRtest
 from app.Server.run_bark import generateSpeech
@@ -117,24 +117,6 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
     def profile():
         profile = data_storage.get_profile(request.args.get("profileo"))
         return render_template("profile.html", profileo=profile)
-
-    @main.route("/transcript/<attack_id>")
-    @login_required
-    def transcript(attack_id):
-        attack = data_storage.get_attack(attack_id)
-        json_file_path = os.path.join(app.config['ATTACK_RECS'],
-                                      f"Attacker-{attack.get_mimic_profile().getName()}-Target-{attack.getDesc()}.json")
-        with open(json_file_path, 'r') as file:
-            data = json.load(file)
-        return data
-
-    @main.route("/recording/<attack_id>")
-    @login_required
-    def recording(attack_id):
-        attack = data_storage.get_attack(attack_id)
-        file_path = os.path.join(app.config['ATTACK_RECS'],
-                                 f"Attacker-{attack.get_mimic_profile().getName()}-Target-{attack.getID()}.wav")
-        return send_file(file_path)
 
     @main.route("/contact", methods=["GET", "POST"])
     def contact():
@@ -246,8 +228,7 @@ def attack_generation_routes(main, app, data_storage):
             attack_purpose = form.attack_purpose.data
             place = form.place.data
             attack_id = int(uuid.uuid4())
-            attack = AttackFactory.create_attack(
-                "AI",
+            attack = AiAttack(
                 campaign_name,
                 target_name,
                 message_type,
@@ -256,7 +237,7 @@ def attack_generation_routes(main, app, data_storage):
                 place,
                 attack_id,
             )
-            data_storage.add_attack(attack)
+            data_storage.add_ai_attack(attack)
 
             return flask_redirect(url_for("main.zoom_authorization", id=attack_id))
         return render_template('attack_pages/new_ai_attack.html', form=form)
@@ -273,10 +254,9 @@ def attack_generation_routes(main, app, data_storage):
     @login_required
     def attack_dashboard_transition():
         print("attacks:")
-        print(data_storage.get_attacks())
+        print(data_storage.get_ai_attacks())
         attack_id = request.args.get("id") if request.args.get('id') else session['whatsapp_attack_info'][
             'attack_id']
-        attack_type = data_storage.get_attack(attack_id).getType()
         zoom_url = session.get('whatsapp_attack_info')
         if zoom_url:
             zoom_url = zoom_url.get('zoom_url')
@@ -284,7 +264,7 @@ def attack_generation_routes(main, app, data_storage):
         if session.get("started_call"):
             session.pop("started_call")
         return render_template('attack_pages/attack_dashboard_transition.html',
-                               id=attack_id, type=attack_type, zoom_url=zoom_url)
+                               id=attack_id, zoom_url=zoom_url)
 
     @main.route('/results_redirect', methods=['GET'])
     @login_required
@@ -304,7 +284,7 @@ def attack_generation_routes(main, app, data_storage):
     @login_required
     def generate_attack_type():
         attack_id = request.args.get('attack_id')
-        attack = data_storage.get_attack(attack_id)
+        attack = data_storage.get_ai_attack(attack_id)
         if attack.getPurpose() == "WhatsApp and Zoom":
             attack.attack_purpose = "Bank"
         attack_prompts = attack.get_attack_prompts()
@@ -331,7 +311,7 @@ def attack_generation_routes(main, app, data_storage):
     @login_required
     def start_attack():
         attack_id = request.args.get('attack_id')
-        attack = data_storage.get_attack(attack_id)
+        attack = data_storage.get_ai_attack(attack_id)
         StopRecordEvent.clear()
         StopBackgroundEvent.clear()
         recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "recording.wav"))
@@ -347,8 +327,6 @@ def attack_generation_routes(main, app, data_storage):
         global cam_thread
         profile_name = request.args.get("profile")
         contact_name = request.args.get("contact")
-        # attack_type = request.args.get("type")
-        # attack_purpose = "Address"
         attack_id = request.args.get("id")
         profile = data_storage.get_profile(profile_name)
         attack = profile.get_attack(attack_id)
