@@ -161,27 +161,6 @@ def general_routes(main, app, data_storage, file_manager, socketio):  # This fun
     def telegram_info():
         return render_template('telegram/telegram_info.html')
 
-    # @main.route('/telegram_init_client', methods=['GET', 'POST'])
-    # @login_required
-    # def telegram_init_client():
-    #     form = TelegramClientBasicForm()
-    #     if form.validate_on_submit():
-    #         app_id = form.app_id.data
-    #         app_hash = form.app_hash.data
-    #         profile_name = form.profile_name.data
-    #         phone_number = form.phone_number.data
-    #
-    #         socketio.emit("init_client", {
-    #             "app_id": app_id,
-    #             "app_hash": app_hash,
-    #             "profile_name": profile_name,
-    #             "phone_number": phone_number
-    #         })
-    #         print("Client information send to socketio handler")
-    #         return flask_redirect(url_for("main.run_telegram_attack",
-    #                                       profile_name=profile_name))
-    #     return render_template("telegram/telegram_init_client.html", form=form)
-
     @main.route('/run_telegram_attack', methods=['GET', 'POST'])
     @login_required
     def run_telegram_attack():
