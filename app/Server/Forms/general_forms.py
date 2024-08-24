@@ -93,7 +93,7 @@ class AiAttackForm(FlaskForm):
 class ViewAttacksForm(FlaskForm):
     attack_list = SelectField(
         label="Select Attack",
-        choices=Data().get_data_object().get_attacks(),
+        choices=Data().get_data_object().get_ai_attacks(),
         validators=[DataRequired()],
     )
     submit = SubmitField("View Info")

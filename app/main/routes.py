@@ -23,6 +23,8 @@ from app.Server.data.AiAttack import AiAttack
 from app.Server.data.Profile import Profile
 from app.Server.speechToText import SRtest
 from app.Server.run_bark import generateSpeech
+from ..Server.data.user import get_user_from_remote
+from app.Server.LLM.llm_chat_tools.send_email import send_email
 
 load_dotenv()
 
@@ -290,14 +292,24 @@ def attack_generation_routes(main, app, data_storage):
         attack_prompts = attack.get_attack_prompts()
 
         zoom_url = session.get('whatsapp_attack_info')
-        if zoom_url:
-            zoom_url = zoom_url.get('zoom_url')
-
-        # phone_number = attack.getPhoneNumber()
-        # if zoom_url:
-        #    from app.Server.LLM.llm_chat_tools.whatsapp import WhatsAppBot
-        #    WhatsAppBot.send_text_private_message(phone_number='+972522464648',
-        #                                          message=WhatsAppBot.get_message_template(zoom_url, contact))
+        zoom_url = zoom_url.get('zoom_url')
+        purpose = attack.getPurpose()
+        place = attack.getPlace()
+        contact = attack.getTargetName()
+        if attack.getMessageType() == "Whatsapp":
+            phone_number = attack.getMessageName()
+            from app.Server.LLM.llm_chat_tools.whatsapp import WhatsAppBot
+            WhatsAppBot.send_text_private_message(phone_number=phone_number,
+                                                  message=WhatsAppBot.get_message_template(zoom_url, contact,
+                                                                                           purpose, place))
+        else:  # type is email
+            from app.Server.LLM.llm_chat_tools.whatsapp import WhatsAppBot
+            body = WhatsAppBot.get_message_template(zoom_url, contact, purpose, place)
+            email = attack.getMessageName()
+            send_email(email_receiver=email, email_subject="Immediate attention",
+                       email_body=body,
+                       display_name="" + place + " " + purpose,
+                       from_email=f"{place.replace(' ','')}@gmail.com")
 
         for prompt in attack_prompts:
             if not os.path.exists(app.config['UPLOAD_FOLDER'] + "\\" + prompt + ".wav"):

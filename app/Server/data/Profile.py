@@ -3,7 +3,6 @@ from typing import Optional, Set, List
 
 from app.Server import Util
 from app.Server.data.prompt import Prompt
-from app.Server.data.AiAttack import Attack
 
 
 # TODO: fix when saving to pkl file and getting from pkl file

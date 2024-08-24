@@ -17,8 +17,8 @@ class WhatsAppBot(object):
         pywhatkit.sendwhatmsg_to_group_instantly(group_id, message)
 
     @staticmethod
-    def get_message_template(zoom_url, profile_name):
+    def get_message_template(zoom_url, contact, purpose, place):
         current_directory = os.path.dirname(__file__)
-        parent_directory = os.path.dirname(current_directory) + "\prompts\whatsapp_invitation.txt"
-        return get_text_from_file(parent_directory).format(zoom_url=zoom_url, name=profile_name, target='Hemi')
+        parent_directory = os.path.dirname(current_directory) + "\\prompts\\" + purpose + "_invitation.txt"
+        return get_text_from_file(parent_directory).format(zoom_url=zoom_url, name=contact, place=place)
 
