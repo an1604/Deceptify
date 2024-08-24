@@ -4,7 +4,12 @@ import os
 from dotenv import load_dotenv
 from flask_login import LoginManager
 from datetime import timedelta
+
+from flask_socketio import SocketIO
+
+from app.Server.data.fs import FilesManager
 from app.Server.data.user import get_user_from_remote, User
+from app.socketio_tasks import initialize_socketio
 
 load_dotenv()
 
@@ -51,27 +56,37 @@ def create_app():
         __name__
     )  # The application as an object, Now can use this object to route and staff.
 
-    # app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # A secret key for the encryption process (not really useful).
     app.config["SECRET_KEY"] = "hard to guess string"
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
     audio_file_path = create_audio_file()
     video_file_path = create_video_file()
+
     app.config["UPLOAD_FOLDER"] = audio_file_path
     app.config["VIDEO_UPLOAD_FOLDER"] = video_file_path
     app.config["ATTACK_RECS"] = create_attack_file()
+
+    socketio = SocketIO(app, async_mode=None)
+
+    file_manager = FilesManager(audios_dir=audio_file_path, video_dir=video_file_path,
+                                app_dir=os.path.dirname(os.path.realpath(__file__)))
+    initialize_socketio(socketio, file_manager)  # function that initialized all the events for socketio with the app.
 
     bootstrap = Bootstrap(app)
     login_manager.init_app(app)
 
     # Register main blueprint
     from app.main import create_blueprint
-    main_blueprint = create_blueprint(app)
+    main_blueprint = create_blueprint(app, file_manager, socketio)
     app.register_blueprint(main_blueprint)
 
     # Register authentication blueprint
     from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
 
-    app.run(debug=True, use_reloader=True, host='0.0.0.0',
-            threaded=True)  # Running the application.
-    return app
+    # app.run(debug=True, use_reloader=True, host='0.0.0.0',
+    #         threaded=True)  # Running the application.
+
+    # Run the socketio instead of the app.
+    socketio.run(app, debug=True, host='0.0.0.0',
+                 use_reloader=True)
+    return app, socketio

@@ -1,3 +1,4 @@
+telethon
 blinker
 certifi
 cffi
@@ -43,3 +44,4 @@ PyPDF2
 pywhatkit
 python-telegram-bot
 aiogram
+flask_socketio

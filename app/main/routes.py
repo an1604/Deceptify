@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import os.path
 import uuid
@@ -33,8 +34,9 @@ StopRecordEvent = Event()
 CutVideoEvent = Event()
 GetAnswerEvent = Event()
 StopBackgroundEvent = Event()
-load_dotenv()
 cam_thread = None
+UpdatesFromTelegramClientEvent = Event()
+
 # Credentials For Zoom API
 ZOOM_CLIENT_ID = os.getenv('ZOOM_CLIENT_ID')
 ZOOM_CLIENT_SECRET = os.getenv('ZOOM_CLIENT_SECRET')
@@ -46,16 +48,16 @@ BASE_ZOOM_URL = os.getenv('BASE_ZOOM_API_REQ_URL')
 
 
 def error_routes(main):  # Error handlers routes
-    # @main.errorhandler(404)
-    # def not_found(error):
-    #     return render_template("errors/404.html"), 404
+    @main.errorhandler(404)
+    def not_found(error):
+        return render_template("errors/404.html"), 404
 
     @main.errorhandler(500)
     def internal_error(error):
         return render_template("errors/500.html"), 500
 
 
-def general_routes(main, app, data_storage):  # This function stores all the general routes.
+def general_routes(main, app, data_storage, file_manager, socketio):  # This function stores all the general routes.
     @main.route("/", methods=["GET", "POST"])  # The root router (welcome page).
     def index():
         return render_template("index.html")
@@ -84,18 +86,8 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
             # Save the voice sample
             file_path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(data.filename))
             data.save(file_path)
-            if video is not None:
-                video_path = os.path.join(app.config["VIDEO_UPLOAD_FOLDER"], secure_filename(video.filename))
-                video.save(video_path)
-                createvoice_profile(username="oded", profile_name=name, file_path=file_path)
-                data_storage.add_profile(Profile(name, gen_info, str(file_path), video_data_path=str(video_path)))
-            # else:
             # createvoice_profile(username="oded", profile_name=name, file_path=file_path)
-            # data_storage.add_profile(Profile(name, gen_info, str(file_path)))
-            # if gen_info:
-            #     response = llm.generate_knowledgebase(gen_info)
-            #     rows = create_knowledgebase(response)
-            # redirect to ollama
+            data_storage.add_profile(Profile(name, gen_info, str(file_path)))
             flash("Profile created successfully")
             return flask_redirect(url_for("main.index"))
             # TODO: return flask_redirect(url_for('upload_voice_file')) FOR UPLOAD VOICE FILES FOR DATASET
@@ -117,8 +109,26 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
     @main.route("/profile", methods=["GET", "POST"])
     @login_required
     def profile():
-        profile = data_storage.get_profile(request.args.get("profileo"))
+        profile = data_storage.get_profile(request.args.get("profile"))
         return render_template("profile.html", profileo=profile)
+
+    @main.route("/transcript/<attack_id>")
+    @login_required
+    def transcript(attack_id):
+        attack = data_storage.get_attack(attack_id)
+        json_file_path = os.path.join(app.config['ATTACK_RECS'],
+                                      f"Attacker-{attack.get_mimic_profile().getName()}-Target-{attack.getDesc()}.json")
+        with open(json_file_path, 'r') as file:
+            data = json.load(file)
+        return data
+
+    @main.route("/recording/<attack_id>")
+    @login_required
+    def recording(attack_id):
+        attack = data_storage.get_attack(attack_id)
+        file_path = os.path.join(app.config['ATTACK_RECS'],
+                                 f"Attacker-{attack.get_mimic_profile().getName()}-Target-{attack.getID()}.wav")
+        return send_file(file_path)
 
     @main.route("/contact", methods=["GET", "POST"])
     def contact():
@@ -152,6 +162,21 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
     @login_required
     def serve_video(filename):
         return send_from_directory(app.config['VIDEO_UPLOAD_FOLDER'], filename)
+
+    @main.route('/get_audio')
+    def get_audio():
+        return send_file("C:/Users/adina/Desktop/aviv.mp3", mimetype='audio/mpeg')
+
+    @main.route('/telegram_info')
+    @login_required
+    def telegram_info():
+        return render_template('telegram/telegram_info.html')
+
+    @main.route('/run_telegram_attack', methods=['GET', 'POST'])
+    @login_required
+    def run_telegram_attack():
+        # profile_name = request.args.get('profile_name')
+        return render_template('telegram/run_telegram_attack.html')
 
     @main.route('/zoom_authorization')
     @login_required
@@ -217,7 +242,7 @@ def general_routes(main, app, data_storage):  # This function stores all the gen
         return abort(404)  # Aborting if we got no access token
 
 
-def attack_generation_routes(main, app, data_storage):
+def attack_generation_routes(main, app, data_storage, file_manager, socketio):
     @main.route("/new_ai_attack", methods=["GET", "POST"])  # The new chat route.
     @login_required
     def new_ai_attack():
@@ -400,15 +425,18 @@ def attack_generation_routes(main, app, data_storage):
     @main.route("/upload_voice_file", methods=["GET", "POST"])
     @login_required
     def upload_voice_file():
+        profile_name = request.args.get('profile_name')
+
         form = VoiceUploadForm()
         if form.validate_on_submit():
-            wavs_filepath, profile_directory = create_wavs_directory_for_dataset(app.config['UPLOAD_FOLDER'])
+            profile_name_voice_dir = os.path.join(app.config['UPLOAD_FOLDER'], profile_name + '-clone')
+            os.makedirs(profile_name_voice_dir, exist_ok=True)
+
             for file in form.files.data:
                 filename = secure_filename(file.filename)
-                file_path = os.path.join(wavs_filepath, filename)
+                file_path = os.path.join(profile_name_voice_dir, filename)
                 file.save(file_path)
-            create_csv(wavs_filepath, profile_directory)
-            return flask_redirect(url_for("main.newattack"))
+            return flask_redirect(url_for("main.run_telegram_attack"))
         return render_template("data_collection_pages/upload_voice_file.html", form=form)
 
     @main.route(
@@ -537,7 +565,8 @@ def attack_generation_routes(main, app, data_storage):
                                init_msg=llm.get_init_msg())
 
 
-def execute_routes(main, app, data_storage: DataStorage):  # Function that executes all the routes.
-    general_routes(main, app, data_storage)  # General pages navigation
-    attack_generation_routes(main, app, data_storage)  # Attack generation pages navigation
+def execute_routes(main, app, data_storage: DataStorage, files_manager,
+                   socketio):  # Function that executes all the routes.
+    general_routes(main, app, data_storage, files_manager, socketio)  # General pages navigation
+    attack_generation_routes(main, app, data_storage, files_manager, socketio)  # Attack generation pages navigation
     error_routes(main)  # Errors pages navigation

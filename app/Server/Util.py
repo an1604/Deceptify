@@ -18,6 +18,7 @@ from app.Server.run_bark import generateSpeech
 load_dotenv()
 
 SERVER_URL = os.getenv('SERVER_URL')
+CLONE_URL = os.getenv('CLONE_URL')
 
 
 def create_knowledgebase(text):
@@ -155,6 +156,37 @@ def get_voice_profile(username, profile_name, prompt, prompt_filename):
     with open(file_path, 'wb') as f:
         f.write(response.content)
     return file_path
+
+
+def clone(text, file_path, output_filename):
+    # Open the speaker WAV file in binary mode for uploading
+    with open(file_path, "rb") as speaker_wav:
+        # Prepare the form data
+        files = {
+            'speaker_wav': speaker_wav
+        }
+        data = {
+            'text': text
+        }
+        url = f"{CLONE_URL}/audio/generate"
+        try:
+            # Send the POST request to the server
+            response = requests.post(url, files=files, data=data)
+
+            # Check if the request was successful
+            if response.status_code == 200:
+                # Save the received .wav file locally
+                with open(output_filename, "wb") as output_file:
+                    output_file.write(response.content)
+                print(f"Audio file received and saved as '{output_filename}'")
+                return os.path.abspath(output_filename)
+            else:
+                # Print any error message from the server
+                print(f"An error occurred: {response.json()}")
+                return None
+
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred: {e}")
 
 
 def synthesize(profile_name, prompt):
@@ -429,6 +461,7 @@ def get_email_from_ip(user_ip):
     To make sure the authentication is properly.
     """
     return 'admin@example.com'
+
 
 if __name__ == '__main__':
     abc = Event()

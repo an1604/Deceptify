@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import StringField, SubmitField, FileField, PasswordField, TextAreaField, SelectField
 from wtforms.fields.numeric import IntegerField
+from wtforms.fields.simple import BooleanField
 from wtforms.validators import DataRequired, Email, ValidationError, Regexp
 from app.Server.data.DataStorage import Data
 
@@ -269,4 +270,21 @@ class InitDemoForm(FlaskForm):
     )
     profile_name = StringField('The name of the mimic for the Demo',
                                validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
+
+class TelegramClientBasicForm(FlaskForm):
+    app_id = StringField("Your App API", validators=[DataRequired()])
+    app_hash = StringField("Your App Hash", validators=[DataRequired()])
+    profile_name = StringField("Your profile name", validators=[DataRequired()])
+    phone_number = StringField("Your phone number", validators=[DataRequired()])
+
+    submit = SubmitField("Submit")
+
+
+class TelegramClientAdvancedForm(FlaskForm):
+    target_name = StringField("Your target name on Telegram", validators=[DataRequired()])
+    attack_purpose = StringField("Your attack purpose", validators=[DataRequired()])
+    clone_voice_for_record = BooleanField("Cloning voice for send recording to the target")
+
     submit = SubmitField("Submit")

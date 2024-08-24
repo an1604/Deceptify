@@ -24,12 +24,10 @@ class Profile:
         self.setDefaultPrompts()
         self.defaultVideo = self.profile_name + ".mp4"  # in case of using video profile this will be used
         # Create a voice profile on the server
-        Util.createvoice_profile("oded", profile_name, audio_data_path)
-        for prompt in self.prompts:
-            response = Util.generate_voice("oded", self.profile_name, prompt.prompt_desc)
-            Util.get_voice_profile("oded", self.profile_name, prompt.prompt_desc, response['file'])
-
-        # Generate voice for each default prompt
+        # Util.createvoice_profile("oded", profile_name, audio_data_path)
+        # for prompt in self.prompts:
+        #     response = Util.generate_voice("oded", self.profile_name, prompt.prompt_desc)
+        #     Util.get_voice_profile("oded", self.profile_name, prompt.prompt_desc, response['file'])
 
     def getName(self) -> str:
         """
@@ -149,7 +147,7 @@ class Profile:
             str: The string representation of the profile.
         """
         return (f"Profile: {self.profile_name}, {self.general_info}, {self.audio_data_path},"
-                f" {self.video_data_path}, {self.get_attacks()}")
+                f"{self.get_attacks()}")
 
     def get_attacks(self) -> List:
         """
