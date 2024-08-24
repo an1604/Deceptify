@@ -3,6 +3,8 @@ import os
 from telethon import TelegramClient, events, errors
 from dotenv import load_dotenv
 
+from app.Server.data.fs import FilesManager
+
 load_dotenv()
 default_app_id = os.getenv('TELEGRAM_CLIENT_APP_ID')
 default_app_hash = os.getenv('TELEGRAM_CLIENT_APP_HASH')

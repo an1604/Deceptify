@@ -2,6 +2,7 @@ import threading
 
 from flask_socketio import emit
 from app.Server.LLM.llm_chat_tools.telegramclienthandler import TelegramClientHandler, TelegramInfo
+from app.Server.Util import clone
 
 thread_lock = threading.Lock()  # Background thread Lock for all the tasks.
 thread = None  # The main thread that will be run and perform the background tasks.
@@ -93,7 +94,7 @@ def background_thread(socketio):
                           {'data': 'New messages requests handled'})
 
 
-def initialize_socketio(socketio):
+def initialize_socketio(socketio, file_manager):
     print("Inside initialize_socketio")
 
     @socketio.on("connect_event")
@@ -123,10 +124,12 @@ def initialize_socketio(socketio):
     @socketio.on("new_audio_generation")
     def handle_new_audio(data):
         tts = data['tts']
+        profile_name_for_tts = data['profile_name_for_tts']
         # TODO: Function call to generate TTS
+        audio = clone(tts, file_manager.get_audiofile_path_from_profile_name(profile_name_for_tts),
+                      file_manager.get_new_audiofile_path_from_profile_name(profile_name_for_tts,
+                                                                            tts.lower().replace(" ", "_")))
 
-        # This is just a demo:
-        audio = r"static/aviv_emergency.mp3"
         emit("new_audio", {"tts": tts, "audio": audio},
              broadcast=True)
 

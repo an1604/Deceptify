@@ -140,6 +140,7 @@
                 event.preventDefault();
                 socket.emit('new_audio_generation', {
                     tts: $('#text_to_speech').val(),
+                    profile_name: $('#profile_name_for_tts').val()
                 });
                 $('#text_to_speech').val('');
             });
@@ -192,6 +193,8 @@
 
         <form id="audio" method="POST" action='#'>
             <input type="text" name="emit_data" id="text_to_speech" placeholder="Text to Speech">
+            <input type="text" name="profile_name_for_tts" id="profile_name_for_tts"
+                   placeholder="Who's voice to clone?">
             <input type="text" name="receiver" id="receiver_phone_number_audio" placeholder="Receiver Phone Number">
             <input type="submit" value="Generate Audio">
         </form>

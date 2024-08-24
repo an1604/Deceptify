@@ -55,9 +55,6 @@ def create_app():
     app = Flask(
         __name__
     )  # The application as an object, Now can use this object to route and staff.
-    socketio = SocketIO(app, async_mode=None)
-
-    initialize_socketio(socketio)  # function that initialized all the events for socketio with the app.
 
     app.config["SECRET_KEY"] = "hard to guess string"
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
@@ -68,8 +65,11 @@ def create_app():
     app.config["VIDEO_UPLOAD_FOLDER"] = video_file_path
     app.config["ATTACK_RECS"] = create_attack_file()
 
+    socketio = SocketIO(app, async_mode=None)
+
     file_manager = FilesManager(audios_dir=audio_file_path, video_dir=video_file_path,
                                 app_dir=os.path.dirname(os.path.realpath(__file__)))
+    initialize_socketio(socketio, file_manager)  # function that initialized all the events for socketio with the app.
 
     bootstrap = Bootstrap(app)
     login_manager.init_app(app)

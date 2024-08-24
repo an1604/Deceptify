@@ -156,6 +156,10 @@ def general_routes(main, app, data_storage, file_manager, socketio):  # This fun
     def serve_video(filename):
         return send_from_directory(app.config['VIDEO_UPLOAD_FOLDER'], filename)
 
+    @main.route('/get_audio')
+    def get_audio():
+        return send_file("C:/Users/adina/Desktop/aviv.mp3", mimetype='audio/mpeg')
+
     @main.route('/telegram_info')
     @login_required
     def telegram_info():
