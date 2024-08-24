@@ -158,7 +158,7 @@ def get_voice_profile(username, profile_name, prompt, prompt_filename):
     return file_path
 
 
-def clone(text, file_path):
+def clone(text, file_path, output_filename):
     # Open the speaker WAV file in binary mode for uploading
     with open(file_path, "rb") as speaker_wav:
         # Prepare the form data
@@ -176,12 +176,14 @@ def clone(text, file_path):
             # Check if the request was successful
             if response.status_code == 200:
                 # Save the received .wav file locally
-                with open("generated_output.wav", "wb") as output_file:
+                with open(output_filename, "wb") as output_file:
                     output_file.write(response.content)
-                print("Audio file received and saved as 'generated_output.wav'")
+                print(f"Audio file received and saved as '{output_filename}'")
+                return os.path.abspath(output_filename)
             else:
                 # Print any error message from the server
                 print(f"An error occurred: {response.json()}")
+                return None
 
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")

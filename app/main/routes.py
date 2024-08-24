@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import os.path
 import uuid
@@ -23,9 +24,7 @@ from app.Server.data.Attacks import AttackFactory
 from app.Server.data.Profile import Profile
 from app.Server.speechToText import SRtest
 from app.Server.run_bark import generateSpeech
-from app.Server.LLM.llm_chat_tools.telegramclienthandler import TelegramClientHandler, send_record
 from app.Server.data.DataStorage import DataStorage
-from app.socketio_tasks import socketio
 
 load_dotenv()
 
@@ -57,7 +56,7 @@ def error_routes(main):  # Error handlers routes
         return render_template("errors/500.html"), 500
 
 
-def general_routes(main, app, data_storage, file_manager):  # This function stores all the general routes.
+def general_routes(main, app, data_storage, file_manager, socketio):  # This function stores all the general routes.
     @main.route("/", methods=["GET", "POST"])  # The root router (welcome page).
     def index():
         return render_template("index.html")
@@ -109,7 +108,7 @@ def general_routes(main, app, data_storage, file_manager):  # This function stor
     @main.route("/profile", methods=["GET", "POST"])
     @login_required
     def profile():
-        profile = data_storage.get_profile(request.args.get("profileo"))
+        profile = data_storage.get_profile(request.args.get("profile"))
         return render_template("profile.html", profileo=profile)
 
     @main.route("/transcript/<attack_id>")
@@ -162,70 +161,32 @@ def general_routes(main, app, data_storage, file_manager):  # This function stor
     def telegram_info():
         return render_template('telegram/telegram_info.html')
 
-    @main.route('/telegram_init_client', methods=['GET', 'POST'])
-    @login_required
-    def telegram_init_client():
-        form = TelegramClientBasicForm()
-        if form.validate_on_submit():
-            app_id = form.app_id.data
-            app_hash = form.app_hash.data
-            profile_name = form.profile_name.data
-            phone_number = form.phone_number.data
+    # @main.route('/telegram_init_client', methods=['GET', 'POST'])
+    # @login_required
+    # def telegram_init_client():
+    #     form = TelegramClientBasicForm()
+    #     if form.validate_on_submit():
+    #         app_id = form.app_id.data
+    #         app_hash = form.app_hash.data
+    #         profile_name = form.profile_name.data
+    #         phone_number = form.phone_number.data
+    #
+    #         socketio.emit("init_client", {
+    #             "app_id": app_id,
+    #             "app_hash": app_hash,
+    #             "profile_name": profile_name,
+    #             "phone_number": phone_number
+    #         })
+    #         print("Client information send to socketio handler")
+    #         return flask_redirect(url_for("main.run_telegram_attack",
+    #                                       profile_name=profile_name))
+    #     return render_template("telegram/telegram_init_client.html", form=form)
 
-            t_client = TelegramClientHandler(app_id, app_hash, profile_name, phone_number)
-
-            data_storage.get_profile(profile_name).setTelegram(t_client)
-
-            return flask_redirect(url_for("main.telegram_advanced_configs",
-                                          profile_name=profile_name))
-        return render_template("telegram/telegram_init_client.html", form=form)
-
-    @main.route('/telegram_advanced_configs', methods=['GET', 'POST'])
-    @login_required
-    def telegram_advanced_configs():
-        profile_name = request.args.get('profile_name')
-        form = TelegramClientAdvancedForm()
-        if form.validate_on_submit():
-            target_name = form.target_name.data
-            attack_purpose = form.attack_purpose.data
-            clone_voice_for_record = form.clone_voice_for_record.data
-            data_storage.get_profile(profile_name).getTelgram().set_advanced_params(target_name, attack_purpose,
-                                                                                    clone_voice_for_record)
-            if clone_voice_for_record:
-                return flask_redirect(url_for('main.upload_voice_file',
-                                              profile_name=profile_name))
-            return flask_redirect(url_for('main.run_telegram_attack',
-                                          profile_name=profile_name))
-        return render_template('telegram/telegram_advanced_configs.html',form=form)
-
-    # TODO: IMPLEMENT THE RUN_ATTACK ROUTE
     @main.route('/run_telegram_attack', methods=['GET', 'POST'])
     @login_required
     def run_telegram_attack():
-        profile_name = request.args.get('profile_name')
-        # step0 -> load the profile
-        t_client = data_storage.get_profile(profile_name).getTelgram()
-        client_thread = t_client.run_telegram_client(
-            UpdatesFromTelegramClientEvent)  # Method that checks if the client is running
-        # and returns its thread
-
-        socketio.set_telegram_client(t_client)
-
-        # step1 -> if its the first enter, we need to generate the voice clone record
-        if t_client.need_to_send_record():
-            voice_clone_record = file_manager.get_audiofile_path_from_profile_name(profile_name)
-            if voice_clone_record:
-                # step2 -> send the record after the client accept
-                send_record(telegram_client=t_client, audio_filepath=voice_clone_record)
-                print(f"Sent first record from {voice_clone_record} to the target.")
-
-        # step3 -> wait for the user's response
-        socketio.emit_event('new_telegram_updates_request_from_user')
-        # step4 -> loop and generate answers according to the client's requests (records or text (llm))
-
-        # step5 -> terminate the attack while clicking on button (t_client.stop() in this event)
-        return render_template('telegram/run_telegram_attack.html', profile_name=profile_name,
-                               async_mode=socketio.async_mode)
+        # profile_name = request.args.get('profile_name')
+        return render_template('telegram/run_telegram_attack.html')
 
     @main.route('/zoom_authorization')
     @login_required
@@ -294,7 +255,7 @@ def general_routes(main, app, data_storage, file_manager):  # This function stor
         return abort(404)  # Aborting if we got no access token
 
 
-def attack_generation_routes(main, app, data_storage, file_manager):
+def attack_generation_routes(main, app, data_storage, file_manager, socketio):
     @main.route("/newattack", methods=["GET", "POST"])  # The new chat route.
     @login_required
     def newattack():
@@ -628,7 +589,8 @@ def attack_generation_routes(main, app, data_storage, file_manager):
                                init_msg=llm.get_init_msg())
 
 
-def execute_routes(main, app, data_storage: DataStorage, files_manager):  # Function that executes all the routes.
-    general_routes(main, app, data_storage, files_manager)  # General pages navigation
-    attack_generation_routes(main, app, data_storage, files_manager)  # Attack generation pages navigation
+def execute_routes(main, app, data_storage: DataStorage, files_manager,
+                   socketio):  # Function that executes all the routes.
+    general_routes(main, app, data_storage, files_manager, socketio)  # General pages navigation
+    attack_generation_routes(main, app, data_storage, files_manager, socketio)  # Attack generation pages navigation
     error_routes(main)  # Errors pages navigation

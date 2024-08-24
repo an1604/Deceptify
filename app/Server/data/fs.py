@@ -14,3 +14,11 @@ class FilesManager(object):
             voice_clone_file = [f for f in files if os.path.isfile(os.path.join(profile_name_voice_dir, f))][0]
             return os.path.join(profile_name_voice_dir, voice_clone_file)
         return None
+
+    def get_clone_dir_from_profile_name(self, profile_name):
+        profile_name_voice_dir = os.path.join(self.audios_dir, profile_name + '-clone')
+        return profile_name_voice_dir
+
+    def get_new_audiofile_path_from_profile_name(self, profile_name, audio_filename):
+        profile_name_voice_dir = os.path.join(self.audios_dir, profile_name + '-clone')
+        return os.path.join(profile_name_voice_dir, audio_filename)
