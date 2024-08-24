@@ -94,7 +94,8 @@
                 var audio = $('#myAudio')[0];
                 var audioSource = $('#audioSource')[0];
 
-                var file_url = msg.audio.replace("\\", "/").replace("C:/", "http://localhost:5000/static/");
+                var file_url = "/get_audio?file_path=" + encodeURIComponent(msg.audio);
+
                 audioSource.src = file_url;
                 audio.load();
 
@@ -122,8 +123,9 @@
                     $('#audioContainer').hide();
                 });
 
-                if (cb)
+                if (cb) {
                     cb();
+                }
             });
 
             $('form#emit').submit(function (event) {

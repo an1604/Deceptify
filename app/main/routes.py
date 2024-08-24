@@ -165,7 +165,10 @@ def general_routes(main, app, data_storage, file_manager, socketio):  # This fun
 
     @main.route('/get_audio')
     def get_audio():
-        return send_file("C:/Users/adina/Desktop/aviv.mp3", mimetype='audio/mpeg')
+        file_path = request.args.get('file_path')
+        if file_path:
+            return send_file(file_path, mimetype='audio/mpeg')
+        return "Audio file not found", 404
 
     @main.route('/telegram_info')
     @login_required
