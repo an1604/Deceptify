@@ -5,6 +5,11 @@ import torchaudio
 from whisperspeech.pipeline import Pipeline
 from scipy.io.wavfile import write
 
+import requests
+
+external_ip = requests.get('https://ipv4.icanhazip.com').text.strip()
+print(f"External IPv4 Address: {external_ip}")
+
 # Initialize Flask app
 app = Flask(__name__)
 speakers = {}
@@ -86,5 +91,11 @@ def generate_speech():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/ping')
+def ping():
+    return jsonify({"ping": "pong"}), 200
+
+
 if __name__ == "__main__":
+    print("Server run and listen to port 8080...")
     app.run(host='0.0.0.0', port=8080)
