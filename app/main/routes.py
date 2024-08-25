@@ -143,9 +143,8 @@ def general_routes(main, app, data_storage, file_manager, socketio):  # This fun
     @main.route("/dashboard", methods=["GET", "POST"])
     @login_required
     def dashboard():
-        encoded_start_url = request.args.get('start_url')
-        start_url = urllib.parse.unquote(encoded_start_url) if encoded_start_url else None
-        return render_template("dashboard.html", start_url=start_url)
+        attacks = data_storage.get_ai_attacks()
+        return render_template("dashboard.html", attacks=attacks)
 
     @main.route('/mp3/<path:filename>')  # Serve the MP3 files statically
     @login_required
@@ -261,7 +260,7 @@ def attack_generation_routes(main, app, data_storage, file_manager, socketio):
             message_name = form.message_name.data
             attack_purpose = form.attack_purpose.data
             place = form.place.data
-            attack_id = int(uuid.uuid4())
+            attack_id = int(uuid.uuid4()) % 1000
             attack = AiAttack(
                 campaign_name,
                 target_name,
@@ -363,6 +362,14 @@ def attack_generation_routes(main, app, data_storage, file_manager, socketio):
         is_success = SRtest.startConv(app.config, attack.get_attack_prompts(), attack.getPurpose(), "Hello " +
                                       attack.target_name + " this is Jason from " + attack.getPlace(),
                                       StopRecordEvent, attack.target_name)
+        recorder_thread.join()
+        os.rename(app.config["ATTACK_RECS"] + "\\recording.wav", app.config["ATTACK_RECS"] +
+                  "\\recording" + str(attack.getID()) + ".wav")
+        os.rename(app.config["ATTACK_RECS"] + "\\transcript.txt", app.config["ATTACK_RECS"] +
+                  "\\transcript" + str(attack.getID()) + ".txt")
+        attack.setResult(is_success)
+        attack.setRec(app.config["ATTACK_RECS"] + "\\recording" + str(attack.getID()) + ".wav")
+        attack.setTranscript(app.config["ATTACK_RECS"] + "\\recording" + str(attack.getID()) + ".wav")
         return jsonify({'is_success': is_success})
 
     @main.route('/attack_dashboard', methods=['GET', 'POST'])

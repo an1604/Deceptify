@@ -9,7 +9,7 @@ class AiAttack:
     """
 
     def __init__(self, campaign_name, target_name, message_type, message_name, attack_purpose,
-                 place, attack_id):
+                 place, attack_id, is_success = None):
         self.campaign_name = campaign_name
         self.target_name = target_name
         self.message_type = message_type
@@ -19,8 +19,7 @@ class AiAttack:
         self.attack_id = attack_id
         self.recording = None
         self.transcript = None
-        self.setRec()
-        self.setTranscript()
+        self.is_success = is_success
 
     def getName(self) -> str:
         return self.campaign_name
@@ -49,6 +48,12 @@ class AiAttack:
     def getTranscript(self):
         return self.transcript
 
+    def getResult(self):
+        return self.is_success
+
+    def setResult(self, result):
+        self.is_success = result
+
     def get_attack_prompts(self) -> set[str]:
         if self.attack_purpose == "Bank":
             return {"We had a suspicious activity in your account and we need verification to make action",
@@ -74,13 +79,11 @@ class AiAttack:
                     "Hold on a second Umm", "I need your ID and account number",
                     "Let me check umm"}
 
-    def setRec(self):
-        self.recording = (self.target_name + "-" + self.attack_purpose + "-" +
-                          datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".wav")
+    def setRec(self, path):
+        self.recording = path
 
-    def setTranscript(self):
-        self.transcript = (self.target_name + "-" + self.attack_purpose + "-" +
-                           datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".json")
+    def setTranscript(self, path):
+        self.transcript = path
 
     def to_dict(self):
         """
@@ -99,6 +102,7 @@ class AiAttack:
             "attack_id": self.attack_id,
             "recording": self.recording,
             "transcript": self.transcript,
+            "is_success": self.is_success
         }
 
     def to_json(self):
@@ -128,8 +132,9 @@ class AiAttack:
         attack_purpose = data["attack_purpose"]
         place = data["place"]
         attack_id = data["attack_id"]
+        is_success = data["is_success"]
         return AiAttack(campaign_name, target_name, message_type, message_name, attack_purpose,
-                        place, attack_id)
+                        place, attack_id, is_success)
 
     @staticmethod
     def from_json(json_data):
@@ -154,6 +159,7 @@ class AiAttack:
                 self.attack_purpose,
                 self.place,
                 self.attack_id,
+                self.is_success
             )
         )
 

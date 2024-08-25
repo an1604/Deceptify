@@ -5,7 +5,6 @@ from app.Server import Util
 from app.Server.data.prompt import Prompt
 
 
-# TODO: fix when saving to pkl file and getting from pkl file
 class Profile:
     def __init__(self, profile_name: str, general_info: str, audio_data_path: str) -> None:
         """
@@ -15,7 +14,6 @@ class Profile:
             profile_name (str): Name of the profile.
             general_info (str): Some description about the profile.
             audio_data_path (str): Path to the audio file.
-            video_data_path (str): Path to the video file.
         """
         self.profile_name: str = profile_name
         self.general_info: str = general_info
@@ -45,14 +43,6 @@ class Profile:
         :returns: The path to the profile audio data.
         """
         return self.audio_data_path
-
-    def get_video_data(self):
-        """
-        Get the path to the profile video data.
-
-        :returns: The path to the profile video data.
-        """
-        return self.video_data_path
 
     def getGeneralInfo(self) -> str:
         """
@@ -116,13 +106,9 @@ class Profile:
             "Goodbye", "What did you say", "Can you repeat that",
             "Yes", "No", "Wait a second", "Hold on a second",
         ]
-        if self.video_data_path is None:
-            for prompt_desc in default_prompts:
-                self.addPrompt(Prompt(prompt_desc=prompt_desc, prompt_profile=self.profile_name, is_deletable=False))
-        else:
-            for prompt_desc in default_prompts:
-                self.addPrompt(Prompt(prompt_desc=prompt_desc, prompt_profile=self.profile_name, is_video=True,
-                                      is_deletable=False))
+        for prompt_desc in default_prompts:
+            self.addPrompt(Prompt(prompt_desc=prompt_desc, prompt_profile=self.profile_name,
+                                  is_deletable=False))
 
     def deletePrompt(self, desc: str) -> None:
         """
