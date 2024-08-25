@@ -20,6 +20,7 @@
         }
 
         #log {
+            display: block;
             width: 50%;
             margin-right: 20px; /* Add space between the divs */
         }
@@ -64,6 +65,12 @@
                 return false;
             });
 
+            socket.on('server_update', function (msg, cb) {
+                $('#log').append('<br>' + $('<div/>').text('Server Update: ' + msg.data).html());
+                if (cb)
+                    cb();
+            });
+
             // Handle client authentication request
             socket.on("client_auth", function (msg, cb) {
                 var authCode = prompt("Authentication needed, please check out Telegram and provide the code that you've received:");
@@ -71,15 +78,6 @@
                 if (authCode) {
                     socket.emit("auth_code", {code: authCode});
                 }
-
-                {#alert("Please scan the QR code to integrate your Telegram account with our service.");#}
-
-                {#const qrImgPath = msg.data;  // Assuming msg.data contains the correct URL to the QR code image#}
-                {#const qrImgElement = document.getElementById("qrCodeImage");#}
-                {#const qrContainer = document.getElementById("qrCode");#}
-                {##}
-                {#qrImgElement.src = qrImgPath;#}
-                {#qrContainer.style.display = 'block';  // Show the QR code container#}
 
                 if (cb) {
                     cb();
@@ -227,7 +225,6 @@
 
         <div id="container">
             <div id="log"></div>
-
             <div id="new_messages">
                 <form id="ask_for_new_messages" method="POST" action="#">
                     <div id="messages_received"></div>
@@ -236,6 +233,4 @@
             </div>
         </div>
     </div>
-
-
 {% endblock %}
