@@ -14,7 +14,7 @@ from app.socketio_tasks import initialize_socketio
 load_dotenv()
 
 
-def create_audio_file():
+def create_audio_directory():
     project_dir = os.path.dirname(os.path.realpath(__file__))
     audio_dir = "Server/AudioFiles"
     audio_dir_path = os.path.join(project_dir, audio_dir)
@@ -23,7 +23,7 @@ def create_audio_file():
     return audio_dir_path
 
 
-def create_video_file():
+def create_video_directory():
     project_dir = os.path.dirname(os.path.realpath(__file__))
     video_dir = "Server/VideoFiles"
     video_dir_path = os.path.join(project_dir, video_dir)
@@ -32,7 +32,7 @@ def create_video_file():
     return video_dir_path
 
 
-def create_attack_file():
+def create_attack_directory():
     project_dir = os.path.dirname(os.path.realpath(__file__))
     attack_dir = "attack_records"
     attack_dir_path = os.path.join(project_dir, attack_dir)
@@ -58,17 +58,15 @@ def create_app():
 
     app.config["SECRET_KEY"] = "hard to guess string"
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
-    audio_file_path = create_audio_file()
-    video_file_path = create_video_file()
 
-    app.config["UPLOAD_FOLDER"] = audio_file_path
-    app.config["VIDEO_UPLOAD_FOLDER"] = video_file_path
-    app.config["ATTACK_RECS"] = create_attack_file()
+    audio_file_path = create_audio_directory()
+    video_file_path = create_video_directory()
 
     socketio = SocketIO(app, async_mode=None)
 
     file_manager = FilesManager(audios_dir=audio_file_path, video_dir=video_file_path,
-                                app_dir=os.path.dirname(os.path.realpath(__file__)))
+                                app_dir=os.path.dirname(os.path.realpath(__file__)),
+                                attack_records_dir=create_attack_directory())
     initialize_socketio(socketio, file_manager)  # function that initialized all the events for socketio with the app.
 
     bootstrap = Bootstrap(app)
@@ -76,15 +74,12 @@ def create_app():
 
     # Register main blueprint
     from app.main import create_blueprint
-    main_blueprint = create_blueprint(app, file_manager, socketio)
+    main_blueprint = create_blueprint(file_manager, socketio)
     app.register_blueprint(main_blueprint)
 
     # Register authentication blueprint
     from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
-
-    # app.run(debug=True, use_reloader=True, host='0.0.0.0',
-    #         threaded=True)  # Running the application.
 
     # Run the socketio instead of the app.
     socketio.run(app, debug=True, host='0.0.0.0',

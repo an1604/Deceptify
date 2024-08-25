@@ -37,7 +37,7 @@ def sanitize_filename(filename):
     return re.sub(r'[<>:"/\\|?*]', '_', filename).strip()
 
 
-def recognize_worker(config, username, backgroundEvent):
+def recognize_worker(audios_dir, username, backgroundEvent):
     global flag, waitforllm, data_storage, prompts_for_user
     fillers = ["Wait a second Umm", "Let me check umm", "Hold on a second Umm"]
     index = 0
@@ -56,27 +56,27 @@ def recognize_worker(config, username, backgroundEvent):
                 flag = True
             if response in prompts_for_user:
                 background_thread = Thread(target=play_background, args=(backgroundEvent,
-                                                                         config['UPLOAD_FOLDER']
+                                                                         audios_dir
                                                                          + "\\office.wav",))
                 background_thread.start()
-                play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" +
+                play_audio_through_vbcable(audios_dir + "\\" +
                                            response + ".wav")
                 backgroundEvent.set()
             else:
                 sanitized_prompt = sanitize_filename(response)
                 background_thread = Thread(target=play_background, args=(backgroundEvent,
-                                                                         config['UPLOAD_FOLDER']
+                                                                         audios_dir
                                                                          + "\\office.wav",))
                 background_thread.start()
                 start_filler = Thread(target=play_audio_through_vbcable,
-                                      args=(config['UPLOAD_FOLDER'] + "\\" +
+                                      args=(audios_dir + "\\" +
                                             fillers[index] + ".wav", "CABLE Input"))
                 start_filler.daemon = True
                 start_filler.start()
                 index = (index + 1) % 3
                 generateSpeech(text_prompt=response,
-                               path=config['UPLOAD_FOLDER'] + "\\prompt.wav")
-                play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\prompt.wav")
+                               path=audios_dir + "\\prompt.wav")
+                play_audio_through_vbcable(audios_dir+ "\\prompt.wav")
                 backgroundEvent.set()
             if not waitforllm.is_set():
                 waitforllm.set()
@@ -90,7 +90,7 @@ def recognize_worker(config, username, backgroundEvent):
             print(f'Exception from recognize_worker: {e}')
 
 
-def startConv(config, attack_prompts, purpose, starting_message, record_event, target_name,
+def startConv(audios_dir, attack_prompts, purpose, starting_message, record_event, target_name,
               username="oded"):
     global flag, waitforllm, prompts_for_user
     backgroundEvent = Event()
@@ -99,7 +99,7 @@ def startConv(config, attack_prompts, purpose, starting_message, record_event, t
     started_conv = False
     prompts_for_user = attack_prompts
 
-    recognize_thread = Thread(target=recognize_worker, args=(config, username, backgroundEvent,))
+    recognize_thread = Thread(target=recognize_worker, args=(audios_dir, username, backgroundEvent,))
     recognize_thread.daemon = True
     recognize_thread.start()
     device_index = get_device_index()

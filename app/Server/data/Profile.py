@@ -116,13 +116,9 @@ class Profile:
             "Goodbye", "What did you say", "Can you repeat that",
             "Yes", "No", "Wait a second", "Hold on a second",
         ]
-        if self.video_data_path is None:
-            for prompt_desc in default_prompts:
-                self.addPrompt(Prompt(prompt_desc=prompt_desc, prompt_profile=self.profile_name, is_deletable=False))
-        else:
-            for prompt_desc in default_prompts:
-                self.addPrompt(Prompt(prompt_desc=prompt_desc, prompt_profile=self.profile_name, is_video=True,
-                                      is_deletable=False))
+
+        for prompt_desc in default_prompts:
+            self.addPrompt(Prompt(prompt_desc=prompt_desc, prompt_profile=self.profile_name, is_deletable=False))
 
     def deletePrompt(self, desc: str) -> None:
         """
