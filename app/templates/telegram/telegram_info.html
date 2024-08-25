@@ -4,21 +4,22 @@
 
 {% block title %}Deceptify- How to start Telegram chat attack{% endblock %}
 
-
 {% block page_content %}
-    <ul>
-        <li>
-            1) Ensure you have a Telegram account.
-            Visit <a href="https://web.telegram.org/k/">Telegram web</a> to verify that.
-        </li>
-        <li>
-            2) Create a Telegram app for your account.
-            Visit <a href="https://my.telegram.org/">Telegram App Creation</a>
-            and follow the steps in there to create an app.
-        </li>
-        <li>
-            3) Extract and save the App-api and App-hash from step 2, and move forward to
-            <a href="{{ url_for('main.run_telegram_attack') }}">Authorize and create the client</a> step.
-        </li>
-    </ul>
+    <div class="text-container">
+        <ul>
+            <li>
+                1) Ensure you have a Telegram account.
+                Visit <a href="https://web.telegram.org/k/">Telegram web</a> to verify that.
+            </li>
+            <li>
+                2) Create a Telegram app for your account.
+                Visit <a href="https://my.telegram.org/">Telegram App Creation</a>
+                and follow the steps in there to create an app.
+            </li>
+            <li>
+                3) Extract and save the App-api and App-hash from step 2, and move forward to
+                <a href="{{ url_for('main.run_telegram_attack') }}">Authorize and create the client</a> step.
+            </li>
+        </ul>
+    </div>
 {% endblock %}

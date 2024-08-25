@@ -1,13 +1,109 @@
 {% import "_macros.html" as macros %}
 {% extends "base.html" %}
 
+
+
 {% block page_content %}
-    <div class="page-header">
-        <h1>Dash Board</h1>
-        {% if start_url %}
-            <a href="{{ start_url }}">Your Attack Is Ready To Go!</a>
-        {% else %}
-            <a href="{{ url_for('main.zoom_authorization') }}">Authorize With Zoom To Create An Attack!</a>
-        {% endif %}
+    <style>
+
+/* Page Header Styling */
+h1 {
+    text-align: center;
+    color: #ecf0f1;
+    margin-bottom: 30px;
+    background-color: #1e2f50;
+    padding: 20px;
+    border-radius: 10px;
+    border-bottom: 2px solid #1abc9c;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Attack List and Items */
+.attack-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.attack-item {
+    background-color: #2c3e50;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    color: #ecf0f1;
+    margin-bottom: 20px;
+}
+
+.attack-item h3 {
+    margin-top: 0;
+    font-size: 24px;
+    color: #1abc9c;
+}
+
+.attack-item p {
+    font-size: 16px;
+    margin: 10px 0;
+}
+
+/* Button Group Styling */
+.button-group {
+    margin-top: 15px;
+}
+
+.button-group button {
+    background-color: #1abc9c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: background-color 0.3s ease;
+    font-size: 16px;
+}
+
+.button-group button:hover {
+    background-color: #16a085;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: #ecf0f1;
+    margin: 20px 0;
+}
+    </style>
+
+    <div class="container">
+        <h1>All Attacks</h1>
+        <div class="attack-list">
+            {% for attack in attacks %}
+            <div class="attack-item">
+                <h3>{{ attack.getName() }}</h3>
+                <p><strong>Target:</strong> {{ attack.getTargetName() }}</p>
+                <p><strong>Message sent via:</strong> {{ attack.getMessageType() }}</p>
+                <p><strong>Message sent to:</strong> {{ attack.getMessageName() }}</p>
+                {% if attack.getPurpose() == "Bank" %}
+                <p><strong>Attack purpose:</strong> Account number</p>
+                {% elif attack.getPurpose() == "Delivery" %}
+                <p><strong>Attack purpose:</strong> Address</p>
+                {% else %}
+                <p><strong>Attack purpose:</strong> ID</p>
+                {% endif %}
+                <p><strong>Place of attack:</strong> {{ attack.getPlace() }} {{ attack.getPurpose() }}</p>
+                {% if attack.getResult() == None %}
+                <p><strong>Result:</strong><strong style="color:yellow;"></strong> Not completed</p>
+                {% elif attack.getResult() == True %}
+                <p><strong>Result:</strong><strong style="color: lawngreen"> Success</strong></p>
+                {% else %}
+                <p><strong>Result:</strong><strong style="color: red"> Failed</strong></p>
+                {% endif %}
+                <div class="button-group">
+                    <a href="{{ url_for('main.download_file', filename='transcript' + (attack.getID()|string) + '.txt') }}" class="btn btn-primary">Transcript</a>
+                    <a href="{{ url_for('main.download_file', filename='recording' + (attack.getID()|string) + '.wav') }}" class="btn btn-primary">Recording</a>
+                </div>
+            </div>
+            <hr>
+            {% endfor %}
+        </div>
     </div>
 {% endblock %}
