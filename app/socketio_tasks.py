@@ -1,12 +1,13 @@
 import threading
 
-import qrcode
 from flask_socketio import emit
 from app.Server.LLM.llm_chat_tools.telegramclienthandler import TelegramClientHandler, TelegramInfo
 from app.Server.Util import clone
 
 thread_lock = threading.Lock()  # Background thread Lock for all the tasks.
 thread = None  # The main thread that will be run and perform the background tasks.
+
+client = None
 
 client_auth_event = threading.Event()  # Event for detecting client authentication with Telegram
 
@@ -26,22 +27,14 @@ telegram_info = None  # An object that will be updated with the client's informa
 telegram_info_event = threading.Event()  # The event that will be triggered the first initialization pf the client's information.
 
 
-async def manual_send_message(client, receiver, message):
+async def manual_send_message(receiver, message):
+    global client
     await client.send_message(receiver, message)
 
 
-async def manual_send_audio(client, receiver, audio):
+async def manual_send_audio(receiver, audio):
+    global client
     await client.send_audio(receiver, audio)
-
-
-async def authenticate_user_via_msg(client, auth_code, event):
-    # await client.sign_in(auth_code)
-    client.auth_code = code
-    event.clear()
-
-
-async def authenticate_user_via_qr(client, save_path):
-    await client.authenticate_client_via_qr()
 
 
 def background_thread(socketio):
@@ -52,6 +45,7 @@ def background_thread(socketio):
     global client_auth_event
     global auth_code_set_event, code
     global telegram_info_event, telegram_info
+    global client
 
     print("Client connected but not set!")
     while True:
@@ -62,30 +56,25 @@ def background_thread(socketio):
                                                client_auth_event, telegram_info.qr_path)
                 telegram_info.is_connected = True
 
-                client.loop.run_until_complete(
+                socketio.emit("client_auth")  # Send an alert to update the client to check for an authorization code
+
+                client.loop.run_until_complete(  # Run the method
+                    # that will authorize with the provided code from the client.
                     client.authenticate_client_via_msg(0)
                 )
-
-                socketio.emit('connection_update', {'data': True})
-
+                socketio.emit('connection_update', {'data': True})  # Update the front
+                # after the process done successfully.
             except Exception as e:
                 print(f"Exception from background_thread --> {e}")
                 socketio.emit('connection_update', {'data': False})
 
         socketio.sleep(3)
 
-        if auth_code_set_event.is_set() and code is not None:
-            client.loop.run_until_complete(
-                authenticate_user_via_msg(client, code, auth_code_set_event)
-            )
-        if client_auth_event.is_set():
-            client_auth_event.clear()
-            socketio.emit("client_auth")
         if new_message_event.is_set() and message_tuple is not None:
             new_message_event.clear()
 
             client.loop.run_until_complete(
-                manual_send_message(client, message_tuple[0], message_tuple[1]))
+                manual_send_message(message_tuple[0], message_tuple[1]))
 
             socketio.emit('server_update',
                           {'data': f'Message {message_tuple[1]} Successfully Sent to {message_tuple[0]} :)'})
@@ -93,7 +82,7 @@ def background_thread(socketio):
         if new_audio_event.is_set() and audio_tuple is not None:
             new_audio_event.clear()
             client.loop.run_until_complete(
-                manual_send_audio(client, audio_tuple[0], audio_tuple[1])
+                manual_send_audio(audio_tuple[0], audio_tuple[1])
             )
             socketio.emit('server_update',
                           {'data': f'Record {audio_tuple[1]} Successfully Sent to {audio_tuple[0]} :)'})
@@ -168,11 +157,8 @@ def initialize_socketio(socketio, file_manager):
 
     @socketio.on("auth_code")
     def handle_auth_code(data):
-        global code, auth_code_set_event, telegram_info
-
-        code = data['code']
-        telegram_info.set_authentication_code(data['code'])
-        auth_code_set_event.set()
+        global client
+        client.auth_code = data['code']
         emit("server_update", {
             'data': "Authentication request sent."
         })

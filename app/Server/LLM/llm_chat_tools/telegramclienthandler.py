@@ -1,14 +1,9 @@
 import asyncio
 import os
 from telethon import TelegramClient, events, errors
-from dotenv import load_dotenv
-from telethon.errors import SessionPasswordNeededError
 from telethon.sessions import StringSession
-import qrcode
-from PIL import Image
-from app.Server.data.fs import FilesManager
 
-load_dotenv()
+from telethon import functions, types
 
 
 class TelegramInfo(object):
@@ -18,11 +13,6 @@ class TelegramInfo(object):
         self.app_hash = app_hash
         self.profile_name = profile_name
         self.phone_number = phone_number
-        self.authentication_code = None
-        self.is_connected = False
-
-    def set_authentication_code(self, authentication_code):
-        self.authentication_code = authentication_code
 
 
 class TelegramClientHandler(object):
@@ -34,6 +24,7 @@ class TelegramClientHandler(object):
         self.qr_path = qr_path
 
         self.qr_login = None
+        self.phone_hash = None
         self.auth_code = None
 
         self.messages_received = []
@@ -54,8 +45,6 @@ class TelegramClientHandler(object):
 
     def initialize_client(self):
         self.handle_routes(self.client)
-        # self.loop.run_until_complete(self.connect())  # Do not move on to the next instruction
-        # until the client connects and authorizes.
 
         self.loop.create_task(self.run_client())  # Run the telegram client as a background task
         print("Added run_client to the loop")
@@ -83,7 +72,7 @@ class TelegramClientHandler(object):
             print(f'Message sent: {message}')
         except errors.AuthKeyUnregisteredError:
             print("Authorization key not found or invalid. Re-authenticating...")
-            # await self.authenticate_client_via_msg()
+            await self.authenticate_client_via_msg()
             await self.send_message(receiver, message)  # Retry sending the message after re-authentication
 
     async def send_audio(self, receiver, audiofile_path):
@@ -98,7 +87,7 @@ class TelegramClientHandler(object):
                     print(f"Audio file {audiofile_path} does not exist.")
         except errors.AuthKeyUnregisteredError:
             print("Authorization key not found or invalid. Re-authenticating...")
-            await self.authenticate_client_via_qr()
+            await self.authenticate_client_via_msg()
             await self.send_audio(receiver, audiofile_path)  # Retry sending the audio after re-authentication
 
     def get_messages(self):
@@ -122,64 +111,28 @@ class TelegramClientHandler(object):
         self.client.disconnect()
         print('Client disconnected')
 
-    async def authenticate_client_via_qr(self):
-        self.qr_login = await self.client.qr_login()
-        display_url_as_qr(self.qr_login.url, self.qr_path)
-        await self.qr_login.wait()
-
     async def authenticate_client_via_msg(self, counter=None):
-        print("Inside authenticate_client_via_msg")
-
         await self.client.connect()
-
         if counter is None or counter <= 1:
-            # self.auth_event.set()  # Set the event to alert to the background thread that authentication needed.
-            await self.client.send_code_request(self.phone_number)
-            self.auth_code = input('Enter the code you received: ')
-            # self.auth_event.wait()
+            self.auth_event.set()  # Set the event to alert to the background thread that authentication needed.
+            self.phone_hash = await self.client.send_code_request(self.phone_number)
+
             try:
+                while self.auth_code is None:
+                    print("from authenticate_client_via_msg --> auth_code is None. Waiting")
+                    await asyncio.sleep(3)
+
                 await self.client.sign_in(self.phone_number, self.auth_code)
-            except SessionPasswordNeededError:
-                password = input('Two-step verification is enabled. Please enter your password: ')
-                await self.client.sign_in(password=password)
+                print("from authenticate_client_via_msg --> sign in request is sent.")
+
+            except Exception as e:
+                print(f"Error from authenticate_client_via_msg --> {e}")
         else:
             print(f"Waiting for the client to send the authentication code... (Attempt {counter})")
-
-    async def sign_in(self, code):
-        await self.client.sign_in(self.phone_number, code)
-
-    async def connect(self):
-        print("connect() function called")
-        tried_to_connect = False  # Flag that checks if we already tried to connect
-        counter_of_tries = 0  # Counter for authentication code
-
-        while not self.client.is_connected():
-            try:
-                await self.client.connect()
-                if not await self.client.is_user_authorized():
-                    counter_of_tries += 1
-                    if tried_to_connect:
-                        print("Connection attempt failed")
-                        await self.authenticate_client_via_msg(counter_of_tries)
-                        tried_to_connect = False
-                else:
-                    print("Client successfully connected and authorized.")
-                    break  # Exit the loop if connected and authorized
-            except Exception as e:
-                print(f"Connection error: {e}")
-                await asyncio.sleep(2)  # Wait before retrying
-
-
-def display_url_as_qr(url, save_path):
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
-        box_size=10,
-        border=4,
-    )
-    qr.add_data(url)
-    qr.make(fit=True)
-
-    img = qr.make_image(fill_color="black", back_color="white")
-    img.save(save_path)
-    return save_path
+            with self.client as client:
+                result = client(functions.auth.ResendCodeRequest(
+                    phone_number=self.phone_number,
+                    phone_code_hash=self.phone_hash,
+                    reason='some string here'
+                ))
+                print(f'from authenticate_client_via_msg -->  result.stringify() = {result.stringify()}')

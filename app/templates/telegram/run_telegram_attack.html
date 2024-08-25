@@ -66,18 +66,20 @@
 
             // Handle client authentication request
             socket.on("client_auth", function (msg, cb) {
-                {#var authCode = prompt("Authentication needed, please check out Telegram and provide the code that you've received:");#}
-                {#if (authCode) {#}
-                {#    socket.emit("auth_code", {code: authCode});#}
-                //{#}#}
-                alert("Please scan the QR code to integrate your Telegram account with our service.");
+                var authCode = prompt("Authentication needed, please check out Telegram and provide the code that you've received:");
 
-                const qrImgPath = msg.data;  // Assuming msg.data contains the correct URL to the QR code image
-                const qrImgElement = document.getElementById("qrCodeImage");
-                const qrContainer = document.getElementById("qrCode");
+                if (authCode) {
+                    socket.emit("auth_code", {code: authCode});
+                }
 
-                qrImgElement.src = qrImgPath;
-                qrContainer.style.display = 'block';  // Show the QR code container
+                {#alert("Please scan the QR code to integrate your Telegram account with our service.");#}
+
+                {#const qrImgPath = msg.data;  // Assuming msg.data contains the correct URL to the QR code image#}
+                {#const qrImgElement = document.getElementById("qrCodeImage");#}
+                {#const qrContainer = document.getElementById("qrCode");#}
+                {##}
+                {#qrImgElement.src = qrImgPath;#}
+                {#qrContainer.style.display = 'block';  // Show the QR code container#}
 
                 if (cb) {
                     cb();
