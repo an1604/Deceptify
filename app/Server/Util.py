@@ -159,17 +159,19 @@ def get_voice_profile(username, profile_name, prompt, prompt_filename):
 
 
 def clone(text, file_path, output_filename):
-    # Open the speaker WAV file in binary mode for uploading
-    with open(file_path, "rb") as speaker_wav:
-        # Prepare the form data
-        files = {
-            'speaker_wav': speaker_wav
-        }
-        data = {
-            'text': text
-        }
-        url = f"{CLONE_URL}/audio/generate"
-        try:
+    default_record = r"C:\Users\adina\PycharmProjects\docker_app\Deceptify_update\app\Server\AudioFiles\Drake.mp3"
+    try:
+        # Open the speaker WAV file in binary mode for uploading
+        with open(file_path, "rb") as speaker_wav:
+            # Prepare the form data
+            files = {
+                'speaker_wav': speaker_wav
+            }
+            data = {
+                'text': text
+            }
+            url = f"{CLONE_URL}/audio/generate"
+
             # Send the POST request to the server
             response = requests.post(url, files=files, data=data)
 
@@ -183,10 +185,13 @@ def clone(text, file_path, output_filename):
             else:
                 # Print any error message from the server
                 print(f"An error occurred: {response.json()}")
-                return None
-
-        except requests.exceptions.RequestException as e:
-            print(f"An error occurred: {e}")
+                # return None
+                # For Demo only, return default record
+                return default_record
+    except (requests.exceptions.RequestException, FileNotFoundError) as e:
+        print(f"An error occurred: {e}")
+        # For Demo only, return default record
+        return default_record
 
 
 def synthesize(profile_name, prompt):

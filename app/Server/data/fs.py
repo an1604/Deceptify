@@ -8,12 +8,16 @@ class FilesManager(object):
         self.video_dir = video_dir
 
     def get_audiofile_path_from_profile_name(self, profile_name):
-        profile_name_voice_dir = os.path.join(self.audios_dir, profile_name + '-clone')
-        files = os.listdir(profile_name_voice_dir)  # List all the files in the directory
-        if files:
-            voice_clone_file = [f for f in files if os.path.isfile(os.path.join(profile_name_voice_dir, f))][0]
-            return os.path.join(profile_name_voice_dir, voice_clone_file)
-        return None
+        default_record = r"C:\Users\adina\PycharmProjects\docker_app\Deceptify_update\app\Server\AudioFiles\Drake.mp3"
+        try:
+            profile_name_voice_dir = os.path.join(self.audios_dir, profile_name + '-clone')
+            files = os.listdir(profile_name_voice_dir)  # List all the files in the directory
+            if files:
+                voice_clone_file = [f for f in files if os.path.isfile(os.path.join(profile_name_voice_dir, f))][0]
+                return os.path.join(profile_name_voice_dir, voice_clone_file)
+            return None
+        except Exception as e:
+            return default_record
 
     def get_clone_dir_from_profile_name(self, profile_name):
         profile_name_voice_dir = os.path.join(self.audios_dir, profile_name + '-clone')
