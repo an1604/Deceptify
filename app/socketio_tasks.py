@@ -1,5 +1,6 @@
 import threading
 
+import qrcode
 from flask_socketio import emit
 from app.Server.LLM.llm_chat_tools.telegramclienthandler import TelegramClientHandler, TelegramInfo
 from app.Server.Util import clone
@@ -33,8 +34,14 @@ async def manual_send_audio(client, receiver, audio):
     await client.send_audio(receiver, audio)
 
 
-async def authenticate_user(client, auth_code):
-    await client.sign_in(auth_code)
+async def authenticate_user_via_msg(client, auth_code, event):
+    # await client.sign_in(auth_code)
+    client.auth_code = code
+    event.clear()
+
+
+async def authenticate_user_via_qr(client, save_path):
+    await client.authenticate_client_via_qr()
 
 
 def background_thread(socketio):
@@ -52,20 +59,24 @@ def background_thread(socketio):
             telegram_info_event.clear()
             try:
                 client = TelegramClientHandler(telegram_info.app_id, telegram_info.app_hash, telegram_info.phone_number,
-                                               client_auth_event)
+                                               client_auth_event, telegram_info.qr_path)
                 telegram_info.is_connected = True
-                print("Client connected and authenticated!")
+
+                client.loop.run_until_complete(
+                    client.authenticate_client_via_msg(0)
+                )
+
                 socketio.emit('connection_update', {'data': True})
+
             except Exception as e:
-                print(e)
+                print(f"Exception from background_thread --> {e}")
                 socketio.emit('connection_update', {'data': False})
 
         socketio.sleep(3)
 
         if auth_code_set_event.is_set() and code is not None:
-            client_auth_event.clear()
             client.loop.run_until_complete(
-                authenticate_user(client, code)
+                authenticate_user_via_msg(client, code, auth_code_set_event)
             )
         if client_auth_event.is_set():
             client_auth_event.clear()
@@ -176,7 +187,8 @@ def initialize_socketio(socketio, file_manager):
         profile_name = data['profile_name']
         phone_number = data['phone_number']
 
-        telegram_info = TelegramInfo(app_id, app_hash, profile_name, phone_number)
+        telegram_info = TelegramInfo(app_id, app_hash, profile_name, phone_number,
+                                     file_manager.get_unique_qr_path(profile_name))
         telegram_info_event.set()
         print(f"{profile_name} initialized!")
 

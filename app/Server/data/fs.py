@@ -22,3 +22,6 @@ class FilesManager(object):
     def get_new_audiofile_path_from_profile_name(self, profile_name, audio_filename):
         profile_name_voice_dir = os.path.join(self.audios_dir, profile_name + '-clone')
         return os.path.join(profile_name_voice_dir, audio_filename)
+
+    def get_unique_qr_path(self, profile_name):
+        return os.path.join(self.app_dir, "static/" + profile_name + ".jpg")

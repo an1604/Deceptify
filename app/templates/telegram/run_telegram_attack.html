@@ -66,10 +66,19 @@
 
             // Handle client authentication request
             socket.on("client_auth", function (msg, cb) {
-                var authCode = prompt("Authentication needed, please check out Telegram and provide the code that you've received:");
-                if (authCode) {
-                    socket.emit("auth_code", {code: authCode});
-                }
+                {#var authCode = prompt("Authentication needed, please check out Telegram and provide the code that you've received:");#}
+                {#if (authCode) {#}
+                {#    socket.emit("auth_code", {code: authCode});#}
+                //{#}#}
+                alert("Please scan the QR code to integrate your Telegram account with our service.");
+
+                const qrImgPath = msg.data;  // Assuming msg.data contains the correct URL to the QR code image
+                const qrImgElement = document.getElementById("qrCodeImage");
+                const qrContainer = document.getElementById("qrCode");
+
+                qrImgElement.src = qrImgPath;
+                qrContainer.style.display = 'block';  // Show the QR code container
+
                 if (cb) {
                     cb();
                 }
@@ -142,7 +151,7 @@
                 event.preventDefault();
                 socket.emit('new_audio_generation', {
                     tts: $('#text_to_speech').val(),
-                    profile_name: $('#profile_name_for_tts').val()
+                    profile_name_for_tts: $('#profile_name_for_tts').val()
                 });
                 $('#text_to_speech').val('');
             });
@@ -182,6 +191,10 @@
             <input type="submit" value="Authorize Client">
         </form>
         <div id="loading">Initializing...</div>
+    </div>
+
+    <div id="qrCode" style="display: none;">
+        <img id="qrCodeImage" src="" alt="QR Code">
     </div>
 
     <div id="attackContainer" style="display: none;">

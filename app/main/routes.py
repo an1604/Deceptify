@@ -170,6 +170,10 @@ def general_routes(main, app, data_storage, file_manager, socketio):  # This fun
             return send_file(file_path, mimetype='audio/mpeg')
         return "Audio file not found", 404
 
+    @app.route('/qr_code/<filename>')
+    def qr_code(filename):
+        return send_from_directory('static', filename)
+
     @main.route('/telegram_info')
     @login_required
     def telegram_info():
@@ -337,7 +341,7 @@ def attack_generation_routes(main, app, data_storage, file_manager, socketio):
             send_email(email_receiver=email, email_subject="Immediate attention",
                        email_body=body,
                        display_name="" + place + " " + purpose,
-                       from_email=f"{place.replace(' ','')}@gmail.com")
+                       from_email=f"{place.replace(' ', '')}@gmail.com")
 
         for prompt in attack_prompts:
             if not os.path.exists(app.config['UPLOAD_FOLDER'] + "\\" + prompt + ".wav"):
