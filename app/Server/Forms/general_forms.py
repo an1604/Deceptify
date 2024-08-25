@@ -238,6 +238,13 @@ class AuthenticationForm(FlaskForm):
     submit = SubmitField('Submit')
 
 
+class RegisterForm(FlaskForm):
+    username = StringField(label="Username", validators=[DataRequired()])
+    email = StringField(label="Email", validators=[DataRequired(), Email()])
+    password = PasswordField(label="Password", validators=[DataRequired()])
+    submit = SubmitField('Register')
+
+
 class ZoomMeetingForm(FlaskForm):
     meeting_name = StringField('Meeting Name', validators=[DataRequired()])
     year = IntegerField('Year', default=2024)
