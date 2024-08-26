@@ -1,0 +1,6 @@
+flask
+numpy
+torchaudio
+WhisperSpeech
+requests
+scipy
