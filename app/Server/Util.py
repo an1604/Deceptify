@@ -19,6 +19,7 @@ load_dotenv()
 
 SERVER_URL = os.getenv('SERVER_URL')
 CLONE_URL = os.getenv('CLONE_URL')
+DEFAULT_URL = os.getenv('DEFAULT_URL')
 
 
 def create_knowledgebase(text):
@@ -194,15 +195,15 @@ def clone(text, file_path, output_filename):
         return default_record
 
 
-def synthesize(profile_name, prompt):
+def synthesize(prompt):
     try:
         payload = {'text': prompt}
-        url = f"{SERVER_URL}/synthesize"
+        url = "http://193.106.55.38/synthesize"
         response = requests.post(url, json=payload)
         print(response.text)
         if response.status_code == 200:
             # Save the received .wav file locally
-            with open('AudioFiles' + '\\' + profile_name + "-" + prompt + ".wav", "wb") as f:
+            with open('AudioFiles' + '\\-' + prompt + ".wav", "wb") as f:
                 f.write(response.content)
             print("Audio file received and saved")
         else:
@@ -401,7 +402,6 @@ def transcribe_audio(wav_file_path, json_file_path=None, return_as_string=False)
 def record_call(event, fname):
     event.clear()
     print("Recording...")
-    time.sleep(10)
     # stopped = session['stopped call']
     # print(stopped + "-1")
     playback_name = "CABLE Output"
@@ -469,5 +469,4 @@ def get_email_from_ip(user_ip):
 
 
 if __name__ == '__main__':
-    abc = Event()
-    play_background(abc)
+    synthesize("Hello how are you doing")

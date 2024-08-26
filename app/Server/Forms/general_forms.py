@@ -45,7 +45,7 @@ class AiAttackForm(FlaskForm):
     target_name = StringField(
         label="Target Name(Full name recommended)",
         validators=[DataRequired()],
-        default="Aviv Nataf"
+        default="Oded Warem"
     )
 
     message_type = SelectField(
@@ -57,7 +57,7 @@ class AiAttackForm(FlaskForm):
     message_name = StringField(
         label="message name (Whatsapp phone for whatsapp with +972 prefix, and email address for email)",
         validators=[validate_message_name],
-        default="nataf12386@gmail.com"
+        default="odedwar@gmail.com"
     )
 
     attack_purpose = SelectField(
@@ -76,7 +76,7 @@ class AiAttackForm(FlaskForm):
                                                         "and start and end with a letter."),
             # Reference the custom validator method without `self`
         ],
-        default="Discount bank"
+        default="Discount"
     )
     # phone_number = StringField('Phone Number', validators=[
     #     DataRequired(),
@@ -119,7 +119,7 @@ class InformationGatheringForm(FlaskForm):
 
 class ContactForm(FlaskForm):
     email = StringField(
-        label="llm_chat_tools",
+        label="Email address",
         validators=[Email()]
     )
     contact_field = TextAreaField(
@@ -229,7 +229,7 @@ class PromptDeleteForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    email = StringField(label="llm_chat_tools", validators=[Email()])
+    email = StringField(label="Enter email for login",default="odedwar@gmail.com", validators=[Email()])
     submit = SubmitField("Login")
 
 
@@ -246,13 +246,13 @@ class RegisterForm(FlaskForm):
 
 
 class ZoomMeetingForm(FlaskForm):
-    meeting_name = StringField('Meeting Name', validators=[DataRequired()])
+    meeting_name = StringField('Meeting Name', default="Deceptify meeting", validators=[DataRequired()])
     year = IntegerField('Year', default=2024)
-    month = IntegerField('Month')
-    day = IntegerField('Day')
-    hour = IntegerField('Hour')
-    minute = IntegerField('Minute')
-    second = IntegerField('Second', default=13)
+    month = IntegerField('Month', default=9)
+    day = IntegerField('Day', default=2)
+    hour = IntegerField('Hour', default=18)
+    minute = IntegerField('Minute', default=0)
+    second = IntegerField('Second', default=0)
     submit = SubmitField("Submit")
 
 
@@ -270,7 +270,7 @@ class InitDemoForm(FlaskForm):
         validators=[DataRequired()]
     )
     runs_on = SelectField(
-        label="The Attack Will Runs On",
+        label="The Attack Will Run On",
         choices=[("Local Chat", "Local Chat"),
                  ("Telegram", "Telegram"),
                  ("WhatsApp", "WhatsApp")]

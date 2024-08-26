@@ -345,7 +345,8 @@ def attack_generation_routes(main, app, data_storage, file_manager, socketio):
         for prompt in attack_prompts:
             if not os.path.exists(app.config['UPLOAD_FOLDER'] + "\\" + prompt + ".wav"):
                 generateSpeech(prompt, app.config['UPLOAD_FOLDER'] + "\\" + prompt + ".wav")
-        starting_message = "Hello " + attack.getTargetName() + " this is Jason from " + attack.getPlace()
+        starting_message = ("Hello " + attack.target_name.split(" ")[0] + " this is Jason from " + attack.getPlace() +
+                            " " + attack.getPurpose())
         if not os.path.exists(app.config['UPLOAD_FOLDER'] + "\\" + starting_message + ".wav"):
             generateSpeech(starting_message, app.config['UPLOAD_FOLDER'] + "\\" + starting_message + ".wav")
         return jsonify({"status": "complete"})
@@ -360,8 +361,8 @@ def attack_generation_routes(main, app, data_storage, file_manager, socketio):
         recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "recording.wav"))
         recorder_thread.start()
         is_success = SRtest.startConv(app.config, attack.get_attack_prompts(), attack.getPurpose(), "Hello " +
-                                      attack.target_name + " this is Jason from " + attack.getPlace(),
-                                      StopRecordEvent, attack.target_name)
+                                      attack.target_name.split(" ")[0] + " this is Jason from " + attack.getPlace() +
+                                      " " + attack.getPurpose(), StopRecordEvent, attack.target_name)
         recorder_thread.join()
         os.rename(app.config["ATTACK_RECS"] + "\\recording.wav", app.config["ATTACK_RECS"] +
                   "\\recording" + str(attack.getID()) + ".wav")

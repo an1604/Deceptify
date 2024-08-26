@@ -39,7 +39,7 @@ def sanitize_filename(filename):
 
 def recognize_worker(config, username, backgroundEvent):
     global flag, waitforllm, data_storage, prompts_for_user
-    fillers = ["Wait a second Umm", "Let me check umm", "Hold on a second Umm"]
+    fillers = ["Wait a second umm", "Let me check umm", "Hold on a second umm"]
     index = 0
     while True:
         audio = audio_queue.get()  # Retrieve the next audio processing job from the main thread

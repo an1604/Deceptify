@@ -59,25 +59,21 @@ class AiAttack:
             return {"We had a suspicious activity in your account and we need verification to make action",
                     "We detected some suspicious transactions",
                     "In order to continue further i need your account number",
-                    "It is to confirm your identity", "Yes after we verify your identity", "Wait a second Umm",
-                    "Hold on a second Umm", "I need your account number", "Can you repeat that",
-                    "Let me check umm"}
+                    "It is to confirm your identity", "Yes after we verify your identity", "Wait a second umm",
+                    "Hold on a second umm", "I need your account number", "Can you repeat that",
+                    "Let me check umm", "Goodbye"}
         elif self.attack_purpose == "Delivery":
             return {"We have your package and we need your address to send it", "we do not have that information",
                     "We need it to know where to send the package", "It is not provided in the package",
-                    "Yes to ensure it’s delivered correctly", "It was on the shipping label", "Wait a second Umm",
-                    "Hold on a second Umm", "I need your address", "Let me check umm", "Can you repeat that"}
-        elif self.attack_purpose == "Hospital":
+                    "Yes to ensure it’s delivered correctly", "It was on the shipping label", "Wait a second umm",
+                    "Hold on a second umm", "I need your address", "Let me check umm", "Can you repeat that",
+                    "Goodbye"}
+        else:  # self.attack_purpose == "Hospital":
             return {"We had an attack on our system and we need your ID to solve this issue",
                     "There has been an attempt of a personal data theft",
                     "I need your ID to reopen your account", "Your ID is the only way to open your account",
-                    "Wait a second Umm", "Hold on a second Umm", "Let me check umm", "Can you repeat that"}
-        else:  # self.attack_purpose == "whatsapp"
-            return {"We had a suspicious activity in your account and we need verification to make action",
-                    "We detected some suspicious transactions", "In order to continue further i need your ID",
-                    "It is to confirm your identity", "Yes after we verify your identity", "Wait a second Umm",
-                    "Hold on a second Umm", "I need your ID and account number",
-                    "Let me check umm"}
+                    "Wait a second umm", "Hold on a second umm", "Let me check umm", "Can you repeat that",
+                    "Goodbye"}
 
     def setRec(self, path):
         self.recording = path

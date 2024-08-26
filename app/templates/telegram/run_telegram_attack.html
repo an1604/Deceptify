@@ -14,96 +14,96 @@
 
     <style>
     .text-container {
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 800px; /* Limit the width for better readability */
-    margin: 20px auto; /* Center the container */
-    color: #ffffff; /* Text color */
-    font-size: 18px; /* Increase font size */
-    line-height: 1.6; /* Improve line spacing */
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); /* Subtle text shadow for better contrast */
-}
-        form input[type="text"],
-form input[type="submit"] {
-    width: 100%;
-    padding: 10px 15px;
-    margin: 10px 0;
-    font-size: 16px; /* Increased font size */
-    border: 2px solid #1abc9c; /* Adding a border */
-    border-radius: 5px;
-    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
-    color: #2c3e50; /* Dark text color */
-}
-
-form input[type="submit"] {
-    background-color: #1abc9c; /* Green background for the submit button */
-    color: white; /* White text */
-    cursor: pointer;
-    transition: background-color 0.3s ease; /* Smooth transition */
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 800px; /* Limit the width for better readability */
+        margin: 20px auto; /* Center the container */
+        color: #ffffff; /* Text color */
+        font-size: 18px; /* Increase font size */
+        line-height: 1.6; /* Improve line spacing */
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); /* Subtle text shadow for better contrast */
+    }
+    form input[type="text"],
+    form input[type="submit"] {
+        width: 100%;
+        padding: 10px 15px;
+        margin: 10px 0;
+        font-size: 16px; /* Increased font size */
+        border: 2px solid #1abc9c; /* Adding a border */
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+        color: #2c3e50; /* Dark text color */
 }
 
-form input[type="submit"]:hover {
-    background-color: #16a085; /* Darker green on hover */
-}
+        form input[type="submit"] {
+            background-color: #1abc9c; /* Green background for the submit button */
+            color: white; /* White text */
+            cursor: pointer;
+            transition: background-color 0.3s ease; /* Smooth transition */
+        }
 
-/* Add a container with a background for better readability */
-#initClientContainer {
-    padding: 20px;
-    border-radius: 10px;
-    max-width: 500px; /* Set a maximum width */
-    margin: 30px auto; /* Center the form container */
-}
+        form input[type="submit"]:hover {
+            background-color: #16a085; /* Darker green on hover */
+        }
 
-#attackContainer {
-    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
-    padding: 20px;
-    border-radius: 10px;
-    max-width: 500px;
-    margin: 30px auto;
-}
+        /* Add a container with a background for better readability */
+        #initClientContainer {
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px; /* Set a maximum width */
+            margin: 30px auto; /* Center the form container */
+        }
 
-#container {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-}
+        #attackContainer {
+            background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            margin: 30px auto;
+        }
 
-#log, #new_messages {
-    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background for logs */
-    padding: 10px;
-    border-radius: 5px;
-    color: #2c3e50; /* Dark text color */
-}
+        #container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
 
-#loading {
-    color: #ff0000; /* Red color for loading text */
-    font-weight: bold;
-    display: none; /* Hide the loading text by default */
-}
+        #log, #new_messages {
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background for logs */
+            padding: 10px;
+            border-radius: 5px;
+            color: #2c3e50; /* Dark text color */
+        }
 
-input::placeholder {
-    color: #7f8c8d; /* Light gray placeholder text */
-    font-style: italic; /* Italicize placeholder text */
-}
+        #loading {
+            color: #ff0000; /* Red color for loading text */
+            font-weight: bold;
+            display: none; /* Hide the loading text by default */
+        }
 
-audio {
-    width: 100%;
-    margin-top: 10px;
-}
+        input::placeholder {
+            color: #7f8c8d; /* Light gray placeholder text */
+            font-style: italic; /* Italicize placeholder text */
+        }
 
-button {
-    background-color: #1abc9c;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 10px;
-}
+        audio {
+            width: 100%;
+            margin-top: 10px;
+        }
 
-button:hover {
-    background-color: #16a085;
-}
+        button {
+            background-color: #1abc9c;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #16a085;
+        }
     </style>
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function () {
