@@ -1,20 +1,16 @@
-import os
 import queue
-import string
 import threading
-import time
 import uuid
 
-import numpy as np
 from flask import Flask, request, jsonify, send_file
 import torchaudio
 from whisperspeech.pipeline import Pipeline
-from scipy.io.wavfile import write
 from queue import Queue
+from security import *
+from server_utils import *
 
 # Initialize Flask app
 app = Flask(__name__)
-speakers = {}
 tasks_queue = Queue()  # Q for the voice clone tasks
 results = {}  # Dictionary to keep track the results
 default_file = os.path.join(os.path.dirname(__file__), 'Drake.mp3')  # File for healthcheck.
@@ -43,15 +39,6 @@ def runner():
             continue
 
 
-def add_speaker(profile_name, directory_path, speaker_sample_path):
-    global speakers
-    if profile_name not in speakers:
-        speakers[profile_name] = {
-            'speech_dir_path': directory_path,
-            'speaker_sample_path': speaker_sample_path
-        }
-
-
 def generate_audio(text, speaker_wav_path, output_filename, sample_rate=24000):
     """Generate audio using the WhisperSpeech model."""
     try:
@@ -65,43 +52,13 @@ def generate_audio(text, speaker_wav_path, output_filename, sample_rate=24000):
         return None
 
 
-def create_directory_if_not_exists(directory_path):
-    """Create a directory if it does not exist."""
-    try:
-        os.makedirs(directory_path, exist_ok=True)
-    except Exception as e:
-        print(f"Failed to create directory {directory_path}: {e}")
-        raise
-
-
-def save_speaker_wav_to_dir(speaker_wav_obj, save_wav_path, rate=44100):
-    """Save a NumPy array as a WAV file."""
-    try:
-        scaled = np.int16(speaker_wav_obj / np.max(np.abs(speaker_wav_obj)) * 32767)
-        write(save_wav_path, rate, scaled)
-        print(f"Wave file saved at {save_wav_path}")
-    except Exception as e:
-        print(f"Failed to save WAV file: {e}")
-        raise
-
-
-def clean_text(text):
-    text = text.replace(" ", "_")
-    text = text.translate(str.maketrans('', '', string.punctuation))
-    valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
-    text = ''.join(c for c in text if c in valid_chars)
-    return text.lower()
-
-
 @app.route('/generate_speech', methods=['POST'])
 def generate_speech():
     global tasks_queue
-
     """Endpoint for generating speech from text and speaker wav."""
     try:
         data = request.get_json()
 
-        # Validate input data
         text = data.get('text')
         speaker_wav = data.get('speaker_wav')
         profile_name = data.get('profile_name')
@@ -135,6 +92,13 @@ def get_result(task_id):
                          mimetype='audio/wav')
     else:
         return jsonify({"status": "pending"}), 202
+
+
+@app.route('/get_server_public_key', methods=['GET'])
+def get_server_public_key():
+    global server_public_key_path
+    return send_file(server_public_key_path, as_attachment=True,
+                     download_name=os.path.basename(server_public_key_path))
 
 
 @app.route('/ping', methods=['GET'])
