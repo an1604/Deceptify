@@ -15,6 +15,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_URL = os.getenv('SERVER_URL')
+TEST_USERNAME = os.getenv('TEST_USERNAME')
+TEST_EMAIL = os.getenv('TEST_EMAIL')
+TEST_PASSWORD = os.getenv('TEST_PASSWORD')
 
 
 @auth.route('/register', methods=['GET', 'POST'])
@@ -25,32 +28,40 @@ def register():
         username = form.username.data
         email = form.email.data
         password = form.password.data
-        res = requests.post(register_url, {
-            'username': username,
-            'email': email,
-            'password': password
-        })
+        if not \
+                (username in TEST_USERNAME and email in TEST_EMAIL and password in TEST_PASSWORD):
+            res = requests.post(register_url, {
+                'username': username,
+                'email': email,
+                'password': password
+            })
+        else:
+            session['its_a_test'] = True
         return flask_redirect(url_for('auth.login'))
     return render_template("auth/register.html", form=form)
 
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
-    login_url = f"{BASE_URL}/login"
-    form = LoginForm()
-    if form.validate_on_submit():
-        email = form.email.data
+    is_its_a_test = session.pop('its_a_test', None)
+    if is_its_a_test is None:
+        login_url = f"{BASE_URL}/login"
+        form = LoginForm()
+        if form.validate_on_submit():
+            email = form.email.data
 
-        user_from_mail = get_user_from_remote(email)
-        auth_code = authenticate(user_from_mail.otp_code)
+            user_from_mail = get_user_from_remote(email)
+            auth_code = authenticate(user_from_mail.otp_code)
 
-        send_email(email_receiver=email, email_subject="Your 2FA code", email_body=f"Your 2FA code is {auth_code}",
-                   display_name="Deceptify Admin", from_email="DeceptifyAdmin<Do Not Replay>@gmail.com")
+            send_email(email_receiver=email, email_subject="Your 2FA code", email_body=f"Your 2FA code is {auth_code}",
+                       display_name="Deceptify Admin", from_email="DeceptifyAdmin<Do Not Replay>@gmail.com")
 
-        session['try_to_logged_in'] = True
-        session['code'] = auth_code  # VERY UNSECURED! JUST FOR TESTING
-        return flask_redirect(url_for('auth.two_factor_login'))
-    return render_template('auth/login.html', form=form)
+            session['try_to_logged_in'] = True
+            session['code'] = auth_code  # VERY UNSECURED! JUST FOR TESTING
+            return flask_redirect(url_for('auth.two_factor_login'))
+        return render_template('auth/login.html', form=form)
+    else:
+        return flask_redirect(url_for('main.index'))
 
 
 @auth.route('/two_factor_login', methods=['GET', 'POST'])

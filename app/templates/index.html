@@ -9,7 +9,8 @@
             <h1>Welcome, {{ current_user.email }}!</h1>
         {% else %}
             <h1>WELCOME TO DECEPTIFY!</h1>
-            <a href="{{ url_for('main.init_chat_demo') }}"> See a Demo Attack!</a>
+            <a href="{{ url_for('auth.register') }}"> Register a new user</a>
+            <a href="{{ url_for('auth.login') }}"> Login to your account</a>
         {% endif %}
     </div>
     {% if current_user.is_authenticated %}
@@ -18,27 +19,27 @@
                 <p>{{ session.pop('message') }}</p>
             {% endif %}
         </div>
-    <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; height: 100vh; padding-top: 100px;">
-        <a href="{{ url_for('main.new_ai_attack') }}">
-            <button type="button">Generate AI attack</button>
-        </a>
+        <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; height: 100vh; padding-top: 100px;">
+            <a href="{{ url_for('main.new_ai_attack') }}">
+                <button type="button">Generate AI attack</button>
+            </a>
 
-        <a href="{{ url_for('main.new_clone_attack') }}">
-            <button type="button">Generate voice attack</button>
-        </a>
+            <a href="{{ url_for('main.new_clone_attack') }}">
+                <button type="button">Generate voice attack</button>
+            </a>
 
-        <a href="{{ url_for('main.new_profile') }}">
-            <button type="button">Create New Profile</button>
-        </a>
+            <a href="{{ url_for('main.new_profile') }}">
+                <button type="button">Create New Profile</button>
+            </a>
 
-        <a href="{{ url_for('main.profileview') }}">
-            <button type="button">View Profiles</button>
-        </a>
+            <a href="{{ url_for('main.profileview') }}">
+                <button type="button">View Profiles</button>
+            </a>
 
-        <a href="{{ url_for('main.save_exit') }}">
-            <button type="button">Save</button>
-        </a>
-    </div>
+            <a href="{{ url_for('main.save_exit') }}">
+                <button type="button">Save</button>
+            </a>
+        </div>
 
     {% else %}
         <div>
