@@ -126,10 +126,11 @@ def initialize_socketio(socketio, file_manager):
         tts = data['tts']
         profile_name_for_tts = data['profile_name_for_tts']
         # TODO: Function call to generate TTS
-        audio = clone(tts, file_manager.get_audiofile_path_from_profile_name(profile_name_for_tts),
-                      file_manager.get_new_audiofile_path_from_profile_name(profile_name_for_tts,
-                                                                            tts.lower().replace(" ", "_")))
 
+        audio = clone(tts, profile_name_for_tts,
+                      file_manager.get_new_audiofile_path_from_profile_name(profile_name_for_tts,
+                                                                            tts.lower().replace(" ", "_")),
+                      file_manager.audios_dir)
         emit("new_audio", {"tts": tts, "audio": audio},
              broadcast=True)
 

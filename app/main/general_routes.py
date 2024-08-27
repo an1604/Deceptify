@@ -40,13 +40,15 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
                 video = None
 
             # Save the voice sample
-            file_path = file_manager.get_file_from_voice_folder(secure_filename(data.filename))
-            data.save(file_path)
-            # createvoice_profile(username="oded", profile_name=name, file_path=file_path)
-            data_storage.add_profile(Profile(name, gen_info, str(file_path)))
-            flash("Profile created successfully")
-            return flask_redirect(url_for("main.index"))
-            # TODO: return flask_redirect(url_for('upload_voice_file')) FOR UPLOAD VOICE FILES FOR DATASET
+            speaker_wavfile_path = file_manager.get_file_from_voice_folder(secure_filename(data.filename))
+            data.save(speaker_wavfile_path)
+            if create_voice_profile(username="oded", profile_name=name,
+                                    speaker_wavfile_path=speaker_wavfile_path):
+                data_storage.add_profile(Profile(name, gen_info, str(speaker_wavfile_path)))
+
+                flash("Profile created successfully")
+                return flask_redirect(url_for("main.index"))
+            flash("There was a problem while creating the profile,please try again")
         return render_template("attack_pages/new_profile.html", form=form)
 
     @main.route("/profileview", methods=["GET", "POST"])

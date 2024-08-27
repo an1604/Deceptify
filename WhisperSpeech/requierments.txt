@@ -5,3 +5,4 @@ WhisperSpeech
 requests
 scipy
 pycryptodome
+pydub

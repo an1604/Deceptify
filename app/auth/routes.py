@@ -1,15 +1,13 @@
 import os
+import uuid
 
 import requests
-from flask import render_template, url_for, session, request
-from flask_login import logout_user, login_user, current_user
+from flask import render_template, url_for, session, request, flash
+from flask_login import logout_user, login_user
 from . import auth
 from app.Server.Forms.general_forms import LoginForm, AuthenticationForm, RegisterForm
 from flask import redirect as flask_redirect
-from .mfa import authenticate
-from ..Server.Util import get_ip_address
-from ..Server.data.user import get_user_from_remote
-from app.Server.LLM.llm_chat_tools.send_email import send_email
+from app.Server.data.user import get_test_user, User
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -43,24 +41,26 @@ def register():
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
-    login_url = f"{BASE_URL}/login"
+    login_url = f"{BASE_URL}/authorize_user"
     form = LoginForm()
     if form.validate_on_submit():
         email = form.email.data
         if email == TEST_EMAIL:
-            user = get_user_from_remote('1.1.1.1')
+            user = get_test_user('1.1.1.1')
             login_user(user)
             return flask_redirect(url_for('main.index'))
         else:
-            user_from_mail = get_user_from_remote(email)
-            auth_code = authenticate(user_from_mail.otp_code)
-
-            send_email(email_receiver=email, email_subject="Your 2FA code", email_body=f"Your 2FA code is {auth_code}",
-                       display_name="Deceptify Admin", from_email="DeceptifyAdmin<Do Not Replay>@gmail.com")
-
-            session['try_to_logged_in'] = True
-            session['code'] = auth_code  # VERY UNSECURED! JUST FOR TESTING
-            return flask_redirect(url_for('auth.two_factor_login'))
+            response = requests.post(login_url, {
+                'email': email
+            })
+            if response.status_code == 200:
+                success = response.json().get('status')
+                if success:
+                    session['try_to_logged_in'] = True
+                    session['user_email'] = email
+                    req_id = response.json().get('req_id')
+                    return flask_redirect(url_for('auth.two_factor_login', req_id=req_id))
+            flash("There was a problem with your email address, please try again.")
     return render_template('auth/login.html', form=form)
 
 
@@ -68,19 +68,27 @@ def login():
 def two_factor_login():
     if 'try_to_logged_in' not in session:
         return flask_redirect(url_for('auth.login'))
+
+    validation_url = f"{BASE_URL}/validate_code"
+    req_id = request.args.get('req_id')
     form = AuthenticationForm()
     if form.validate_on_submit():
         code = form.code.data
-        if code == session['code']:
-            user = get_user_from_remote(get_ip_address())
-            session.permanent = True  # Mark the session as permanent
-            login_user(user)
-            session.pop('try_to_logged_in', None)
-            session.pop('code', None)
-            next = request.args.get('next')
-            if next is None or not next.startswith('/'):
-                next = url_for('main.index')
-            return flask_redirect(next)
+        response = requests.post(validation_url, {
+            'req_id': req_id,
+            'code': code
+        })
+        if response.status_code == 200:
+            success = response.json().get('status')
+            if success:
+                user = User(_id=uuid.uuid4(), email=session.pop('user_email'))
+                session.permanent = True  # Mark the session as permanent
+                login_user(user)
+                session.pop('try_to_logged_in', None)
+                next = request.args.get('next')
+                if next is None or not next.startswith('/'):
+                    next = url_for('main.index')
+                return flask_redirect(next)
     return render_template('auth/two_factor_login.html', form=form)
 
 

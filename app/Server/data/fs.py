@@ -78,3 +78,8 @@ class FilesManager(object):
 
     def get_file_from_video_dir(self, filename):
         return os.path.join(self.video_dir, filename)
+
+    def init_new_speaker(self, profile_name):
+        new_dir_path = self.generate_path_for_clone_dir(profile_name)
+        self.create_directory(new_dir_path)
+        return new_dir_path

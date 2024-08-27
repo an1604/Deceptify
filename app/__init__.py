@@ -8,7 +8,7 @@ from datetime import timedelta
 from flask_socketio import SocketIO
 
 from app.Server.data.fs import FilesManager
-from app.Server.data.user import get_user_from_remote, User
+from app.Server.data.user import get_test_user, User
 from app.socketio_tasks import initialize_socketio
 
 load_dotenv()

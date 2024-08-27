@@ -17,7 +17,6 @@ class User(UserMixin):
     def __init__(self, _id, email):
         self.id = _id
         self.email = email
-        self.otp_code = pyotp.random_base32()
 
     @staticmethod
     def get(user_id):
@@ -27,8 +26,6 @@ class User(UserMixin):
         return None
 
 
-def get_user_from_remote(user_ip):
+def get_test_user(user_ip):
     email = get_email_from_ip(user_ip)
-    # if email == 'admin@example.com':
-    #     return User(id='1', username='admin', email=email)
     return User(_id='1', email=email)

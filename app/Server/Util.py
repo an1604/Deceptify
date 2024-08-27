@@ -103,7 +103,7 @@ def create_user(username, password):
         return False
 
 
-def createvoice_profile(username, profile_name, file_path):
+def create_voice_profile(username, profile_name, speaker_wavfile_path):
     """
     Create a new voice profile for the given user.
 
@@ -115,13 +115,18 @@ def createvoice_profile(username, profile_name, file_path):
     Returns:
     bytes: The server's response content.
     """
-    url = f"{SERVER_URL}/voice_profile"
-    with open(file_path, 'rb') as f:
-        files = {'file': f}
-        data = {'username': username, 'profile_name': profile_name}
-        response = requests.post(url, files=files, data=data)
-        response.raise_for_status()
-        return response.json
+    url = f"{SERVER_URL}/create_speaker_profile"
+    try:
+        with open(speaker_wavfile_path, 'rb') as f:
+            files = {'file': f}
+            data = {'profile_name': profile_name,
+                    'speaker_wav': files
+                    }
+            response = requests.post(url, data=data)
+            return response.json().get('success')
+    except Exception as e:
+        print(f"From create_voice_profile --> {e}")
+        raise e
 
 
 def generate_voice(username, profile_name, prompt):
@@ -158,36 +163,46 @@ def get_voice_profile(username, profile_name, prompt, prompt_filename):
     return file_path
 
 
-def clone(text, file_path, output_filename):
+def request_and_wait_for_audio(task_id, profile_name, audios_directory_path):
+    get_audio_after_gen_req = f'{CLONE_URL}/get_result/{{task_id}}'
+    file_ready = False
+    while not file_ready:
+        response = requests.get(get_audio_after_gen_req.format(task_id=task_id))
+        if response.status_code == 202:
+            if response.headers["content-type"].strip().startswith(
+                    "application/json"):  # Checks the response format (json or a file)
+                res = response.json()
+                print(f"Response from server received: {res}")
+                if 'status' in res and res['status'] == 'pending':
+                    time.sleep(3)  # Waits 3 seconds before checking again.
+            else:
+                file_ready = True
+                output_filename = os.path.join(audios_directory_path, f"{profile_name}_generated.wav")
+                with open(output_filename, 'wb') as f:
+                    f.write(response.content)
+                print(f"Audio file received and saved as {profile_name}_generated.wav.")
+                return output_filename
+
+
+def clone(text, profile_name_for_tts, output_filename, audios_directory_path):
     default_record = r"C:\Users\adina\PycharmProjects\docker_app\Deceptify_update\app\Server\AudioFiles\Drake.mp3"
     try:
-        # Open the speaker WAV file in binary mode for uploading
-        with open(file_path, "rb") as speaker_wav:
-            # Prepare the form data
-            files = {
-                'speaker_wav': speaker_wav
-            }
-            data = {
-                'text': text
-            }
-            url = f"{CLONE_URL}/audio/generate"
-
-            # Send the POST request to the server
-            response = requests.post(url, files=files, data=data)
-
-            # Check if the request was successful
-            if response.status_code == 200:
-                # Save the received .wav file locally
-                with open(output_filename, "wb") as output_file:
-                    output_file.write(response.content)
-                print(f"Audio file received and saved as '{output_filename}'")
-                return os.path.abspath(output_filename)
-            else:
-                # Print any error message from the server
-                print(f"An error occurred: {response.json()}")
-                # return None
-                # For Demo only, return default record
-                return default_record
+        url = f"{CLONE_URL}/generate_speech"
+        response = requests.post(url, data={
+            'text': text,
+            'profile_name': profile_name_for_tts
+        })
+        if response.status_code == 202:
+            task_id = response.json().get('task_id')
+            request_and_wait_for_audio(task_id, profile_name_for_tts, audios_directory_path)
+            with open(output_filename, "wb") as output_file:
+                output_file.write(response.content)
+            print(f"Audio file received and saved as '{output_filename}'")
+            return os.path.abspath(output_filename)
+        else:
+            print(f"An error occurred: {response.json()}")
+            return None
+            # return default_record
     except (requests.exceptions.RequestException, FileNotFoundError) as e:
         print(f"An error occurred: {e}")
         # For Demo only, return default record
@@ -250,7 +265,7 @@ def play_audio_through_vbcable(audio_file_path, device_name="CABLE Input"):
     # default_stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
     #                         channels=wf.getnchannels(),
     #                         rate=wf.getframerate(),
-    #                         output=True)
+    #                         speakers=True)
     # Read data in chunks
     chunk = 1024
     data = wf.readframes(chunk)
