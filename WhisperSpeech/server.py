@@ -72,7 +72,7 @@ def create_profile():
     profile_result_dir_path = os.path.join('speakers', profile_name)
     create_directory_if_not_exists(profile_result_dir_path)
     speaker_wav_path = os.path.join(profile_result_dir_path,
-                                    f'{profile_name}_original_speech.wav')  # The existing wav file
+                                    f'{profile_name}_original_speech.ogg')  # The existing wav file
 
     save_speaker_wav_to_dir(speaker_wav, speaker_wav_path)
     if os.path.exists(profile_result_dir_path) and os.path.exists(speaker_wav_path):
@@ -101,7 +101,7 @@ def generate_speech():
 
         result_dir_path = os.path.join('speakers', profile_name)
         output_filename = os.path.join(result_dir_path, f'{clean_text(text)}.wav')  # The future cloned wav file
-        speaker_wav_path = os.path.join(result_dir_path, f'{profile_name}_original_speech.wav')  # The existing wav file
+        speaker_wav_path = os.path.join(result_dir_path, f'{profile_name}_original_speech.ogg')  # The existing wav file
 
         task_id = str(uuid.uuid4())  # Generate a unique task id, to future memorization what to return to whom.
         tasks_queue.put((task_id, (text, speaker_wav_path, output_filename)))

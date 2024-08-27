@@ -121,7 +121,7 @@ def create_voice_profile(username, profile_name, speaker_wavfile_path):
             data = {'profile_name': profile_name,
                     'speaker_wav': files
                     }
-            response = requests.post(url, data=data)
+            response = requests.post(url, json=data)
             return response.json().get('success')
     except Exception as e:
         print(f"From create_voice_profile --> {e}")
@@ -187,7 +187,7 @@ def clone(text, profile_name_for_tts, output_filename, audios_directory_path):
     default_record = r"C:\Users\adina\PycharmProjects\docker_app\Deceptify_update\app\Server\AudioFiles\Drake.mp3"
     try:
         url = f"{SERVER_URL}/generate_speech"
-        response = requests.post(url, data={
+        response = requests.post(url, json={
             'text': text,
             'profile_name': profile_name_for_tts
         })

@@ -1,9 +1,11 @@
 import asyncio
 import os
+import logging
 from telethon import TelegramClient, events, errors
 from telethon.sessions import StringSession
-
 from telethon import functions, types
+
+logging.basicConfig(level=logging.INFO)
 
 
 class TelegramInfo(object):
@@ -35,43 +37,43 @@ class TelegramClientHandler(object):
         self.initialize_client()
 
     def handle_routes(self, client):
-        print(f"handle_routes called with client {client}")
+        logging.info(f"handle_routes called with client {client}")
 
         @client.on(events.NewMessage)
         async def handle_new_message(event):
             message = event.message.message
-            print(f'New message received: {message}')
+            logging.info(f'New message received: {message}')
             self.messages_received.append(message)
 
     def initialize_client(self):
         self.handle_routes(self.client)
-
         self.loop.create_task(self.run_client())  # Run the telegram client as a background task
-        print("Added run_client to the loop")
+        logging.info("Added run_client to the loop")
 
     async def run_client(self):
         try:
             await self.client.start(phone=self.phone_number)
-            print('Client is running...')
+            logging.info('Client is running...')
             await self.client.run_until_disconnected()
         except errors.AuthKeyUnregisteredError:
-            print("Authorization key not found or invalid. Re-authenticating...")
+            logging.warning("Authorization key not found or invalid. Re-authenticating...")
             await self.authenticate_client_via_msg()
             await self.run_client()  # Retry running the client after re-authentication
+        except asyncio.exceptions.CancelledError:
+            logging.warning("Client task was cancelled. Attempting to restart...")
+            await self.run_client()  # Restart client in case of cancellation
         except Exception as e:
-            print(f"An error occurred: {e}")
-            await self.run_client()
+            logging.error(f"An unexpected error occurred: {e}")
+            await self.run_client()  # Retry running the client after an unexpected error
 
     async def send_message(self, receiver, message):
         try:
             await self.client.connect()
             self.handle_routes(self.client)
-
             await self.client.send_message(receiver, message)
-
-            print(f'Message sent: {message}')
+            logging.info(f'Message sent: {message}')
         except errors.AuthKeyUnregisteredError:
-            print("Authorization key not found or invalid. Re-authenticating...")
+            logging.warning("Authorization key not found or invalid. Re-authenticating...")
             await self.authenticate_client_via_msg()
             await self.send_message(receiver, message)  # Retry sending the message after re-authentication
 
@@ -81,12 +83,12 @@ class TelegramClientHandler(object):
             self.handle_routes(self.client)
             if await self.client.is_user_authorized():
                 if audiofile_path and os.path.exists(audiofile_path):
-                    print("Audio file found!")
+                    logging.info("Audio file found!")
                     await self.client.send_file(receiver, audiofile_path)
                 else:
-                    print(f"Audio file {audiofile_path} does not exist.")
+                    logging.error(f"Audio file {audiofile_path} does not exist.")
         except errors.AuthKeyUnregisteredError:
-            print("Authorization key not found or invalid. Re-authenticating...")
+            logging.warning("Authorization key not found or invalid. Re-authenticating...")
             await self.authenticate_client_via_msg()
             await self.send_audio(receiver, audiofile_path)  # Retry sending the audio after re-authentication
 
@@ -108,31 +110,30 @@ class TelegramClientHandler(object):
         if self.loop:
             self.loop.close()
             self.loop = None
-        self.client.disconnect()
-        print('Client disconnected')
+        await self.client.disconnect()
+        logging.info('Client disconnected')
 
     async def authenticate_client_via_msg(self, counter=None):
         await self.client.connect()
         if counter is None or counter <= 1:
-            self.auth_event.set()  # Set the event to alert to the background thread that authentication needed.
+            self.auth_event.set()  # Set the event to alert the background thread that authentication is needed.
             self.phone_hash = await self.client.send_code_request(self.phone_number)
 
             try:
                 while self.auth_code is None:
-                    print("from authenticate_client_via_msg --> auth_code is None. Waiting")
+                    logging.info("from authenticate_client_via_msg --> auth_code is None. Waiting")
                     await asyncio.sleep(3)
 
                 await self.client.sign_in(self.phone_number, self.auth_code)
-                print("from authenticate_client_via_msg --> sign in request is sent.")
+                logging.info("from authenticate_client_via_msg --> sign in request is sent.")
 
             except Exception as e:
-                print(f"Error from authenticate_client_via_msg --> {e}")
+                logging.error(f"Error from authenticate_client_via_msg --> {e}")
         else:
-            print(f"Waiting for the client to send the authentication code... (Attempt {counter})")
-            with self.client as client:
-                result = client(functions.auth.ResendCodeRequest(
-                    phone_number=self.phone_number,
-                    phone_code_hash=self.phone_hash,
-                    reason='some string here'
-                ))
-                print(f'from authenticate_client_via_msg -->  result.stringify() = {result.stringify()}')
+            logging.info(f"Waiting for the client to send the authentication code... (Attempt {counter})")
+            result = await self.client(functions.auth.ResendCodeRequest(
+                phone_number=self.phone_number,
+                phone_code_hash=self.phone_hash,
+                reason='some string here'
+            ))
+            logging.info(f'from authenticate_client_via_msg --> result.stringify() = {result.stringify()}')
