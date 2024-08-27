@@ -1,13 +1,18 @@
 import os
+import logging
 
 
 class FilesManager(object):
     def __init__(self, audios_dir, app_dir, video_dir,
                  attack_records_dir):
         self.audios_dir = audios_dir
+        logging.critical(f"Audio directory is: {audios_dir}")
         self.app_dir = app_dir
+        logging.critical(f"App directory is: {app_dir}")
         self.video_dir = video_dir
+        logging.critical(f"Video directory is: {video_dir}")
         self.attack_records_dir = attack_records_dir
+        logging.critical(f"Attack records directory is: {attack_records_dir}")
 
     def get_audiofile_path_from_profile_name(self, profile_name):
         default_record = r"C:\Users\adina\PycharmProjects\docker_app\Deceptify_update\app\Server\AudioFiles\Drake.mp3"
@@ -48,7 +53,7 @@ class FilesManager(object):
 
     def get_file_from_voice_folder(self, filename):
         try:
-            return os.path.join(self.audios_dir, filename)
+            return self.audios_dir + filename
         except Exception as e:
             print(f"Exception in get_file_from_voice_folder for filename '{filename}': {str(e)}")
             return None

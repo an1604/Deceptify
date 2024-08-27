@@ -1,3 +1,4 @@
+import logging
 import os.path
 import uuid
 
@@ -121,7 +122,9 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
 
         starting_message = "Hello " + attack.getTargetName() + " this is Jason from " + attack.getPlace()
         if not file_manager.prompt_rec_exists_in_audio_dir(starting_message):
-            generateSpeech(starting_message, file_manager.get_file_from_voice_folder(f"\\{starting_message}.wav"))
+            path = file_manager.get_file_from_voice_folder(f"\\{starting_message}.wav")
+            logging.info(f"From attack --> path is: {path}")
+            generateSpeech(starting_message, path)
 
         return jsonify({"status": "complete"})
 

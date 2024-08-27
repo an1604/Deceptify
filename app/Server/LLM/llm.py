@@ -1,3 +1,4 @@
+import os.path
 from datetime import datetime
 from langchain_community.llms import Ollama
 from time import time
@@ -105,7 +106,6 @@ class Llm(object):
                 "context": prompt
             })
         self.chat_history.add_ai_response(answer)
-
         if 'bye' in answer.lower() or 'bye' in prompt.lower():
             self.end_conv = True
             self.finish_msg = answer

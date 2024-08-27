@@ -1,3 +1,4 @@
+import os.path
 import time
 from threading import Thread, Event
 from queue import Queue
@@ -19,6 +20,7 @@ waitforllm = Event()
 data_storage = Data().get_data_object()
 prompts_for_user = set()
 background_thread = None
+
 
 def get_device_index(device_name="CABLE Output"):
     p = pyaudio.PyAudio()
@@ -50,10 +52,30 @@ def recognize_worker(audios_dir, username, backgroundEvent):
             spoken_text = r.recognize_google(audio)
             backgroundEvent.clear()
             print("User says: " + spoken_text)
-            response = llm.get_answer(spoken_text).strip()
+            # response = llm.get_answer(spoken_text).strip()
+            response = llm.get_answer_from_embedding(spoken_text)
+
+            if response is None:
+                response = llm.validate_number(spoken_text)
+                if response is None:  # If the response is in the format of a number, means that we must have the
+                    # value that we asked to get from the mimic.
+                    response = llm.get_answer(spoken_text).strip()
+                else:
+                    background_thread = Thread(target=play_background, args=(backgroundEvent,
+                                                                             audios_dir
+                                                                             + "\\office.wav",))
+                    background_thread.start()
+                    start_filler = Thread(target=play_audio_through_vbcable,
+                                          args=(audios_dir + "\\" +
+                                                fillers[index] + ".wav", "CABLE Input"))
+                    start_filler.daemon = True
+                    start_filler.start()
+                    index = (index + 1) % 3
             print("AI says: " + response)
+
             if "goodbye" in response.lower():
                 flag = True
+
             if response in prompts_for_user:
                 background_thread = Thread(target=play_background, args=(backgroundEvent,
                                                                          audios_dir
@@ -78,10 +100,12 @@ def recognize_worker(audios_dir, username, backgroundEvent):
                     index = (index + 1) % 3
                 generateSpeech(text_prompt=response,
                                path=audios_dir + "\\prompt.wav")
-                play_audio_through_vbcable(audios_dir+ "\\prompt.wav")
+                play_audio_through_vbcable(audios_dir + "\\prompt.wav")
                 backgroundEvent.set()
+                background_thread = None
             if not waitforllm.is_set():
                 waitforllm.set()
+
         except sr.UnknownValueError:
             waitforllm.set()
             print("Google Speech Recognition could not understand audio")
@@ -115,10 +139,10 @@ def startConv(audios_dir, attack_prompts, purpose, starting_message, record_even
                 waitforllm.clear()
                 if not started_conv:
                     background_thread = Thread(target=play_background, args=(backgroundEvent,
-                                                                             config['UPLOAD_FOLDER']
+                                                                             audios_dir
                                                                              + "\\office.wav",))
                     background_thread.start()
-                    play_audio_through_vbcable(config['UPLOAD_FOLDER'] + "\\" +
+                    play_audio_through_vbcable(audios_dir + "\\" +
                                                starting_message + ".wav", "CABLE Input")
                     backgroundEvent.set()
                     # need to generate on attack phase
