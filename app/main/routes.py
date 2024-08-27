@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import os.path
+import time
 import uuid
 import urllib
 
@@ -360,6 +361,7 @@ def attack_generation_routes(main, app, data_storage, file_manager, socketio):
         StopBackgroundEvent.clear()
         recorder_thread = Thread(target=record_call, args=(StopRecordEvent, "recording.wav"))
         recorder_thread.start()
+        time.sleep(1)
         is_success = SRtest.startConv(app.config, attack.get_attack_prompts(), attack.getPurpose(), "Hello " +
                                       attack.target_name.split(" ")[0] + " this is Jason from " + attack.getPlace() +
                                       " " + attack.getPurpose(), StopRecordEvent, attack.target_name)

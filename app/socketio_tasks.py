@@ -3,7 +3,7 @@ import threading
 from flask_socketio import emit
 from app.Server.LLM.llm_chat_tools.telegramclienthandler import TelegramClientHandler, TelegramInfo
 from app.Server.Util import clone
-
+from app.Server.speechToText.SRtest import stop
 thread_lock = threading.Lock()  # Background thread Lock for all the tasks.
 thread = None  # The main thread that will be run and perform the background tasks.
 

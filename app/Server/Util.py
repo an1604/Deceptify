@@ -203,7 +203,7 @@ def synthesize(prompt):
         print(response.text)
         if response.status_code == 200:
             # Save the received .wav file locally
-            with open('AudioFiles' + '\\-' + prompt + ".wav", "wb") as f:
+            with open('AudioFiles' + '\\' + prompt + ".wav", "wb") as f:
                 f.write(response.content)
             print("Audio file received and saved")
         else:
@@ -469,4 +469,4 @@ def get_email_from_ip(user_ip):
 
 
 if __name__ == '__main__':
-    synthesize("Hello how are you doing")
+    synthesize("what is going on")

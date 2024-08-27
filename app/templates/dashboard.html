@@ -91,16 +91,19 @@ hr {
                 {% endif %}
                 <p><strong>Place of attack:</strong> {{ attack.getPlace() }} {{ attack.getPurpose() }}</p>
                 {% if attack.getResult() == None %}
-                <p><strong>Result:</strong><strong style="color:yellow;"></strong> Not completed</p>
+                    <p><strong>Result:</strong><strong style="color: yellow;"> Not completed</strong></p>
                 {% elif attack.getResult() == True %}
                 <p><strong>Result:</strong><strong style="color: lawngreen"> Success</strong></p>
                 {% else %}
                 <p><strong>Result:</strong><strong style="color: red"> Failed</strong></p>
                 {% endif %}
+
+                {% if attack.getResult() != None %}
                 <div class="button-group">
                     <a href="{{ url_for('main.download_file', filename='transcript' + (attack.getID()|string) + '.txt') }}" class="btn btn-primary">Transcript</a>
                     <a href="{{ url_for('main.download_file', filename='recording' + (attack.getID()|string) + '.wav') }}" class="btn btn-primary">Recording</a>
                 </div>
+                {% endif %}
             </div>
             <hr>
             {% endfor %}
