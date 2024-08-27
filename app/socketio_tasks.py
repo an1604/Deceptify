@@ -181,3 +181,9 @@ def initialize_socketio(socketio, file_manager):
         emit("server_update", {
             'data': "AUTHENTICATION REQUEST RECEIVED"
         })
+
+    @socketio.on("stop_attack")
+    def handle_stop_attack():
+        print("from socketio: stop_attack triggered and runs stop() function.")
+        stop()
+

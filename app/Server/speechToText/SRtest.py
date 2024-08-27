@@ -163,3 +163,16 @@ def startConv(config, attack_prompts, purpose, starting_message, record_event, t
             is_success = False
     stop()
     return is_success
+
+
+def stop():
+    global flag, llm_flag
+    llm.flush()
+    flag = True
+    waitforllm.set()
+    llm_flag = False
+    audio_queue.put(None)  # Tell the llm_thread to stop
+    audio_queue.join()  # Block until all current audio processing jobs are done
+    llm_thread.join()  # Wait for the llm_thread to actually stop
+
+

@@ -252,11 +252,11 @@
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     {% if current_user.is_authenticated %}
-                        <li><a href="{{ url_for('main.index') }}">Home</a></li>
-                        <li><a href="{{ url_for('main.dashboard') }}">Dash Board</a></li>
-                        <li><a href="{{ url_for('main.contact') }}">Contact Us</a></li>
-                        <li><a href="{{ url_for('main.init_chat_demo') }}"> Demo</a></li>
-                        <li><a href="{{ url_for('main.telegram_info') }}"> Voice Clone Telegram Attack</a></li>
+                        <li><a href="{{ url_for('main.index') }}" class="nav_btn">Home</a></li>
+                        <li><a href="{{ url_for('main.dashboard') }}" class="nav_btn">Dash Board</a></li>
+                        <li><a href="{{ url_for('main.contact') }}" class="nav_btn">Contact Us</a></li>
+                        <li><a href="{{ url_for('main.init_chat_demo') }}" class="nav_btn"> Demo</a></li>
+                        <li><a href="{{ url_for('main.telegram_info') }}" class="nav_btn"> Voice Clone Telegram Attack</a></li>
 
                     {% else %}
                         <li><a href="{{ url_for('auth.login') }}">Contact Us</a></li>
