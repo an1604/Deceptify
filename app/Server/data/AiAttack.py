@@ -61,7 +61,8 @@ class AiAttack:
                     "In order to continue further i need your account number",
                     "It is to confirm your identity", "Yes after we verify your identity", "Wait a second umm",
                     "Hold on a second umm", "I need your account number", "Can you repeat that",
-                    "Let me check umm", "Goodbye"}
+                    "Let me check umm", "Goodbye", "This is not a real number",
+                    "Thank you, we have solved the issue. Goodbye", "I need a 6 digit account number"}
         elif self.attack_purpose == "Delivery":
             return {"We have your package and we need your address to send it", "we do not have that information",
                     "We need it to know where to send the package", "It is not provided in the package",
@@ -73,7 +74,8 @@ class AiAttack:
                     "There has been an attempt of a personal data theft",
                     "I need your ID to reopen your account", "Your ID is the only way to open your account",
                     "Wait a second umm", "Hold on a second umm", "Let me check umm", "Can you repeat that",
-                    "Goodbye"}
+                    "Goodbye", "This is not a real number", "Thank you, we have opened your account. Goodbye",
+                    "I need a 9 digit ID"}
 
     def setRec(self, path):
         self.recording = path

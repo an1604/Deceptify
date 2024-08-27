@@ -59,7 +59,6 @@ class Llm(object):
                     return "This is not a real number"
                 elif len(number[0]) == 6:
                     return "Thank you, we have solved the issue. Goodbye"
-
                 else:
                     return "I need a 6 digit account number"
             elif self.purpose == "Hospital":

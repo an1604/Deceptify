@@ -1,8 +1,8 @@
 import logging
 import os.path
 import uuid
-
-from flask import redirect as flask_redirect, jsonify, session,render_template, url_for, flash, \
+import urllib
+from flask import redirect as flask_redirect, jsonify, session, render_template, url_for, flash, \
     request
 from werkzeug.utils import secure_filename
 from flask_login import login_required
@@ -34,7 +34,7 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
             message_name = form.message_name.data
             attack_purpose = form.attack_purpose.data
             place = form.place.data
-            attack_id = int(uuid.uuid4())
+            attack_id = int(uuid.uuid4()) % 1000
             attack = AiAttack(
                 campaign_name,
                 target_name,
@@ -77,6 +77,7 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
     @login_required
     def results_redirect():
         is_success = request.args.get('is_success')
+        is_success = str(is_success).lower()
         print("redirecting")
         return flask_redirect(url_for('main.download_page', is_success=is_success))
 
@@ -84,8 +85,8 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
     @login_required
     def results():
         is_success = request.args.get('is_success')
-        print(is_success)
-        return render_template('attack_pages/results.html', is_success=is_success)
+        attack_id = request.args.get('id')
+        return render_template('attack_pages/results.html', is_success=is_success, id=attack_id)
 
     @main.route('/generate_attack_type', methods=['GET'])
     @login_required
@@ -118,14 +119,14 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
 
         for prompt in attack_prompts:
             if not file_manager.prompt_rec_exists_in_audio_dir(prompt):
-                generateSpeech(prompt, file_manager.get_file_from_voice_folder(f"\\{prompt}.wav"))
+                generateSpeech(prompt, file_manager.get_file_from_audio_dir(f"\\{prompt}.wav"))
 
-        starting_message = "Hello " + attack.getTargetName() + " this is Jason from " + attack.getPlace()
+        starting_message = "Hello " + attack.getTargetName().split(" ")[
+            0] + " this is Jason from " + attack.getPlace() + " " + attack.getPurpose()
         if not file_manager.prompt_rec_exists_in_audio_dir(starting_message):
-            path = file_manager.get_file_from_voice_folder(f"\\{starting_message}.wav")
+            path = file_manager.get_file_from_audio_dir(f"\\{starting_message}.wav")
             logging.info(f"From attack --> path is: {path}")
             generateSpeech(starting_message, path)
-
         return jsonify({"status": "complete"})
 
     @main.route('/start_attack', methods=['GET', 'POST'])
@@ -137,10 +138,19 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
         MainRotesParams.StopBackgroundEvent.clear()
         recorder_thread = Thread(target=record_call, args=(MainRotesParams.StopRecordEvent, "recording.wav"))
         recorder_thread.start()
+        time.sleep(1)
         is_success = SRtest.startConv(file_manager.audios_dir, attack.get_attack_prompts(), attack.getPurpose(),
                                       "Hello " +
-                                      attack.target_name + " this is Jason from " + attack.getPlace(),
-                                      MainRotesParams.StopRecordEvent, attack.target_name)
+                                      attack.getTargetName().split(" ")[
+                                          0] + " this is Jason from " + attack.getPlace() +
+                                      " " + attack.getPurpose(), MainRotesParams.StopRecordEvent, attack.target_name)
+        recorder_thread.join()
+        file_manager.rename_file('attack_records', 'recording.wav', "recording" + str(attack.getID()) + ".wav")
+        file_manager.rename_file('attack_records', 'transcript.txt', "transcript" + str(attack.getID()) + ".txt")
+        attack.setResult(is_success)
+        attack.setRec(file_manager.attack_records_dir + "recording" + str(attack.getID()) + ".wav")
+        attack.setTranscript(file_manager.attack_records_dir + "transcript" + str(attack.getID()) + ".txt")
+        print(is_success)
         return jsonify({'is_success': is_success})
 
     @main.route('/attack_dashboard', methods=['GET', 'POST'])
@@ -166,7 +176,7 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
             session['stopped_call'] = False
         if form.validate_on_submit():
             play_audio_through_vbcable(
-                file_manager.get_file_from_voice_folder(f"{profile_name}-{form.prompt_field.data}.wav"))
+                file_manager.get_file_from_audio_dir(f"{profile_name}-{form.prompt_field.data}.wav"))
             return flask_redirect(url_for('main.attack_dashboard', profile=profile_name,
                                           contact=contact_name, id=attack_id))
         return render_template('attack_pages/attack_dashboard.html', form=form,
@@ -215,8 +225,9 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
 
         form = VoiceUploadForm()
         if form.validate_on_submit():
-            profile_name_voice_dir = file_manager.generate_path_for_clone_dir(profile_name)
-            file_manager.create_directory(profile_name_voice_dir)
+            profile_name_voice_dir = file_manager.get_file_from_audio_dir(app.config['UPLOAD_FOLDER'],
+                                                                          profile_name + '-clone')
+            os.makedirs(profile_name_voice_dir, exist_ok=True)
 
             for file in form.files.data:
                 filename = secure_filename(file.filename)
@@ -243,7 +254,7 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
             flash("No selected file")
             return flask_redirect(request.url)
         file_name = str(uuid.uuid4()) + ".mp3"
-        full_file_name = file_manager.get_file_from_voice_folder(file_name)
+        full_file_name = file_manager.get_file_from_audio_dir(file_name)
         file.save(full_file_name)
         return "<h1>File saved</h1>"
 
@@ -316,7 +327,7 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
                 return flask_redirect(url_for('main.new_chat_demo'))
             elif 'Telegram' in runs_on:
                 return flask_redirect(url_for('main.telegram_chat_demo'))
-            else:  # TODO: CREATE WHATSAPP CASE
+            else:
                 pass
         return render_template('demos/init_chat_demo.html', form=form)
 

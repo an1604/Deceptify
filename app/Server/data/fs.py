@@ -51,7 +51,7 @@ class FilesManager(object):
             print(f"Exception in get_unique_qr_path for profile '{profile_name}': {str(e)}")
             return None
 
-    def get_file_from_voice_folder(self, filename):
+    def get_file_from_audio_dir(self, filename):
         try:
             return self.audios_dir + filename
         except Exception as e:
@@ -88,3 +88,12 @@ class FilesManager(object):
         new_dir_path = self.generate_path_for_clone_dir(profile_name)
         self.create_directory(new_dir_path)
         return new_dir_path
+
+    def rename_file(self, dir_name, file_name, new_file_name):
+        if 'attack' in dir_name.lower():
+            os.rename(os.path.join(self.attack_records_dir, file_name),
+                      os.path.join(self.attack_records_dir, new_file_name))
+        elif 'audio' in dir_name.lower():
+            os.rename(os.path.join(self.audios_dir, file_name), os.path.join(self.attack_records_dir, new_file_name))
+        elif 'video' in dir_name.lower():
+            os.rename(os.path.join(self.video_dir, file_name), new_file_name)

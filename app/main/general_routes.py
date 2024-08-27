@@ -42,13 +42,9 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
             # Save the voice sample
             speaker_wavfile_path = file_manager.get_file_from_voice_folder(secure_filename(data.filename))
             data.save(speaker_wavfile_path)
-            if create_voice_profile(username="oded", profile_name=name,
-                                    speaker_wavfile_path=speaker_wavfile_path):
-                data_storage.add_profile(Profile(name, gen_info, str(speaker_wavfile_path)))
-
-                flash("Profile created successfully")
-                return flask_redirect(url_for("main.index"))
-            flash("There was a problem while creating the profile,please try again")
+            data_storage.add_profile(Profile(name, gen_info, str(speaker_wavfile_path)))
+            flash("Profile created successfully")
+            return flask_redirect(url_for("main.index"))
         return render_template("attack_pages/new_profile.html", form=form)
 
     @main.route("/profileview", methods=["GET", "POST"])
@@ -101,9 +97,8 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
     @main.route("/dashboard", methods=["GET", "POST"])
     @login_required
     def dashboard():
-        encoded_start_url = request.args.get('start_url')
-        start_url = urllib.parse.unquote(encoded_start_url) if encoded_start_url else None
-        return render_template("dashboard.html", start_url=start_url)
+        attacks = data_storage.get_ai_attacks()
+        return render_template("dashboard.html", attacks=attacks)
 
     @main.route('/mp3/<path:filename>')  # Serve the MP3 files statically
     @login_required

@@ -19,7 +19,7 @@ flag = False
 waitforllm = Event()
 data_storage = Data().get_data_object()
 prompts_for_user = set()
-llm_thread = None
+recognize_thread = None
 llm_flag = True
 background_thread = None
 
@@ -45,7 +45,7 @@ def recognize_worker(audios_dir, username, backgroundEvent):
     global flag, waitforllm, data_storage, prompts_for_user, background_thread
     fillers = ["Wait a second umm", "Let me check umm", "Hold on a second umm"]
     index = 0
-    time.sleep(3)
+    time.sleep(2)
     while llm_flag:
         audio = audio_queue.get()  # Retrieve the next audio processing job from the main thread
         if audio is None:
@@ -55,15 +55,12 @@ def recognize_worker(audios_dir, username, backgroundEvent):
             spoken_text = r.recognize_google(audio)
             backgroundEvent.clear()
             print("User says: " + spoken_text)
-            # response = llm.get_answer(spoken_text).strip()
             response = llm.get_answer_from_embedding(spoken_text)
 
             if response is None:
                 response = llm.validate_number(spoken_text)
                 if response is None:  # If the response is in the format of a number, means that we must have the
                     # value that we asked to get from the mimic.
-                    response = llm.get_answer(spoken_text).strip()
-                else:
                     background_thread = Thread(target=play_background, args=(backgroundEvent,
                                                                              audios_dir
                                                                              + "\\office.wav",))
@@ -74,6 +71,13 @@ def recognize_worker(audios_dir, username, backgroundEvent):
                     start_filler.daemon = True
                     start_filler.start()
                     index = (index + 1) % 3
+                    response = llm.get_answer(spoken_text).strip()
+                else:
+                    llm.chat_history.add_ai_response(response)
+                    llm.finish_msg = response
+                    llm.end_conv = True
+            response.strip()
+
             print("AI says: " + response)
 
             if "goodbye" in response.lower():
@@ -118,11 +122,14 @@ def recognize_worker(audios_dir, username, backgroundEvent):
         except Exception as e:
             waitforllm.set()
             print(f'Exception from recognize_worker: {e}')
+        finally:
+            print("llm")
 
 
 def startConv(audios_dir, attack_prompts, purpose, starting_message, record_event, target_name,
               username="oded"):
-    global flag, waitforllm, prompts_for_user, r, llm_thread
+    global flag, waitforllm, prompts_for_user, r, recognize_thread, llm_flag
+    llm_flag = True
     backgroundEvent = Event()
     llm.initialize_new_attack(attack_purpose=purpose, profile_name=target_name)  # Refine the llm to the new attack
     flag = False
@@ -166,6 +173,7 @@ def startConv(audios_dir, attack_prompts, purpose, starting_message, record_even
     backgroundEvent.set()
     is_success = None
     final_msg = llm.get_finish_msg()
+    print(final_msg)
     if purpose == "Bank":
         if final_msg == "Thank you, we have solved the issue. Goodbye":
             is_success = True
@@ -194,7 +202,5 @@ def stop():
     waitforllm.set()
     llm_flag = False
     audio_queue.put(None)  # Tell the llm_thread to stop
-    audio_queue.join()  # Block until all current audio processing jobs are done
-    llm_thread.join()  # Wait for the llm_thread to actually stop
-
-
+    recognize_thread.join()  # Wait for the llm_thread to actually stop
+    return is_success

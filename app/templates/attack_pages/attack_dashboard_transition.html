@@ -8,7 +8,9 @@
 <div class="page-header">
     <h1 id="dashboardTitle">Please wait while the attack is being generated</h1>
     {% if zoom_url %}
-        <h5> <a href="{{ zoom_url }}">Check into the meeting and wait for the</a> </h5>
+        <h5> <a href="{{ zoom_url }}">Check into the meeting and wait for the victim</a> </h5>
+    {% else %}
+        <h5>No zoom url</h5>
     {% endif %}
 </div>
 
@@ -72,7 +74,7 @@
                 const is_success = result.is_success;
 
                 // Redirect to the results page with the success status
-                window.location.href = '/results?is_success=' + encodeURIComponent(is_success);
+                window.location.href = '/results?is_success=' + encodeURIComponent(is_success) + '&id=' + encodeURIComponent(attack_id);
 
             } catch (error) {
                 console.error('Error starting the attack:', error);
