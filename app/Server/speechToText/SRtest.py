@@ -18,7 +18,7 @@ flag = False
 waitforllm = Event()
 data_storage = Data().get_data_object()
 prompts_for_user = set()
-
+background_thread = None
 
 def get_device_index(device_name="CABLE Output"):
     p = pyaudio.PyAudio()
@@ -38,7 +38,7 @@ def sanitize_filename(filename):
 
 
 def recognize_worker(audios_dir, username, backgroundEvent):
-    global flag, waitforllm, data_storage, prompts_for_user
+    global flag, waitforllm, data_storage, prompts_for_user, background_thread
     fillers = ["Wait a second Umm", "Let me check umm", "Hold on a second Umm"]
     index = 0
     while True:
@@ -62,18 +62,20 @@ def recognize_worker(audios_dir, username, backgroundEvent):
                 play_audio_through_vbcable(audios_dir + "\\" +
                                            response + ".wav")
                 backgroundEvent.set()
+                background_thread = None
+
             else:
-                sanitized_prompt = sanitize_filename(response)
-                background_thread = Thread(target=play_background, args=(backgroundEvent,
-                                                                         audios_dir
-                                                                         + "\\office.wav",))
-                background_thread.start()
-                start_filler = Thread(target=play_audio_through_vbcable,
-                                      args=(audios_dir + "\\" +
-                                            fillers[index] + ".wav", "CABLE Input"))
-                start_filler.daemon = True
-                start_filler.start()
-                index = (index + 1) % 3
+                if background_thread is None:
+                    background_thread = Thread(target=play_background, args=(backgroundEvent,
+                                                                             audios_dir
+                                                                             + "\\office.wav",))
+                    background_thread.start()
+                    start_filler = Thread(target=play_audio_through_vbcable,
+                                          args=(audios_dir + "\\" +
+                                                fillers[index] + ".wav", "CABLE Input"))
+                    start_filler.daemon = True
+                    start_filler.start()
+                    index = (index + 1) % 3
                 generateSpeech(text_prompt=response,
                                path=audios_dir + "\\prompt.wav")
                 play_audio_through_vbcable(audios_dir+ "\\prompt.wav")

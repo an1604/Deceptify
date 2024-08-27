@@ -16,7 +16,7 @@ load_dotenv()
 
 def create_audio_directory():
     project_dir = os.path.dirname(os.path.realpath(__file__))
-    audio_dir = "Server/AudioFiles"
+    audio_dir = "Server\\AudioFiles"
     audio_dir_path = os.path.join(project_dir, audio_dir)
     if not os.path.exists(audio_dir_path):
         os.makedirs(audio_dir_path)
@@ -25,7 +25,7 @@ def create_audio_directory():
 
 def create_video_directory():
     project_dir = os.path.dirname(os.path.realpath(__file__))
-    video_dir = "Server/VideoFiles"
+    video_dir = "Server\\VideoFiles"
     video_dir_path = os.path.join(project_dir, video_dir)
     if not os.path.exists(video_dir_path):
         os.makedirs(video_dir_path)

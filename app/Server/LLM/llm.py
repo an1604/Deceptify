@@ -79,37 +79,31 @@ class Llm(object):
     def get_chat_history(self):
         return [msg for msg in self.chat_history.get_chat_history() if msg not in ['user', 'assistant']]
 
-    def get_answer(self, prompt, event=None):
-        self.chat_history.add_human_message(prompt)
+    def get_answer_from_embedding(self,prompt):
         if not self.embedd_custom_knowledgebase:
             self.embedding_model.generate_faq_embedding()
             self.embedd_custom_knowledgebase = True
-
+        self.chat_history.add_human_message(prompt)
         answer = self.embedding_model.get_answer_from_embedding(prompt)
-        if answer is None:
-            # user_prompt = prompts.get_role(role=ROLE, history=history, prompt=prompt)
-            chain = self.user_prompt | self.llm
-            time1 = time()
-            answer = None
-            validate = self.validate_number(prompt)
-            if validate:
-                answer = validate
-            else:
-                answer = chain.invoke({
-                    "history": self.chat_history.get_chat_history(),
-                    'name': self.mimic_name,  # Default value
-                    # 'place': 'park',  # Default value
-                    # 'target': 'address',  # Default value
-                    # 'connection': 'co-worker',  # Default value,
-                    # 'principles': prompts.get_principles(),
-                    "time": datetime.now().time(),
-                    "context": prompt
-                })
-            print(time() - time1)
 
-        if event:
-            event.set()
-        print(answer)
+        if answer:
+            self.chat_history.add_ai_response(answer)
+
+        return answer
+
+    def get_answer(self, prompt):
+        chain = self.user_prompt | self.llm
+
+        answer = chain.invoke({
+                "history": self.chat_history.get_chat_history(),
+                'name': self.mimic_name,  # Default value
+                # 'place': 'park',  # Default value
+                # 'target': 'address',  # Default value
+                # 'connection': 'co-worker',  # Default value,
+                # 'principles': prompts.get_principles(),
+                "time": datetime.now().time(),
+                "context": prompt
+            })
         self.chat_history.add_ai_response(answer)
 
         if 'bye' in answer.lower() or 'bye' in prompt.lower():
