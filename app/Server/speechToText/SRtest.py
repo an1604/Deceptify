@@ -110,15 +110,13 @@ def recognize_worker(audios_dir, username, backgroundEvent):
                 play_audio_through_vbcable(audios_dir + "\\prompt.wav")
                 backgroundEvent.set()
                 background_thread = None
+
             if not waitforllm.is_set():
                 waitforllm.set()
 
-        except sr.UnknownValueError:
+        except (sr.UnknownValueError,sr.RequestError):
             waitforllm.set()
             print("Google Speech Recognition could not understand audio")
-        except sr.RequestError as e:
-            waitforllm.set()
-            print("Could not request results from Google Speech Recognition service; {0}".format(e))
         except Exception as e:
             waitforllm.set()
             print(f'Exception from recognize_worker: {e}')
@@ -191,12 +189,14 @@ def startConv(audios_dir, attack_prompts, purpose, starting_message, record_even
             is_success = True
         else:
             is_success = False
-    stop()
-    return is_success
+
+    return stop(is_success)
 
 
-def stop():
-    global flag, llm_flag
+def stop(is_success=None):
+    global flag, llm_flag, recognize_thread
+    print("stop() called!")
+
     llm.flush()
     flag = True
     waitforllm.set()

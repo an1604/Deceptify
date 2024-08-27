@@ -29,6 +29,8 @@ class TelegramClientHandler(object):
         self.phone_hash = None
         self.auth_code = None
 
+        self.is_client_connected = False
+
         self.messages_received = []
         self.loop = None
         self.make_event_loop()
@@ -60,6 +62,7 @@ class TelegramClientHandler(object):
             await self.authenticate_client_via_msg()
             await self.run_client()  # Retry running the client after re-authentication
         except asyncio.exceptions.CancelledError:
+            self.is_client_connected = True
             logging.warning("Client task was cancelled. Attempting to restart...")
             await self.run_client()  # Restart client in case of cancellation
         except Exception as e:
@@ -120,13 +123,16 @@ class TelegramClientHandler(object):
             self.phone_hash = await self.client.send_code_request(self.phone_number)
 
             try:
-                while self.auth_code is None:
+                while self.auth_code is None and not self.is_client_connected:
                     logging.info("from authenticate_client_via_msg --> auth_code is None. Waiting")
                     await asyncio.sleep(3)
 
-                await self.client.sign_in(self.phone_number, self.auth_code)
+                if not self.is_client_connected:
+                    logging.info("from authenticate_client_via_msg --> is_client_connected was false, "
+                                 "sending the sign_in request...")
+                    await self.client.sign_in(self.phone_number, self.auth_code)
+                    self.is_client_connected = True
                 logging.info("from authenticate_client_via_msg --> sign in request is sent.")
-
             except Exception as e:
                 logging.error(f"Error from authenticate_client_via_msg --> {e}")
         else:

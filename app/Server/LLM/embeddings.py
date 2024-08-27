@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 
 import faiss
@@ -73,9 +74,13 @@ class embeddings(object):
             embedding = self.get_embedding(qa)
             self.index.add(embedding)
 
-        indexes_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'indexes')
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        indexes_dir = os.path.join(current_dir, 'indexes')
+        logging.info(f"From embedding, indexes dir: {indexes_dir}")
         os.makedirs(indexes_dir, exist_ok=True)
+
         index_path = os.path.join(indexes_dir, f'{self.knowledgebase.lower()}-faiss.index')
+
         faiss.write_index(self.index, index_path)
 
     def get_faq(self):

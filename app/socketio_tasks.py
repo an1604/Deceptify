@@ -188,3 +188,13 @@ def initialize_socketio(socketio, file_manager):
         print("from socketio: stop_attack triggered and runs stop() function.")
         stop()
 
+    @socketio.on('auth_code_timeout')
+    def handle_auth_code_timeout():
+        global client
+
+        client.is_client_connected = True
+        emit("server_update", {
+            'data': "Your account seems to be authorized yet, released the send"
+                    "authentication code request, you can try to run the attack now :)"
+        })
+

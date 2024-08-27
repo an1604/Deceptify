@@ -60,14 +60,9 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
     @main.route('/attack_dashboard_transition', methods=['GET'])
     @login_required
     def attack_dashboard_transition():
-        print("attacks:")
-        print(data_storage.get_ai_attacks())
-        attack_id = request.args.get("id") if request.args.get('id') else session['whatsapp_attack_info'][
-            'attack_id']
-        zoom_url = session.get('whatsapp_attack_info')
-        if zoom_url:
-            zoom_url = zoom_url.get('zoom_url')
-
+        zoom_url = urllib.parse.unquote(request.args.get('start_url'))
+        print("zoom url is " + str(zoom_url))
+        attack_id = session.get('whatsapp_attack_info').get('attack_id')
         if session.get("started_call"):
             session.pop("started_call")
         return render_template('attack_pages/attack_dashboard_transition.html',

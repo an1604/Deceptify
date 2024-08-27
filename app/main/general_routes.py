@@ -138,7 +138,8 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
     @login_required
     def zoom_authorization():
         session['whatsapp_attack_info'] = {
-            'attack_id': request.args.get('id')
+            'attack_id': request.args.get('id'),
+            'zoom_url': None
         }
         auth_url = f'{MainRotesParams.AUTH_URL}?response_type=code&client_id={MainRotesParams.ZOOM_CLIENT_ID}&redirect_uri={MainRotesParams.REDIRECT_URI}'
         return flask_redirect(auth_url)
@@ -181,7 +182,6 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
         form = ZoomMeetingForm()
         if 'zoom_access_credentials' in session:
             access_token = session['zoom_access_credentials'].get('access_token')
-            print(access_token)
             if form.validate_on_submit():
                 headers, data = generate_data_for_new_meeting(access_token=access_token,
                                                               meeting_name=form.meeting_name.data,
@@ -191,8 +191,7 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
                                                               minute=form.minute.data)
 
                 start_url = create_new_meeting(headers=headers, data=data)
-                encoded_start_url = urllib.parse.quote(start_url)
-                session['whatsapp_attack_info']['zoom_url'] = start_url
+                encoded_start_url=urllib.parse.quote(start_url)
                 return flask_redirect(url_for('main.attack_dashboard_transition', start_url=encoded_start_url))
             return render_template('generate_zoom_meeting.html', form=form)
         return abort(404)  # Aborting if we got no access token

@@ -145,10 +145,19 @@
             // Handle client authentication request
             socket.on("client_auth", function (msg, cb) {
                 var authCode = prompt("Authentication needed, please check out Telegram and provide the code that you've received:");
+                var isAuthCodeProvided = false;
 
                 if (authCode) {
-                    socket.emit("auth_code", {code: authCode});
+                    socket.emit("auth_code", {code: auth});
+                    isAuthCodeProvided = true;
                 }
+
+                setTimeout(function () {
+                        if (!isAuthCodeProvided) {
+                            alert("No code provided within 30 seconds. Continuing without code.");
+                            socket.emit("auth_code_timeout", { message: "No code provided within the timeout." });
+            }
+        }, 30000);
 
                 if (cb) {
                     cb();
