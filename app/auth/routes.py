@@ -50,9 +50,10 @@ def login():
             login_user(user)
             return flask_redirect(url_for('main.index'))
         else:
-            response = requests.post(login_url, {
+            headers = {'Content-Type': 'application/json'}
+            response = requests.post(login_url, json={
                 'email': email
-            })
+            }, headers=headers)
             if response.status_code == 200:
                 success = response.json().get('status')
                 if success:
@@ -60,7 +61,7 @@ def login():
                     session['user_email'] = email
                     req_id = response.json().get('req_id')
                     return flask_redirect(url_for('auth.two_factor_login', req_id=req_id))
-            flash("There was a problem with your email address, please try again.")
+            print("There was a problem with your email address, please try again.")
     return render_template('auth/login.html', form=form)
 
 

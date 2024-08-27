@@ -18,7 +18,6 @@ from app.Server.run_bark import generateSpeech
 load_dotenv()
 
 SERVER_URL = os.getenv('SERVER_URL')
-CLONE_URL = os.getenv('CLONE_URL')
 
 
 def create_knowledgebase(text):
@@ -164,7 +163,7 @@ def get_voice_profile(username, profile_name, prompt, prompt_filename):
 
 
 def request_and_wait_for_audio(task_id, profile_name, audios_directory_path):
-    get_audio_after_gen_req = f'{CLONE_URL}/get_result/{{task_id}}'
+    get_audio_after_gen_req = f'{SERVER_URL}/get_result/{{task_id}}'
     file_ready = False
     while not file_ready:
         response = requests.get(get_audio_after_gen_req.format(task_id=task_id))
@@ -187,7 +186,7 @@ def request_and_wait_for_audio(task_id, profile_name, audios_directory_path):
 def clone(text, profile_name_for_tts, output_filename, audios_directory_path):
     default_record = r"C:\Users\adina\PycharmProjects\docker_app\Deceptify_update\app\Server\AudioFiles\Drake.mp3"
     try:
-        url = f"{CLONE_URL}/generate_speech"
+        url = f"{SERVER_URL}/generate_speech"
         response = requests.post(url, data={
             'text': text,
             'profile_name': profile_name_for_tts
