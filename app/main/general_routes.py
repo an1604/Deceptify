@@ -40,7 +40,7 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
                 video = None
 
             # Save the voice sample
-            speaker_wavfile_path = file_manager.get_file_from_voice_folder(secure_filename(data.filename))
+            speaker_wavfile_path = file_manager.get_file_from_audio_dir(secure_filename(data.filename))
             data.save(speaker_wavfile_path)
             data_storage.add_profile(Profile(name, gen_info, str(speaker_wavfile_path)))
             flash("Profile created successfully")
