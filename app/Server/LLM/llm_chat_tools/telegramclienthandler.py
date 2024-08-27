@@ -118,23 +118,29 @@ class TelegramClientHandler(object):
 
     async def authenticate_client_via_msg(self, counter=None):
         await self.client.connect()
-        if counter is None or counter <= 1:
+        if counter is None or counter <= 1 and not self.is_client_connected:
             self.auth_event.set()  # Set the event to alert the background thread that authentication is needed.
-            self.phone_hash = await self.client.send_code_request(self.phone_number)
-
             try:
-                while self.auth_code is None and not self.is_client_connected:
-                    logging.info("from authenticate_client_via_msg --> auth_code is None. Waiting")
-                    await asyncio.sleep(3)
-
                 if not self.is_client_connected:
+                    self.phone_hash = await self.client.send_code_request(self.phone_number)
+                    while self.auth_code is None and not self.is_client_connected:
+                        logging.info("from authenticate_client_via_msg --> auth_code is None. Waiting")
+                        await asyncio.sleep(3)
+
                     logging.info("from authenticate_client_via_msg --> is_client_connected was false, "
                                  "sending the sign_in request...")
                     await self.client.sign_in(self.phone_number, self.auth_code)
                     self.is_client_connected = True
-                logging.info("from authenticate_client_via_msg --> sign in request is sent.")
+                    logging.info("from authenticate_client_via_msg --> sign in request is sent.")
+                else:
+                    logging.info("from authenticate_client_via_msg --> client is already connected")
+            except asyncio.CancelledError:
+                logging.error("CancelledError occurs, setting is_connected to true and move on.")
+                self.is_client_connected = True
+                await self.run_client()
             except Exception as e:
                 logging.error(f"Error from authenticate_client_via_msg --> {e}")
+                await self.run_client()
         else:
             logging.info(f"Waiting for the client to send the authentication code... (Attempt {counter})")
             result = await self.client(functions.auth.ResendCodeRequest(

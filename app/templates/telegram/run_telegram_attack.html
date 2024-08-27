@@ -145,25 +145,18 @@
             // Handle client authentication request
             socket.on("client_auth", function (msg, cb) {
                 var authCode = prompt("Authentication needed, please check out Telegram and provide the code that you've received:");
-                var isAuthCodeProvided = false;
 
                 if (authCode) {
                     socket.emit("auth_code", {code: auth});
-                    isAuthCodeProvided = true;
+                    return false;
                 }
-
-                setTimeout(function () {
-                        if (!isAuthCodeProvided) {
-                            alert("No code provided within 30 seconds. Continuing without code.");
-                            socket.emit("auth_code_timeout", { message: "No code provided within the timeout." });
-            }
-        }, 30000);
-
+                socket.emit('connection_update');
                 if (cb) {
+
                     cb();
                 }
+                return true;
             });
-
             let displayedMessages = [];
             socket.on("new_messages_update", function (msg, cb) {
                 $('#messages_received').val('');
@@ -254,8 +247,9 @@
                     profile_name: $('#profile_name').val()
                 });
 
-                socket.on('connection_update', function (msg) {
+                socket.on('connection_update', function (msg,cb) {
                     loadingIndicator.hide();  // Hide loading indicator after connection update
+
                 });
             });
 

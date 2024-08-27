@@ -114,16 +114,15 @@ def create_voice_profile(username, profile_name, speaker_wavfile_path):
     file_path (str): The path to the audio file for the new voice profile.
 
     Returns:
-    bytes: The server's response content.
+    bool: Whether the profile creation was successful.
     """
     url = f"{SERVER_URL}/create_speaker_profile"
     try:
         with open(speaker_wavfile_path, 'rb') as f:
-            files = {'file': f}
-            data = {'profile_name': profile_name,
-                    'speaker_wav': files
-                    }
-            response = requests.post(url, json=data)
+            files = {'speaker_wav': f}
+            data = {'profile_name': profile_name}
+            response = requests.post(url, data=data, files=files)
+            response.raise_for_status()
             return response.json().get('success')
     except Exception as e:
         print(f"From create_voice_profile --> {e}")

@@ -198,3 +198,10 @@ def initialize_socketio(socketio, file_manager):
                     "authentication code request, you can try to run the attack now :)"
         })
 
+    @socketio.on("connection_update")
+    def handle_connection_update():
+        global client
+
+        emit("connection_update",{
+            'data':client.is_connected
+        })
