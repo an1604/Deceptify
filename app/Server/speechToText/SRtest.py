@@ -96,7 +96,7 @@ def recognize_worker(config, username, backgroundEvent):
 
 def startConv(config, attack_prompts, purpose, starting_message, record_event, target_name,
               username="oded"):
-    global flag, waitforllm, prompts_for_user, r, stop_listening, llm_thread
+    global flag, waitforllm, prompts_for_user, r, llm_thread
     backgroundEvent = Event()
     llm.initialize_new_attack(attack_purpose=purpose, profile_name=target_name)  # Refine the llm to the new attack
     flag = False
