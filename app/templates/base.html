@@ -259,14 +259,18 @@
                         <li><a href="{{ url_for('main.telegram_info') }}" class="nav_btn"> Voice Clone Telegram Attack</a></li>
 
                     {% else %}
-                        <li><a href="{{ url_for('auth.login') }}">Contact Us</a></li>
+                        <li><a href="{{ url_for('main.contact') }}">Contact Us</a></li>
+                        <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+                        <li><a href="{{ url_for('auth.register') }}"> Register</a></li>
+
                     {% endif %}
                 </ul>
                 <ul class="dropdown-menu">
                     {% if current_user.is_authenticated %}
                         <li><a href="{{ url_for('auth.logout') }}">Log Out</a></li>
                     {% else %}
-                        <li><a href="{{ url_for('auth.login') }}">Contact Us</a></li>
+                        <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+                        <li><a href="{{ url_for('auth.register') }}"> Register a new user</a></li>
                     {% endif %}
                 </ul>
             </div>

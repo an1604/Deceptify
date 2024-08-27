@@ -1,0 +1,8 @@
+flask
+numpy
+torchaudio
+WhisperSpeech
+requests
+scipy
+pycryptodome
+pydub

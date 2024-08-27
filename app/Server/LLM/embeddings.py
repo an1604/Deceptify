@@ -1,14 +1,9 @@
 import json
 import os
-from functools import lru_cache
-from threading import Thread
 
 import faiss
 import numpy as np
 import pandas as pd
-from langchain_community.docstore import InMemoryDocstore
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
 from sentence_transformers import SentenceTransformer
 
 
@@ -26,15 +21,21 @@ class embeddings(object):
         self.knowledgebase_file_path = None
         self.faq = None
 
+        self.stop = False
+        self.active_learner_threshold = 1.39999  # Decide which threshold is valid to apply active learning.
+
     def get_nearest_neighbors(self, vector, k=3):
         index = faiss.read_index(
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), f'{self.knowledgebase}-faiss.index'))
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), f'indexes/{self.knowledgebase}-faiss.index'))
+        if isinstance(vector, tuple):
+            vector = np.array(vector)
         query_vector = vector.astype("float32").reshape(1, -1)
         distances, indices = index.search(query_vector, k)
         return indices, distances
 
     def flush(self):
         self.sentences_map = {}
+
         self.knowledgebase_file_path = None
         self.json_filename_for_sentences_map = None
         self.faq = None
@@ -48,12 +49,19 @@ class embeddings(object):
         self.faq = self.get_faq()
 
     def init_knowledgebase_path(self, knowledgebase):
-        dire = os.path.dirname(os.path.abspath(__file__)) + '\\prompts\\'
+        dire = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'prompts', knowledgebase.lower())
+
         if knowledgebase is None:
             knowledgebase = 'knowledgebase_custom.csv'
             self.knowledgebase_file_path = os.path.join(dire, knowledgebase)
         else:
             self.knowledgebase_file_path = os.path.join(dire, f'{knowledgebase}-knowledge.csv')
+
+        if not os.path.exists(dire):
+            os.makedirs(dire)
+
+        if not os.path.exists(self.knowledgebase_file_path):
+            raise FileNotFoundError(f"The knowledge base file {self.knowledgebase_file_path} does not exist.")
 
     def save_sentences_map(self):
         sentences_map_json = json.dumps(self.sentences_map)
@@ -65,7 +73,9 @@ class embeddings(object):
             embedding = self.get_embedding(qa)
             self.index.add(embedding)
 
-        index_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), f'{self.knowledgebase}-faiss.index')
+        indexes_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'indexes')
+        os.makedirs(indexes_dir, exist_ok=True)
+        index_path = os.path.join(indexes_dir, f'{self.knowledgebase.lower()}-faiss.index')
         faiss.write_index(self.index, index_path)
 
     def get_faq(self):
@@ -83,6 +93,10 @@ class embeddings(object):
     def get_answer_from_embedding(self, _input, threshold=0.7):
         print(_input)
         prompt_embedding = self.get_embedding(_input.lower())  # Get the embedding representation for the prompt
+
+        if isinstance(prompt_embedding, tuple):
+            prompt_embedding = np.array(prompt_embedding).reshape(1, -1).astype("float32")
+
         indices, distances = self.get_nearest_neighbors(prompt_embedding)
 
         closest_distance = distances[0][0]

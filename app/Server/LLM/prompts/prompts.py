@@ -20,7 +20,7 @@ class Prompts(object):
     @staticmethod
     def set_role(attack_purpose):
         Prompts.ROLE = PromptTemplate.from_template(
-            get_text_from_file(f'{attack_purpose}Role.txt'))
+            get_text_from_file(f'{attack_purpose.lower()}/{attack_purpose}Role.txt'))
 
     @staticmethod
     def get_principles(target='address'):

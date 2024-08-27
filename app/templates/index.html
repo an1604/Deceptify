@@ -10,7 +10,8 @@
             <p>Your gateway to advanced AI attacks</p>
         {% else %}
             <h1>WELCOME TO DECEPTIFY!</h1>
-            <a href="{{ url_for('main.init_chat_demo') }}" class="btn btn-info">See a Demo Attack!</a>
+            <a href="{{ url_for('auth.register') }}"> Register a new user</a>
+            <a href="{{ url_for('auth.login') }}"> Login to your account</a>
         {% endif %}
     </div>
 

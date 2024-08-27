@@ -45,4 +45,5 @@ pywhatkit
 python-telegram-bot
 aiogram
 flask_socketio
-qrcode[pil]
+pytest
+selenium
