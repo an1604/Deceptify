@@ -1,7 +1,13 @@
+import os
 import time
 import requests
+import os
 
-URL = 'http://127.0.0.1:5000'
+from dotenv import load_dotenv
+
+load_dotenv()
+
+URL = os.getenv('SERVER_URL')
 
 
 def send_speech_generation_request(text, profile_name):
