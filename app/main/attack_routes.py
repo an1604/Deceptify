@@ -61,12 +61,16 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
     @login_required
     def attack_dashboard_transition():
         zoom_url = urllib.parse.unquote(request.args.get('start_url'))
+        password = requests.args.get('password')
+
         print("zoom url is " + str(zoom_url))
+        print(f'password is {password}')
+
         attack_id = session.get('whatsapp_attack_info').get('attack_id')
         if session.get("started_call"):
             session.pop("started_call")
         return render_template('attack_pages/attack_dashboard_transition.html',
-                               id=attack_id, zoom_url=zoom_url)
+                               id=attack_id, zoom_url=zoom_url, password=password)
 
     @main.route('/results_redirect', methods=['GET'])
     @login_required

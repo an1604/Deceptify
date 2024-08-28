@@ -21,7 +21,8 @@ def create_new_meeting(headers, data, user_id='nataf12386@gmail.com'):
     if response.status_code == 201:
         response_data = response.json()
         start_url = response_data.get('start_url')
-        return start_url
+        password = response.data.get('password')
+        return start_url, password
     return None
 
 

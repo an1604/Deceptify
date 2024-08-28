@@ -198,8 +198,9 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
                                                               hour=form.hour.data, second=form.second.data,
                                                               minute=form.minute.data)
 
-                start_url = create_new_meeting(headers=headers, data=data)
+                start_url, password = create_new_meeting(headers=headers, data=data)
                 encoded_start_url = urllib.parse.quote(start_url)
-                return flask_redirect(url_for('main.attack_dashboard_transition', start_url=encoded_start_url))
+                return flask_redirect(
+                    url_for('main.attack_dashboard_transition', start_url=encoded_start_url, password=password))
             return render_template('generate_zoom_meeting.html', form=form)
         return abort(404)  # Aborting if we got no access token
