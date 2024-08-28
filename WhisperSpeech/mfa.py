@@ -1,3 +1,4 @@
+import logging
 import os
 
 import pyotp
@@ -27,5 +28,5 @@ def authenticate(email):
             twofa_code = otp.now()
             return twofa_code
     except (Exception, EmailNotValidError) as e:
-        print(e)
-        return None
+        logging.exception(f"Exception from authenticate function --> {e}")
+        raise e
