@@ -17,6 +17,7 @@ class User(UserMixin):
     def __init__(self, _id, email):
         self.id = _id
         self.email = email
+        self.otp_code = pyotp.random_base32()
 
     @staticmethod
     def get(user_id):
