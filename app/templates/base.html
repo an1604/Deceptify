@@ -260,7 +260,7 @@
                     {% else %}
                         <li><a href="{{ url_for('main.contact') }}">Contact Us</a></li>
                         <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-                        <li><a href="{{ url_for('auth.register') }}"> Register</a></li>
+{#                        <li><a href="{{ url_for('auth.register') }}"> Register</a></li>#}
 
                     {% endif %}
                 </ul>
@@ -269,7 +269,7 @@
                         <li><a href="{{ url_for('auth.logout') }}">Log Out</a></li>
                     {% else %}
                         <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-                        <li><a href="{{ url_for('auth.register') }}"> Register a new user</a></li>
+{#                        <li><a href="{{ url_for('auth.register') }}"> Register a new user</a></li>#}
                     {% endif %}
                 </ul>
             </div>

@@ -14,6 +14,8 @@ we require you to join a secure Zoom call where a representative will provide yo
 
 Please join us using the following Zoom link: {zoom_url}.
 
+The meeting password is: {password}.
+
 Your prompt attendance is crucial.
 
 Thank you for your immediate attention to this matter.
