@@ -106,6 +106,7 @@
             background-color: #16a085;
         }
     </style>
+
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function () {
             var socket = io();
@@ -139,8 +140,7 @@
 
             socket.on('server_update', function (msg, cb) {
                 $('#log').append('<br>' + $('<div/>').text('Server Update: ' + msg.data).html());
-                if (cb)
-                    cb();
+                if (cb) cb();
             });
 
             // Handle client authentication request
@@ -174,7 +174,6 @@
             socket.on("new_audio", function (msg, cb) {
                 var audio = $('#myAudio')[0];  // HTML Audio element
                 var audioSource = $('#audioSource')[0];  // Source element within audio
-
 
                 var file_url = "/get_audio?file_path=" + encodeURIComponent(msg.audio_path);
                 audioSource.src = file_url;
@@ -211,7 +210,6 @@
                 }
             });
 
-
             $('form#emit').submit(function (event) {
                 event.preventDefault();
                 socket.emit('new_message', {
@@ -225,33 +223,9 @@
             $('form#audio').submit(function (event) {
                 event.preventDefault();
 
-                const reqUrl = "http://193.106.55.38/generate_speech"
-                var payload = {
+                socket.emit("new_audio_gen_req", {
                     tts: $('#text_to_speech').val(),
                     profile_name_for_tts: $('#profile_name_for_tts').val()
-                };
-
-
-                $.ajax({
-                    url: reqUrl,
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(payload),
-                    success: function (response) {
-                        // Handle success response
-                        const taskID = response.task_id;
-                        console.log("Response from server:", response);
-
-                        socket.emit("audio_generation_status", {
-                            task_id: taskID,
-                            profile_name: $('#profile_name_for_tts').val(),
-                            tts: $('#text_to_speech').val()
-                        });
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error:", error);
-                        alert("An error occurred while generating speech, please try again.");
-                    }
                 });
 
                 $('#text_to_speech').val('');

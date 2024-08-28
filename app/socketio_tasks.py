@@ -1,3 +1,4 @@
+import logging
 import threading
 
 from flask_socketio import emit
@@ -122,20 +123,23 @@ def initialize_socketio(socketio, file_manager):
              {'data': f"Request to send message to {message_tuple[0]} with content: {message_tuple[1]}"},
              broadcast=True)
 
-    @socketio.on("audio_generation_status")
+    @socketio.on("new_audio_gen_req")
     def handle_audio_generation_status(data):
-        task_id = data['task_id']
-        profile_name_for_tts = data['profile_name']
+        logging.info('new_audio_gen_req handler called from front')
+        profile_name_for_tts = data['profile_name_for_tts']
         tts = data['tts']
 
-        audio_path = clone(task_id, profile_name_for_tts,
+        logging.info("Send the cloning request to the remote server...")
+        audio_path = clone(tts, profile_name_for_tts,
                            file_manager.get_new_audiofile_path_from_profile_name(profile_name_for_tts,
-                                                                                 tts.lower().replace(" ", "_")),
+                                                                                 f'{tts.lower().replace(" ", "_")}.wav'),
                            file_manager.audios_dir)
         if audio_path:
+            logging.info(f"Audio generated to {audio_path}")
             emit("new_audio", {"tts": tts, "audio_path": audio_path},
                  broadcast=True)
         else:
+            logging.error("Error while trying to generate the speech from remote server")
             emit('server_update', {
                 'data': "There was a problem while generating the audio, please try again. "
             })

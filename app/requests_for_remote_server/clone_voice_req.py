@@ -2,6 +2,7 @@ import os
 import time
 import requests
 import os
+import time
 
 from dotenv import load_dotenv
 
@@ -39,8 +40,9 @@ def wait_for_result(task_id, profile_name, output_filename):
         file_ready = False
 
         while not file_ready:
+            time.sleep(3)
             response = requests.get(get_audio_after_gen_req.format(task_id=task_id))
-            if response.status_code == 202:
+            if response.status_code == 200:
                 if response.headers["content-type"].strip().startswith(
                         "application/json"):  # Checks the response format (json or a file)
                     res = response.json()
@@ -49,13 +51,9 @@ def wait_for_result(task_id, profile_name, output_filename):
                         time.sleep(3)  # Waits 3 seconds before checking again.
                 else:
                     file_ready = True
-                    output_filename = f"{profile_name}_generated.wav"
                     with open(output_filename, 'wb') as f:
                         f.write(response.content)
                     return True
-            else:
-                print(f"The response from the server is: {response.status_code} with content: {response.content}")
-                return False
     else:
         print("Failed to send the task to the server.")
         return False

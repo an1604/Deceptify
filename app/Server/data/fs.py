@@ -1,6 +1,26 @@
 import os
 import logging
 
+import re
+
+
+def clean_filename(filename):
+    """
+    Clean a string from punctuations or other characters that can cause exceptions
+    while writing into a file.
+
+    :param filename: The original filename string.
+    :return: A cleaned version of the filename with unsafe characters removed.
+    """
+    # Replace unsafe characters with an underscore
+    cleaned_filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
+
+    # Remove any leading or trailing whitespace
+    cleaned_filename = cleaned_filename.strip()
+
+    # Optionally, you can add additional rules or truncate the filename if needed.
+    return cleaned_filename
+
 
 class FilesManager(object):
     def __init__(self, audios_dir, app_dir, video_dir,
@@ -38,7 +58,9 @@ class FilesManager(object):
     def get_new_audiofile_path_from_profile_name(self, profile_name, audio_filename):
         try:
             profile_name_voice_dir = os.path.join(self.audios_dir, profile_name + '-clone')
-            return os.path.join(profile_name_voice_dir, audio_filename)
+            self.create_directory(profile_name_voice_dir)
+            return os.path.join(profile_name_voice_dir,
+                                clean_filename(audio_filename))
         except Exception as e:
             print(
                 f"Exception in get_new_audiofile_path_from_profile_name for profile '{profile_name}' with filename '{audio_filename}': {str(e)}")
