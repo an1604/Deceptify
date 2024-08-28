@@ -14,6 +14,8 @@ import time
 import json
 import speech_recognition as sr
 from app.Server.run_bark import generateSpeech
+from app.requests_for_remote_server.clone_voice_req import send_speech_generation_request, wait_for_result
+from app.requests_for_remote_server.create_profile import send_create_profile_request
 
 load_dotenv()
 
@@ -116,14 +118,11 @@ def create_voice_profile(username, profile_name, speaker_wavfile_path):
     Returns:
     bool: Whether the profile creation was successful.
     """
-    url = f"{SERVER_URL}/create_speaker_profile"
     try:
-        with open(speaker_wavfile_path, 'rb') as f:
-            files = {'speaker_wav': f}
-            data = {'profile_name': profile_name}
-            response = requests.post(url, data=data, files=files)
-            response.raise_for_status()
-            return response.json().get('success')
+        success = send_create_profile_request(profile_name=profile_name,
+                                              speaker_wavfile_path=speaker_wavfile_path)
+        return success
+
     except Exception as e:
         print(f"From create_voice_profile --> {e}")
         raise e
@@ -185,28 +184,11 @@ def request_and_wait_for_audio(task_id, profile_name, audios_directory_path):
 
 
 def clone(text, profile_name_for_tts, output_filename, audios_directory_path):
-    default_record = r"C:\Users\adina\PycharmProjects\docker_app\Deceptify_update\app\Server\AudioFiles\Drake.mp3"
-    try:
-        url = f"{SERVER_URL}/generate_speech"
-        response = requests.post(url, json={
-            'text': text,
-            'profile_name': profile_name_for_tts
-        })
-        if response.status_code == 202:
-            task_id = response.json().get('task_id')
-            request_and_wait_for_audio(task_id, profile_name_for_tts, audios_directory_path)
-            with open(output_filename, "wb") as output_file:
-                output_file.write(response.content)
-            print(f"Audio file received and saved as '{output_filename}'")
-            return os.path.abspath(output_filename)
-        else:
-            print(f"An error occurred: {response.json()}")
-            return None
-            # return default_record
-    except (requests.exceptions.RequestException, FileNotFoundError) as e:
-        print(f"An error occurred: {e}")
-        # For Demo only, return default record
-        return default_record
+    task_id = send_speech_generation_request(text=text, profile_name=profile_name_for_tts)
+    if wait_for_result(task_id=task_id, output_filename=output_filename,
+                       profile_name=profile_name_for_tts):
+        return output_filename
+    return None
 
 
 def synthesize(prompt):
