@@ -16,6 +16,8 @@ Therefore, we request you to join a secure Zoom call with a customs officer, whe
 
 Please join us using the following Zoom link: {zoom_url}.
 
+The meeting password is: {password}.
+
 Your prompt participation is crucial to avoid any delays in the transportation of your package.
 
 Thank you for your immediate attention to this matter.

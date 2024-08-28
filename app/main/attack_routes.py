@@ -61,7 +61,7 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
     @login_required
     def attack_dashboard_transition():
         zoom_url = urllib.parse.unquote(request.args.get('start_url'))
-        password = requests.args.get('password')
+        password = request.args.get('password')
 
         print("zoom url is " + str(zoom_url))
         print(f'password is {password}')
@@ -92,6 +92,8 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
     def generate_attack_type():
         attack_id = request.args.get('attack_id')
         zoom_url = request.args.get('zoom_url')
+        zoom_url = zoom_url.split('?')[0]
+        password = request.args.get('password')
         attack = data_storage.get_ai_attack(attack_id)
         if attack.getPurpose() == "WhatsApp and Zoom":
             attack.attack_purpose = "Bank"
@@ -104,10 +106,10 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
             from app.Server.LLM.llm_chat_tools.whatsapp import WhatsAppBot
             WhatsAppBot.send_text_private_message(phone_number=phone_number,
                                                   message=WhatsAppBot.get_message_template(zoom_url, contact,
-                                                                                           purpose, place))
+                                                                                           purpose, place, password))
         else:  # type is email
             from app.Server.LLM.llm_chat_tools.whatsapp import WhatsAppBot
-            body = WhatsAppBot.get_message_template(zoom_url, contact, purpose, place)
+            body = WhatsAppBot.get_message_template(zoom_url, contact, purpose, place, password)
             email = attack.getMessageName()
             send_email(email_receiver=email, email_subject="Immediate attention",
                        email_body=body,

@@ -64,7 +64,7 @@ class AiAttackForm(FlaskForm):
         label="Attack Purpose (Bank for account number, Delivery for address,"
               " Hospital for Id)",
         choices=[("Bank", "Bank"), ("Delivery", "Delivery"),
-                 ("Hospital", "Hospital"), ("WhatsApp and Zoom", "WhatsApp and Zoom")],
+                 ("Hospital", "Hospital")],
         default="Bank"
     )
     place = StringField(

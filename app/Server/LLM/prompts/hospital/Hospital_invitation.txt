@@ -18,6 +18,8 @@ where they will provide you with the necessary information and discuss the requi
 
 Please join us using the following Zoom link: {zoom_url}.
 
+The meeting password is: {password}.
+
 Your immediate participation is essential to resolve this matter without delay.
 
 Thank you for your prompt attention.
