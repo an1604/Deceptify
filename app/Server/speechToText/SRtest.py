@@ -202,5 +202,6 @@ def stop(is_success=None):
     waitforllm.set()
     llm_flag = False
     audio_queue.put(None)  # Tell the llm_thread to stop
-    recognize_thread.join()  # Wait for the llm_thread to actually stop
+    if recognize_thread:
+        recognize_thread.join()  # Wait for the llm_thread to actually stop
     return is_success
