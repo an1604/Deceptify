@@ -120,7 +120,7 @@ def create_voice_profile(username, profile_name, speaker_wavfile_path):
     """
     try:
         success = send_create_profile_request(profile_name=profile_name,
-                                              speaker_wavfile_path=speaker_wavfile_path)
+                                              speaker_wav_path=speaker_wavfile_path)
         return success
 
     except Exception as e:

@@ -1,6 +1,11 @@
-import requests
+import os
 
-URL = 'http://localhost:5000'
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+
+URL = os.getenv('SERVER_URL')
 
 
 def send_create_profile_request(speaker_wav_path, profile_name):
@@ -20,5 +25,3 @@ def send_create_profile_request(speaker_wav_path, profile_name):
         print(response.text)
         print(f"Response status code: {response.status_code}")
         return None
-
-

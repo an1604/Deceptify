@@ -46,4 +46,3 @@ def send_authorize_user_request(email):
         print(f"General Exception occur: {e}")
 
 
-send_authorize_user_request()

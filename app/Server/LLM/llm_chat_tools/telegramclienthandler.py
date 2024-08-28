@@ -53,17 +53,33 @@ class TelegramClientHandler(object):
         logging.info("Added run_client to the loop")
 
     async def run_client(self):
-        try:
-            await self.client.start(phone=self.phone_number)
-            logging.info('Client is running...')
-            await self.client.run_until_disconnected()
-        except errors.AuthKeyUnregisteredError:
-            logging.warning("Authorization key not found or invalid. Re-authenticating...")
-            await self.authenticate_client_via_msg()
-            await self.run_client()  # Retry running the client after re-authentication
-        except Exception as e:
-            logging.error(f"An error occurred: {e}")
-            await self.run_client()
+        """Run the Telegram client until it is disconnected or an error occurs."""
+        retry_count = 0
+        max_retries = 5
+
+        while retry_count < max_retries:
+            try:
+                await self.client.start(phone=self.phone_number)
+                logging.info('Client is running...')
+                await self.client.run_until_disconnected()
+                break  # Exit loop if client disconnects normally
+
+            except errors.AuthKeyUnregisteredError:
+                logging.warning("Authorization key not found or invalid. Re-authenticating...")
+                await self.authenticate_client_via_msg()
+                retry_count += 1
+
+            except asyncio.CancelledError:
+                logging.error("Client task cancelled, exiting run_client.")
+                break  # Exit loop if cancelled
+
+            except Exception as e:
+                logging.error(f"An error occurred: {e}")
+                retry_count += 1
+                await asyncio.sleep(5)  # Wait before retrying
+
+        if retry_count >= max_retries:
+            logging.error("Max retries reached. Could not start the client.")
 
     async def send_message(self, receiver, message):
         try:
@@ -115,19 +131,24 @@ class TelegramClientHandler(object):
         logging.info('Client disconnected')
 
     async def authenticate_client_via_msg(self, counter=None):
+        """Authenticate the client by sending a code request and waiting for the code."""
         await self.client.connect()
         if counter is None or counter <= 1:
-            self.auth_event.set()  # Set the event to alert to the background thread that authentication needed.
-            self.phone_hash = await self.client.send_code_request(self.phone_number)
+            self.auth_event.set()  # Set the event to alert to the background thread that authentication is needed.
 
             try:
+                self.phone_hash = await self.client.send_code_request(self.phone_number)
                 while self.auth_code is None:
                     logging.info("from authenticate_client_via_msg --> auth_code is None. Waiting")
-                    await asyncio.sleep(3)
+                    await asyncio.sleep(3)  # Non-blocking sleep
 
                 await self.client.sign_in(self.phone_number, self.auth_code)
                 logging.info("from authenticate_client_via_msg --> sign in request is sent.")
 
+            except asyncio.CancelledError:
+                logging.error("Authentication task cancelled.")
+                # Handle cancellation if necessary
+                return
             except Exception as e:
                 logging.error(f"Error from authenticate_client_via_msg --> {e}")
         else:
@@ -138,4 +159,4 @@ class TelegramClientHandler(object):
                     phone_code_hash=self.phone_hash,
                     reason='some string here'
                 ))
-                logging.info(f'from authenticate_client_via_msg -->  result.stringify() = {result.stringify()}')
+                logging.info(f'from authenticate_client_via_msg --> result.stringify() = {result.stringify()}')
