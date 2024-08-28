@@ -91,13 +91,11 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
     @login_required
     def generate_attack_type():
         attack_id = request.args.get('attack_id')
+        zoom_url = request.args.get('zoom_url')
         attack = data_storage.get_ai_attack(attack_id)
         if attack.getPurpose() == "WhatsApp and Zoom":
             attack.attack_purpose = "Bank"
         attack_prompts = attack.get_attack_prompts()
-
-        zoom_url = session.get('whatsapp_attack_info')
-        zoom_url = zoom_url.get('zoom_url')
         purpose = attack.getPurpose()
         place = attack.getPlace()
         contact = attack.getTargetName()

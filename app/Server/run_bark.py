@@ -23,5 +23,5 @@ def generateSpeech(text_prompt, path):
 
 
 if __name__ == '__main__':
-    generateSpeech("Let me check Umm", os.getcwd() + "\\audio.wav")
-    # synthesize("trumptest", "test")
+    prompt = "Your ID is the only way to open your account"
+    generateSpeech(prompt, "AudioFiles\\" + prompt + ".wav")
