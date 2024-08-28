@@ -13,27 +13,28 @@
             crossorigin="anonymous"></script>
 
     <style>
-    .text-container {
-        padding: 20px;
-        border-radius: 8px;
-        max-width: 800px; /* Limit the width for better readability */
-        margin: 20px auto; /* Center the container */
-        color: #ffffff; /* Text color */
-        font-size: 18px; /* Increase font size */
-        line-height: 1.6; /* Improve line spacing */
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); /* Subtle text shadow for better contrast */
-    }
-    form input[type="text"],
-    form input[type="submit"] {
-        width: 100%;
-        padding: 10px 15px;
-        margin: 10px 0;
-        font-size: 16px; /* Increased font size */
-        border: 2px solid #1abc9c; /* Adding a border */
-        border-radius: 5px;
-        background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
-        color: #2c3e50; /* Dark text color */
-}
+        .text-container {
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 800px; /* Limit the width for better readability */
+            margin: 20px auto; /* Center the container */
+            color: #ffffff; /* Text color */
+            font-size: 18px; /* Increase font size */
+            line-height: 1.6; /* Improve line spacing */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); /* Subtle text shadow for better contrast */
+        }
+
+        form input[type="text"],
+        form input[type="submit"] {
+            width: 100%;
+            padding: 10px 15px;
+            margin: 10px 0;
+            font-size: 16px; /* Increased font size */
+            border: 2px solid #1abc9c; /* Adding a border */
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+            color: #2c3e50; /* Dark text color */
+        }
 
         form input[type="submit"] {
             background-color: #1abc9c; /* Green background for the submit button */
@@ -147,16 +148,14 @@
                 var authCode = prompt("Authentication needed, please check out Telegram and provide the code that you've received:");
 
                 if (authCode) {
-                    socket.emit("auth_code", {code: auth});
-                    return false;
+                    socket.emit("auth_code", {code: authCode});
                 }
-                socket.emit('connection_update');
-                if (cb) {
 
+                if (cb) {
                     cb();
                 }
-                return true;
             });
+
             let displayedMessages = [];
             socket.on("new_messages_update", function (msg, cb) {
                 $('#messages_received').val('');
@@ -247,15 +246,15 @@
                     profile_name: $('#profile_name').val()
                 });
 
-                socket.on('connection_update', function (msg,cb) {
+                socket.on('connection_update', function (msg) {
                     loadingIndicator.hide();  // Hide loading indicator after connection update
-
                 });
             });
 
             $('#initClientContainer').append('<div id="loading">Initializing...</div>');
         });
     </script>
+
     <div id="initClientContainer" style="display: none;">
         <form id="initClientForm" method="POST" action='#'>
             <input type="text" name="app_id" id="app_id" placeholder="Your App ID Here">
