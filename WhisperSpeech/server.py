@@ -2,8 +2,9 @@ import os.path
 import queue
 import threading
 import uuid
+import logging
 
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, redirect
 import torchaudio
 from whisperspeech.pipeline import Pipeline
 from queue import Queue
@@ -15,8 +16,14 @@ app = Flask(__name__)
 tasks_queue = Queue()  # Q for the voice clone tasks
 results = {}  # Dictionary to keep track the results
 authorization_req = {}
-default_file = os.path.join(os.path.dirname(__file__), '/speakers/Drake/Drake.mp3')  # File for healthcheck.
+default_file = os.path.join(os.path.dirname(__file__), 'speakers/Drake/Drake.mp3')  # File for health check.
 stop = threading.Event()
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', handlers=[
+    logging.FileHandler("server.log"),
+    logging.StreamHandler()
+])
 
 # Load the best model
 best_model = 't2s-v1.95-small-8lang.model'
@@ -26,169 +33,186 @@ pipe = Pipeline(t2s_ref=f'whisperspeech/whisperspeech:{best_model}',
 
 def runner():
     global tasks_queue, results, stop
-    print("runner starts in a new thread...")
+    logging.info("Runner starts in a new thread...")
     while not stop.is_set():
-        try:
-            task_id, task_data = tasks_queue.get(timeout=5)  # Wake up every 5 seconds to avoid deadlock.
-            if task_data is not None:
-                print("new task occur, task_id is", task_id)
-                text, speaker_wav_path, output_filename = task_data
-                if not os.path.exists(output_filename):
-                    output_filename = generate_audio(text, speaker_wav_path, output_filename)
+        task_id, task_data = tasks_queue.get()
+        if task_data is not None:
+            logging.info(f"New task occurred, task_id is {task_id}")
 
-                if output_filename is not None:
-                    results[task_id] = output_filename
-                    print(f'task {task_id} done and saved in {output_filename}')
-        except queue.Empty:
-            continue
+            text, speaker_wav_path, output_filename = task_data
+            logging.info(f"Data from the task: "
+                         f"Text: {text}\n"
+                         f"speaker_wav_path: {speaker_wav_path}\n"
+                         f"output_filename {output_filename}")
+
+            if not os.path.exists(output_filename):
+                output_filename = generate_audio(text, speaker_wav_path, output_filename)
+
+            if output_filename is not None:
+                results[task_id] = output_filename
+                logging.info(f'Task {task_id} done and saved in {output_filename}')
 
 
 def generate_audio(text, speaker_wav_path, output_filename, sample_rate=24000):
     """Generate audio using the WhisperSpeech model."""
     try:
+        logging.info(f"Generating audio for text: {text}, speaker_wav_path: {speaker_wav_path}")
         audio = pipe.generate(text, lang='en', cps=10.5, speaker=speaker_wav_path)
         generated_audio_cpu = audio.cpu()
         torchaudio.save(output_filename, generated_audio_cpu, sample_rate)
-        print(f"Audio saved in {output_filename}")
+        logging.info(f"Audio saved in {output_filename}")
         return output_filename
     except Exception as e:
-        print(f"Failed to generate audio: {e}")
-        return None
+        logging.error(f"Failed to generate audio: {e}")
+        return \
+            r'C:\Users\nataf12386\PycharmProjects\Deceptify\WhisperSpeech\speakers\Drake\Drake.mp3'
 
 
 @app.route('/create_speaker_profile', methods=['POST'])
-def create_profile():
-    """
-       Given a profile name and a wav file of the speaker, this route
-       will save the new speaker with its wav audio file on the system.
-    """
-    data = request.get_json()
-    speaker_wav = data.get('speaker_wav')
-    profile_name = data.get('profile_name')
+def create_speaker_profile():
+    logging.info("Received request to create speaker profile.")
 
-    if not speaker_wav or not profile_name:
-        return jsonify({"error": "Missing required fields: text, speaker_wav, profile_name"}), 400
+    if 'speaker_wav' not in request.files or 'profile_name' not in request.form:
+        logging.warning("Missing required fields: speaker_wav, profile_name")
+        return jsonify({"error": "Missing required fields: speaker_wav, profile_name"}), 400
+
+    speaker_wav = request.files['speaker_wav']
+    profile_name = request.form['profile_name']
 
     profile_result_dir_path = os.path.join('speakers', profile_name)
     create_directory_if_not_exists(profile_result_dir_path)
-    speaker_wav_path = os.path.join(profile_result_dir_path,
-                                    f'{profile_name}_original_speech.ogg')  # The existing wav file
 
-    save_speaker_wav_to_dir(speaker_wav, speaker_wav_path)
-    if os.path.exists(profile_result_dir_path) and os.path.exists(speaker_wav_path):
+    speaker_wav_path = os.path.join(profile_result_dir_path, f'{profile_name}_original_speech.wav')
+    speaker_wav.save(speaker_wav_path)
+
+    ogg_filepath = os.path.join(profile_result_dir_path, f'{profile_name}_original_speech.ogg')
+    convert_wav_to_ogg(wav_filepath=speaker_wav, ogg_filepath=ogg_filepath)
+
+    if os.path.exists(profile_result_dir_path) and os.path.exists(ogg_filepath):
+        logging.info(f"Profile {profile_name} created successfully.")
         return jsonify({"success": True}), 200
+
+    logging.error(f"Failed to create profile {profile_name}.")
     return jsonify({"success": False}), 400
 
 
 @app.route('/generate_speech', methods=['POST'])
 def generate_speech():
     global tasks_queue
-    """
-    Endpoint for generating speech from text and speaker wav.
-    Given a profile name and text that the client want to clone using the 
-    profile, this route will accept the request and pass it to the job Q.
-    In addition, this route will return a task_id as a valid response to return the 
-    result cloned voice from the '/get_result' endpoint.  
-    """
+    logging.info("Received request to generate speech.")
     try:
         data = request.get_json()
-
         text = data.get('text')
         profile_name = data.get('profile_name')
 
         if not text or not profile_name:
-            return jsonify({"error": "Missing required fields: text,profile_name"}), 400
+            logging.warning("Missing required fields: text, profile_name")
+            return jsonify({"error": "Missing required fields: text, profile_name"}), 400
 
         result_dir_path = os.path.join('speakers', profile_name)
-        output_filename = os.path.join(result_dir_path, f'{clean_text(text)}.wav')  # The future cloned wav file
-        speaker_wav_path = os.path.join(result_dir_path, f'{profile_name}_original_speech.ogg')  # The existing wav file
+        output_filename = os.path.join(result_dir_path, f'{clean_text(text)}.wav')
+        speaker_wav_path = os.path.join(result_dir_path, f'{profile_name}_original_speech.ogg')
 
-        task_id = str(uuid.uuid4())  # Generate a unique task id, to future memorization what to return to whom.
+        task_id = str(uuid.uuid4())  # Generate a unique task id.
         tasks_queue.put((task_id, (text, speaker_wav_path, output_filename)))
+        logging.info(f"Task {task_id} created for generating speech.")
         return jsonify({"task_id": task_id}), 202
 
     except Exception as e:
-        print(f"Error in /generate_speech: {e}")
+        logging.error(f"Error in /generate_speech: {e}")
         return jsonify({"error": str(e)}), 500
 
 
 @app.route('/get_result/<task_id>', methods=['GET'])
 def get_result(task_id):
-    """
-    Given a task_id, this route will return the cloned voice if it is done
-    generating it, otherwise it will return a pending response inside the status.
-     """
+    logging.info(f"Received request to get result for task_id: {task_id}")
     global results
     if task_id in results:
-        output_filename = results.pop(task_id)  # Get and rm the result.
-        print(f"for task {task_id} speakers file is: {output_filename}")
+        output_filename = results.pop(task_id)  # Get and remove the result.
+        logging.info(f"Task {task_id} completed. Returning file {output_filename}.")
         return send_file(output_filename, as_attachment=True, download_name=os.path.basename(output_filename),
                          mimetype='audio/wav')
     else:
+        logging.info(f"Task {task_id} is still pending.")
         return jsonify({"status": "pending"}), 202
 
 
 @app.route('/ping', methods=['GET'])
 def ping_server():
-    return 'pong', 200
+    logging.info("Ping request received.")
+    return 'pong', 200  # Ensure no authentication is applied
 
 
 @app.route('/health_check', methods=['GET'])  # Health check.
 def health_check():
+    logging.info("Health check request received.")
     global default_file
     try:
         if os.path.exists(default_file):
+            logging.info("Health check file found, returning file.")
             return send_file(default_file, as_attachment=True, download_name=os.path.basename(default_file),
                              mimetype='audio/wav')
         else:
+            logging.warning("Health check failed: Default file not found.")
             return jsonify({"status": "failed", "reason": "Default file not found"}), 500
     except Exception as e:
+        logging.error(f"Health check error: {e}")
         return jsonify({"status": "failed", "reason": str(e)}), 500
 
 
 @app.route('/authorize_user', methods=['POST'])
 def authorize_login():
-    """Sends a one-time code for 2fa."""
+    global authorization_req
+
+    logging.info("Authorize user request received.")
+    """Sends a one-time code for 2FA."""
     email = request.json.get('email')
     otp_code = authenticate(email)
+    logging.info(f"OTP code: {otp_code}")
+
     if otp_code:
         send_email(email_receiver=email, email_subject="Your 2FA code", email_body=f"Your 2FA code is {otp_code}",
-                   display_name="Deceptify Admin", from_email="DeceptifyAdmin<Do Not Replay>@gmail.com")
-        req_id = uuid.uuid4()
+                   display_name="Deceptify Admin", from_email="DeceptifyAdmin<Do Not Reply>@gmail.com")
+        req_id = str(uuid.uuid4())
         authorization_req[req_id] = otp_code
-        return jsonify({"status": "success",
-                        "req_id": req_id
-                        }), 200
+
+        logging.info(f"authorization_req[req_id] = {authorization_req[req_id]} is saved in "
+                     f"authorization_req dict.")
+
+        logging.info(f"2FA code sent to {email}. Request ID: {req_id}")
+        return jsonify({"status": "success", "req_id": req_id}), 200
+
+    logging.error(f"Failed to send 2FA code to {email}.")
     return jsonify({"status": "failed"}), 500
 
 
 @app.route('/validate_code', methods=['POST'])
 def validate_code():
+    logging.info("Validate code request received.")
     global authorization_req
+
+    logging.info(f"authorization_req is: {authorization_req}")
 
     req_id = request.json.get('req_id')
     code = request.json.get('code')
 
     if req_id in authorization_req:
         if code == authorization_req.pop(req_id):
-            return jsonify({
-                'authorize': True
-            }), 200
-        return jsonify({
-            'authorize': False
-        }), 200
-    return jsonify({
-        'status': "Cannot find your request."
-    }), 500
+            logging.info(f"Code validated successfully for request ID: {req_id}")
+            return jsonify({'authorize': True}), 200
+        logging.warning(f"Invalid code for request ID: {req_id}")
+        return jsonify({'authorize': False}), 200
+    logging.error(f"Request ID not found: {req_id}")
+    return jsonify({'status': "Cannot find your request."}), 500
 
 
 if __name__ == "__main__":
     try:
-        print("Main run...")
+        logging.info("Main run...")
         runner_thread = threading.Thread(target=runner)
         runner_thread.start()
-        app.run(host='0.0.0.0', port=8080)
+        app.run(host='0.0.0.0', port=5000)
         stop.set()
     except Exception as e:
         stop.set()
-        print("Keyboard interrupt received, shutting down...")
+        logging.error(f"Error occurred, shutting down... {e}")

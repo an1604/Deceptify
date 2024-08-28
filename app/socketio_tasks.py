@@ -1,9 +1,11 @@
+import logging
 import threading
 
 from flask_socketio import emit
 from app.Server.LLM.llm_chat_tools.telegramclienthandler import TelegramClientHandler, TelegramInfo
 from app.Server.Util import clone
 from app.Server.speechToText.SRtest import stop
+
 thread_lock = threading.Lock()  # Background thread Lock for all the tasks.
 thread = None  # The main thread that will be run and perform the background tasks.
 
@@ -121,18 +123,26 @@ def initialize_socketio(socketio, file_manager):
              {'data': f"Request to send message to {message_tuple[0]} with content: {message_tuple[1]}"},
              broadcast=True)
 
-    @socketio.on("new_audio_generation")
-    def handle_new_audio(data):
-        tts = data['tts']
+    @socketio.on("new_audio_gen_req")
+    def handle_audio_generation_status(data):
+        logging.info('new_audio_gen_req handler called from front')
         profile_name_for_tts = data['profile_name_for_tts']
-        # TODO: Function call to generate TTS
+        tts = data['tts']
 
-        audio = clone(tts, profile_name_for_tts,
-                      file_manager.get_new_audiofile_path_from_profile_name(profile_name_for_tts,
-                                                                            tts.lower().replace(" ", "_")),
-                      file_manager.audios_dir)
-        emit("new_audio", {"tts": tts, "audio": audio},
-             broadcast=True)
+        logging.info("Send the cloning request to the remote server...")
+        audio_path = clone(tts, profile_name_for_tts,
+                           file_manager.get_new_audiofile_path_from_profile_name(profile_name_for_tts,
+                                                                                 f'{tts.lower().replace(" ", "_")}.wav'),
+                           file_manager.audios_dir)
+        if audio_path:
+            logging.info(f"Audio generated to {audio_path}")
+            emit("new_audio", {"tts": tts, "audio_path": audio_path},
+                 broadcast=True)
+        else:
+            logging.error("Error while trying to generate the speech from remote server")
+            emit('server_update', {
+                'data': "There was a problem while generating the audio, please try again. "
+            })
 
     @socketio.on("client_audio_decision")
     def handle_audio_decision(data):
@@ -202,6 +212,6 @@ def initialize_socketio(socketio, file_manager):
     def handle_connection_update():
         global client
 
-        emit("connection_update",{
-            'data':client.is_connected
+        emit("connection_update", {
+            'data': client.is_connected
         })

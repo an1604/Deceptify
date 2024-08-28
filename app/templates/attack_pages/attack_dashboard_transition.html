@@ -39,9 +39,12 @@
         })
 
         const attack_id = "{{id}}";
-        async function generateAttack() {
+        const zoom_url = "{{ zoom_url }}"
+        const password = "{{ password }}"
+        async function generateAttack(){
             try {
-                const response = await fetch('/generate_attack_type?attack_id=' + encodeURIComponent(attack_id));
+                const response = await fetch('/generate_attack_type?attack_id=' + encodeURIComponent(attack_id)
+                    + "&zoom_url=" + encodeURIComponent(zoom_url) + "&password=" + encodeURIComponent(password));
                 const result = await response.json();
                 if (result.status === "complete") {
                     document.getElementById('attackBtn').disabled = false; // Enable the button

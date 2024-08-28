@@ -42,12 +42,17 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
             # Save the voice sample
             speaker_wavfile_path = file_manager.get_file_from_audio_dir(secure_filename(data.filename))
             data.save(speaker_wavfile_path)
+
             if create_voice_profile(username="oded", profile_name=name,
                                     speaker_wavfile_path=speaker_wavfile_path):
                 data_storage.add_profile(Profile(name, gen_info, str(speaker_wavfile_path)))
 
-            flash("Profile created successfully")
-            return flask_redirect(url_for("main.index"))
+                flash("Profile created successfully")
+                return flask_redirect(url_for("main.index"))
+
+            else:
+                flash("There was a problem to create the profile, please try again.")
+
         return render_template("attack_pages/new_profile.html", form=form)
 
     @main.route("/profileview", methods=["GET", "POST"])
@@ -193,8 +198,9 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
                                                               hour=form.hour.data, second=form.second.data,
                                                               minute=form.minute.data)
 
-                start_url = create_new_meeting(headers=headers, data=data)
-                encoded_start_url=urllib.parse.quote(start_url)
-                return flask_redirect(url_for('main.attack_dashboard_transition', start_url=encoded_start_url))
+                start_url, password = create_new_meeting(headers=headers, data=data)
+                encoded_start_url = urllib.parse.quote(start_url)
+                return flask_redirect(
+                    url_for('main.attack_dashboard_transition', start_url=encoded_start_url, password=password))
             return render_template('generate_zoom_meeting.html', form=form)
         return abort(404)  # Aborting if we got no access token
