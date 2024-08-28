@@ -163,7 +163,7 @@
                 for (const i in messages) {
                     if (!displayedMessages.includes(messages[i])) {
                         $('#messages_received').append('<br>' + $('<div/>').text('New Message: ' + messages[i]).html());
-                        displayedMessages.push(messages[i]);  // Add to the list of displayed messages
+                        displayedMessages.push(messages[i]);
                     }
                 }
                 if (cb) {
@@ -172,11 +172,11 @@
             });
 
             socket.on("new_audio", function (msg, cb) {
-                var audio = $('#myAudio')[0];
-                var audioSource = $('#audioSource')[0];
+                var audio = $('#myAudio')[0];  // HTML Audio element
+                var audioSource = $('#audioSource')[0];  // Source element within audio
 
-                var file_url = "/get_audio?file_path=" + encodeURIComponent(msg.audio);
 
+                var file_url = "/get_audio?file_path=" + encodeURIComponent(msg.audio_path);
                 audioSource.src = file_url;
                 audio.load();
 
@@ -186,9 +186,10 @@
                     event.preventDefault();
                     socket.emit("client_audio_decision", {
                         action: 'accept',
-                        audio: msg.audio,
+                        audio: msg.audio_path,
                         receiver: $('#receiver_phone_number_audio').val()
                     });
+
                     $('#receiver_phone_number_audio').val('');
                     $('#audioContainer').hide();
                 });
@@ -197,9 +198,10 @@
                     event.preventDefault();
                     socket.emit("client_audio_decision", {
                         action: 'reject',
-                        audio: msg.audio,
+                        audio: msg.audio_path,
                         receiver: $('#receiver_phone_number_audio').val()
                     });
+
                     $('#receiver_phone_number_audio').val('');
                     $('#audioContainer').hide();
                 });
@@ -208,6 +210,7 @@
                     cb();
                 }
             });
+
 
             $('form#emit').submit(function (event) {
                 event.preventDefault();
@@ -221,11 +224,38 @@
 
             $('form#audio').submit(function (event) {
                 event.preventDefault();
-                socket.emit('new_audio_generation', {
+
+                const reqUrl = "http://193.106.55.38/generate_speech"
+                var payload = {
                     tts: $('#text_to_speech').val(),
                     profile_name_for_tts: $('#profile_name_for_tts').val()
+                };
+
+
+                $.ajax({
+                    url: reqUrl,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function (response) {
+                        // Handle success response
+                        const taskID = response.task_id;
+                        console.log("Response from server:", response);
+
+                        socket.emit("audio_generation_status", {
+                            task_id: taskID,
+                            profile_name: $('#profile_name_for_tts').val(),
+                            tts: $('#text_to_speech').val()
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error:", error);
+                        alert("An error occurred while generating speech, please try again.");
+                    }
                 });
+
                 $('#text_to_speech').val('');
+                $('#profile_name_for_tts').val('');
             });
 
             $('form#ask_for_new_messages').submit(function (event) {

@@ -122,17 +122,23 @@ def initialize_socketio(socketio, file_manager):
              {'data': f"Request to send message to {message_tuple[0]} with content: {message_tuple[1]}"},
              broadcast=True)
 
-    @socketio.on("new_audio_generation")
-    def handle_new_audio(data):
+    @socketio.on("audio_generation_status")
+    def handle_audio_generation_status(data):
+        task_id = data['task_id']
+        profile_name_for_tts = data['profile_name']
         tts = data['tts']
-        profile_name_for_tts = data['profile_name_for_tts']
 
-        audio = clone(tts, profile_name_for_tts,
-                      file_manager.get_new_audiofile_path_from_profile_name(profile_name_for_tts,
-                                                                            tts.lower().replace(" ", "_")),
-                      file_manager.audios_dir)
-        emit("new_audio", {"tts": tts, "audio": audio},
-             broadcast=True)
+        audio_path = clone(task_id, profile_name_for_tts,
+                           file_manager.get_new_audiofile_path_from_profile_name(profile_name_for_tts,
+                                                                                 tts.lower().replace(" ", "_")),
+                           file_manager.audios_dir)
+        if audio_path:
+            emit("new_audio", {"tts": tts, "audio_path": audio_path},
+                 broadcast=True)
+        else:
+            emit('server_update', {
+                'data': "There was a problem while generating the audio, please try again. "
+            })
 
     @socketio.on("client_audio_decision")
     def handle_audio_decision(data):
