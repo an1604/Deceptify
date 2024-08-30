@@ -1,6 +1,0 @@
-Your task is to generate a knowledgebase like a csv that include general questions and 
-    answers about a person. the answers should be short and simple. the questions should be in the form of:
-     "What did you do yesterday?", "Where are you right now?", "What are you doing?",
-     "Where were you yesterday?"
-    
-    The person have the following general information that you can use to generate the file

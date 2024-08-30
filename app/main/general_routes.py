@@ -33,12 +33,12 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
         if form.validate_on_submit():
             # Get the data from the form
             name = form.name_field.data
-            gen_info = form.gen_info_field.data
-            data = form.recording_upload.data
-            video = form.Image_upload.data
-            if video.filename == "":
-                video = None
-
+            # gen_info = form.gen_info_field.data
+            # data = form.recording_upload.data
+            selection = form.selection.data
+            if "record" in selection.lower():
+                return flask_redirect(url_for('main.record_voice', profile_name=name))
+            return flask_redirect(url_for('main.upload_voice_file', profile_name=name))
             # Save the voice sample
             speaker_wavfile_path = file_manager.get_file_from_audio_dir(secure_filename(data.filename))
             data.save(speaker_wavfile_path)
@@ -98,7 +98,6 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
         if form.validate_on_submit():
             email = form.email.data
             contact_field = form.contact_field.data
-            passwd = form.passwd.data
             return flask_redirect(url_for("main.index"))
         return render_template("contact.html", form=form)
 
@@ -139,8 +138,8 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
     @main.route('/run_telegram_attack', methods=['GET', 'POST'])
     @login_required
     def run_telegram_attack():
-        # profile_name = request.args.get('profile_name')
-        return render_template('telegram/run_telegram_attack.html')
+        return render_template('telegram/run_telegram_attack.html',
+                               names=data_storage.getAllProfileNames())
 
     @main.route('/zoom_authorization')
     @login_required

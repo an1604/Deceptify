@@ -6,61 +6,104 @@
     <title>Deceptify</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 </head>
-{% endblock%}
+{% endblock %}
 
 {% block content %}
-<p>
-    <button id="startRecording">Start recording</button>
-    <button id="stopRecording" disabled>Stop recording</button>
-    <a href="{{url_for('newattack')}}">Continue</a>
-
-</p>
-<script>
-    navigator
-        .mediaDevices
-        .getUserMedia({audio: true})
-        .then(stream => {
-            handlerFunction(stream)
-        });
-
-    function handlerFunction(stream) {
-        rec = new MediaRecorder(stream);
-        rec.ondataavailable = e => {
-            audioChunks.push(e.data);
-            if (rec.state == "inactive") {
-                let blob = new Blob(audioChunks, {type: 'audio/mpeg-3'});
-                sendData(blob);
-            }
-        }
+<style>
+    button {
+        background-color: #1abc9c;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin: 10px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
     }
 
+    button:disabled {
+        background-color: #bdc3c7;
+        cursor: not-allowed;
+    }
+
+    button:hover:not(:disabled) {
+        background-color: #16a085;
+    }
+
+    a {
+        display: inline-block;
+        margin-top: 20px;
+        text-decoration: none;
+        color: #ff0000;
+        font-size: 16px;
+    }
+
+    p {
+        margin: 20px 0;
+    }
+</style>
+
+<div class="container">
+    <p>
+        <button id="startRecording">Start recording</button>
+        <button id="stopRecording" disabled>Stop recording</button>
+    </p>
+</div>
+
+<script>
+    let audioChunks = [];
+    let rec;
+    const startRecording = document.getElementById("startRecording");
+    const stopRecording = document.getElementById("stopRecording");
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            rec = new MediaRecorder(stream);
+            rec.ondataavailable = e => {
+                audioChunks.push(e.data);
+                if (rec.state === "inactive") {
+                    let blob = new Blob(audioChunks, { type: 'audio/wav' });
+                    sendData(blob);
+                }
+            };
+        }).catch(err => {
+            console.error('Error accessing microphone:', err);
+        });
+
     function sendData(data) {
-        var form = new FormData();
-        form.append('file', data, 'data.mp3');
+        let form = new FormData();
+        form.append('file', data, 'data.wav');
         form.append('title', 'data.mp3');
-        //Chrome inspector shows that the post data includes a file and a title.
+        form.append('profile_name', "{{ profile_name }}"); // Ensure this is properly handled in Jinja2
+
         $.ajax({
             type: 'POST',
             url: '/save-record',
             data: form,
             cache: false,
             processData: false,
-            contentType: false
-        }).done(function (data) {
-            console.log(data);
+            contentType: false,
+        }).done(function (msg) {
+            if (msg.data === "success") {
+                window.location.href = '/';
+            }
+        }).fail(function (error) {
+            console.error('Error sending data:', error);
+            window.location.href = '/new_profile';
         });
     }
 
-    startRecording.onclick = e => {
-        console.log('Recording are started..');
+    startRecording.onclick = () => {
+        console.log('Recording started...');
         startRecording.disabled = true;
         stopRecording.disabled = false;
         audioChunks = [];
         rec.start();
     };
 
-    stopRecording.onclick = e => {
-        console.log("Recording are stopped.");
+    stopRecording.onclick = () => {
+        console.log("Recording stopped.");
         startRecording.disabled = false;
         stopRecording.disabled = true;
         rec.stop();

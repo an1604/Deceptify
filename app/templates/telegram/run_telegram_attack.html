@@ -13,99 +13,125 @@
             crossorigin="anonymous"></script>
 
     <style>
-        .text-container {
-            padding: 20px;
-            border-radius: 8px;
-            max-width: 800px; /* Limit the width for better readability */
-            margin: 20px auto; /* Center the container */
-            color: #ffffff; /* Text color */
-            font-size: 18px; /* Increase font size */
-            line-height: 1.6; /* Improve line spacing */
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); /* Subtle text shadow for better contrast */
+    /* General Styling */
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Container for the entire section */
+    .main-container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Log Container */
+    #log {
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 15px;
+        border-radius: 5px;
+        text-align: center;
+        margin-bottom: 20px;
+        max-width: 600px;
+        margin: 0 auto 20px auto; /* Centered at the top */
+    }
+
+    /* Forms container to hold both forms side by side */
+    .forms-container {
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-start;
+        margin: 0 auto;
+        max-width: 800px;
+    }
+
+    form {
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 20px;
+        border-radius: 8px;
+        width: 45%;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    form input[type="text"],
+    form input[type="submit"] {
+        width: calc(100% - 30px);
+        padding: 10px 15px;
+        margin: 10px 0;
+        font-size: 16px;
+        border: 2px solid #1abc9c;
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.9);
+        color: #2c3e50;
+    }
+
+    form input[type="submit"] {
+        background-color: #1abc9c;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    form select {
+        width: calc(100% - 30px);
+        padding: 10px 15px;
+        margin: 10px 0;
+        font-size: 16px;
+        border: 2px solid #1abc9c;
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.9);
+        color: #2c3e50;
+    }
+
+    form input[type="submit"]:hover {
+        background-color: #16a085;
+    }
+
+    /* Audio and Button Styling */
+    #audioContainer {
+        background-color: rgba(0, 0, 0, 0.7);
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 500px;
+        margin: 30px auto;
+    }
+
+    button {
+        background-color: #1abc9c;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #16a085;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .forms-container {
+            flex-direction: column;
+            align-items: center;
         }
 
-        form input[type="text"],
-        form input[type="submit"] {
-            width: 100%;
-            padding: 10px 15px;
-            margin: 10px 0;
-            font-size: 16px; /* Increased font size */
-            border: 2px solid #1abc9c; /* Adding a border */
-            border-radius: 5px;
-            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
-            color: #2c3e50; /* Dark text color */
+        form {
+            width: 80%;
+            margin-bottom: 20px;
         }
-
-        form input[type="submit"] {
-            background-color: #1abc9c; /* Green background for the submit button */
-            color: white; /* White text */
-            cursor: pointer;
-            transition: background-color 0.3s ease; /* Smooth transition */
-        }
-
-        form input[type="submit"]:hover {
-            background-color: #16a085; /* Darker green on hover */
-        }
-
-        /* Add a container with a background for better readability */
-        #initClientContainer {
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 500px; /* Set a maximum width */
-            margin: 30px auto; /* Center the form container */
-        }
-
-        #attackContainer {
-            background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 500px;
-            margin: 30px auto;
-        }
-
-        #container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-
-        #log, #new_messages {
-            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background for logs */
-            padding: 10px;
-            border-radius: 5px;
-            color: #2c3e50; /* Dark text color */
-        }
-
-        #loading {
-            color: #ff0000; /* Red color for loading text */
-            font-weight: bold;
-            display: none; /* Hide the loading text by default */
-        }
-
-        input::placeholder {
-            color: #7f8c8d; /* Light gray placeholder text */
-            font-style: italic; /* Italicize placeholder text */
-        }
-
-        audio {
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        button {
-            background-color: #1abc9c;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background-color: #16a085;
-        }
-    </style>
+    }
+</style>
 
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function () {
@@ -114,7 +140,8 @@
 
             socket.on('connect', function () {
                 socket.emit('connect_event', {data: 'I\'m connected!'});
-                $('#initClientContainer').show();
+                //$('#initClientContainer').show();
+                $('#attackContainer').show();
             });
 
             socket.on('connection_update', function (msg, cb) {
@@ -230,9 +257,8 @@
                     cps: $("#cps").val()
                 });
 
-                $('#text_to_speech').val('');
-                $('#profile_name_for_tts').val('');
-                $("#cps").val("10.5")
+                {#$('#text_to_speech').val('');#}
+                {#$("#cps").val("10.5")#}
                 alert("We working on it... be patient :)")
             });
 
@@ -263,52 +289,41 @@
         });
     </script>
 
-    <div id="initClientContainer" style="display: none;">
-        <form id="initClientForm" method="POST" action='#'>
-            <input type="text" name="app_id" id="app_id" placeholder="Your App ID Here">
-            <input type="text" name="app_hash" id="app_hash" placeholder="Your App Hash Here">
-            <input type="text" name="profile_name" id="profile_name" placeholder="Your Profile Name Here">
-            <input type="text" name="phone_number" id="phone_number" placeholder="Your Phone Number Here">
-            <input type="submit" value="Authorize Client">
-        </form>
-        <div id="loading">Initializing...</div>
-    </div>
+    <div class="main-container">
+    <!-- Log Container -->
+    <div id="log">Server Log: Waiting for updates...</div>
 
-    <div id="attackContainer" style="display: none;">
-        <h2>Send:</h2>
-
+    <!-- Forms Container -->
+    <div class="forms-container">
+        <!-- Emit Form -->
         <form id="emit" method="POST" action='#'>
             <input type="text" name="emit_data" id="emit_data" placeholder="Message">
             <input type="text" name="receiver" id="receiver_phone_number_text" placeholder="Receiver Phone Number">
             <input type="submit" value="Send Text">
         </form>
 
+        <!-- Audio Form -->
         <form id="audio" method="POST" action='#'>
             <input type="text" name="emit_data" id="text_to_speech" placeholder="Text to Speech">
-            <input type="text" name="profile_name_for_tts" id="profile_name_for_tts"
-                   placeholder="Who's voice to clone?">
-            <input type="text" name="cps" id="cps" placeholder="Characters Per Seconds">
+            <select name="profile_name_for_tts" id="profile_name_for_tts">
+                {% for name in names %}
+                    <option value="{{ name }}">{{ name }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="cps" id="cps" placeholder="Characters Per Second">
             <input type="text" name="receiver" id="receiver_phone_number_audio" placeholder="Receiver Phone Number">
             <input type="submit" value="Generate Audio">
         </form>
-
-        <div id="audioContainer" style="display: none;">
-            <audio id="myAudio" controls>
-                <source id="audioSource" type="audio/mpeg" src="">
-                Your browser does not support the audio element.
-            </audio>
-            <button type="button" id="acceptAndSendAudio">Accept and Send Audio</button>
-            <button type="button" id="rejectAndRegenerate">Reject and Regenerate Audio</button>
-        </div>
-
-        <div id="container">
-            <div id="log"></div>
-            <div id="new_messages">
-                <form id="ask_for_new_messages" method="POST" action="#">
-                    <div id="messages_received"></div>
-                    <input type="submit" value="Check If You Got New Messages">
-                </form>
-            </div>
-        </div>
     </div>
+
+    <!-- Audio Container -->
+    <div id="audioContainer" style="display: none;">
+        <audio id="myAudio" controls>
+            <source id="audioSource" type="audio/mpeg" src="">
+            Your browser does not support the audio element.
+        </audio>
+        <button type="button" id="acceptAndSendAudio">Accept and Send Audio</button>
+        <button type="button" id="rejectAndRegenerate">Reject and Regenerate Audio</button>
+    </div>
+</div>
 {% endblock %}

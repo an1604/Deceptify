@@ -7,15 +7,5 @@
     <div class="page-header">
         <h1>Upload Existing Voice Recording File</h1>
     </div>
-    <form method=post enctype="multipart/form-data">
-        <table>
-            {{ form.hidden_tag() }}
-            {% for field in form %}
-                <tr>
-                    <td>{% if field.widget.input_type != 'hidden' %} {{ field.label }} {% endif %}</td>
-                    <td>{{ field }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-    </form>
+    {{ wtf.quick_form(form) }}
 {% endblock %}

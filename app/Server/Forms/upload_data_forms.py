@@ -8,15 +8,11 @@ from app.Server.data.DataStorage import Data
 
 
 class VoiceUploadForm(FlaskForm):
-    profiles = SelectField(label='Profiles',
-                           choices=[profile for profile in Data().get_data_object().getAllProfileNames()],
-                           validators=[DataRequired()])
-    files = MultipleFileField(
-        label="Upload Your Voice Recordings (wav files)",
-        render_kw={"multiple": True},
+    file = FileField(
+        label="Upload Voice Recording (wav file)",
         validators=[
             FileRequired(),
-            FileAllowed(['wav', 'mp3', 'wav'])],
+            FileAllowed(['wav'])],
     )
     submit = SubmitField("Submit")
 

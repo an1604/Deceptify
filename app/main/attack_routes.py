@@ -49,14 +49,6 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
             return flask_redirect(url_for("main.zoom_authorization", id=attack_id))
         return render_template('attack_pages/new_ai_attack.html', form=form)
 
-    @main.route("/new_clone_attack", methods=["GET", "POST"])  # New voice attack page.
-    @login_required
-    def new_clone_attack():
-        form = CloneAttackForm()
-        if form.validate_on_submit():
-            return None
-        return render_template("attack_pages/new_voice_attack.html", form=form)
-
     @main.route('/attack_dashboard_transition', methods=['GET'])
     @login_required
     def attack_dashboard_transition():
@@ -152,35 +144,6 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
         print(is_success)
         return jsonify({'is_success': is_success})
 
-    @main.route('/attack_dashboard', methods=['GET', 'POST'])
-    @login_required
-    def attack_dashboard():
-        global cam_thread
-        profile_name = request.args.get("profile")
-        contact_name = request.args.get("contact")
-        attack_id = request.args.get("id")
-        profile = data_storage.get_profile(profile_name)
-        attack = profile.get_attack(attack_id)
-        attack_purpose = "address"
-        form = AttackDashboardForm()
-        form.prompt_field.choices = [(prompt.prompt_desc, prompt.prompt_desc) for prompt in profile.getPrompts()]
-
-        started = session.get("started_call")
-        if not started:
-            recorder_thread = Thread(target=record_call,
-                                     args=(MainRotesParams.StopRecordEvent, "Attacker-" + profile_name +
-                                           "-Target-" + contact_name))
-            recorder_thread.start()
-            session["started_call"] = True
-            session['stopped_call'] = False
-        if form.validate_on_submit():
-            play_audio_through_vbcable(
-                file_manager.get_file_from_audio_dir(f"{profile_name}-{form.prompt_field.data}.wav"))
-            return flask_redirect(url_for('main.attack_dashboard', profile=profile_name,
-                                          contact=contact_name, id=attack_id))
-        return render_template('attack_pages/attack_dashboard.html', form=form,
-                               contact=contact_name, id=attack_id)
-
     @main.route('/send_prompt', methods=['GET'])
     @login_required
     def send_prompt():
@@ -221,18 +184,21 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
     @login_required
     def upload_voice_file():
         profile_name = request.args.get('profile_name')
-
         form = VoiceUploadForm()
         if form.validate_on_submit():
-            profile_name_voice_dir = file_manager.get_file_from_audio_dir(app.config['UPLOAD_FOLDER'],
-                                                                          profile_name + '-clone')
-            os.makedirs(profile_name_voice_dir, exist_ok=True)
+            profile_name_voice_dir = file_manager.get_file_from_audio_dir(profile_name + '-clone')
+            file_manager.create_directory(profile_name_voice_dir)
+            file = form.file.data
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(profile_name_voice_dir, filename)
+            file.save(file_path)
 
-            for file in form.files.data:
-                filename = secure_filename(file.filename)
-                file_path = os.path.join(profile_name_voice_dir, filename)
-                file.save(file_path)
-            return flask_redirect(url_for("main.run_telegram_attack"))
+            if create_voice_profile(username="oded", profile_name=profile_name,
+                                    speaker_wavfile_path=file_path):
+                data_storage.add_profile(Profile(profile_name, file_path))
+                return flask_redirect(url_for("main.index"))
+            else:
+                flash("Something wrong, try again please")
         return render_template("data_collection_pages/upload_voice_file.html", form=form)
 
     @main.route(
@@ -240,11 +206,13 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
     )  # Route for record a new voice file.
     @login_required
     def record_voice():
-        return render_template("data_collection_pages/record_voice.html")
+        profile_name = request.args.get('profile_name')
+        return render_template("data_collection_pages/record_voice.html", profile_name=profile_name)
 
     @main.route("/save-record", methods=["GET", "POST"])
     @login_required
     def save_record():
+        print("start saving")
         if "file" not in request.files:
             flash("No file part")
             return flask_redirect(request.url)

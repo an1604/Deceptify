@@ -91,7 +91,7 @@ def recognize_worker(audios_dir, username, backgroundEvent):
                     start_filler.daemon = True
                     start_filler.start()
                     index = (index + 1) % 3
-                generateSpeech(text_prompt=response,
+                generateSpeech(text_prompt=response + " umm",
                                path=audios_dir + "\\prompt.wav")
                 play_audio_through_vbcable(audios_dir + "\\prompt.wav")
             if not waitforllm.is_set():
