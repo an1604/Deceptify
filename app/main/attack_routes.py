@@ -21,6 +21,8 @@ from app.Server.run_bark import generateSpeech
 from app.Server.LLM.llm_chat_tools.send_email import send_email
 from app.main.main_params import MainRotesParams
 
+from app.Server.data.Profile import Profile
+
 
 def attack_generation_routes(main, data_storage, file_manager, socketio):
     @main.route("/new_ai_attack", methods=["GET", "POST"])  # The new chat route.
@@ -134,7 +136,8 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
                                       "Hello " +
                                       attack.getTargetName().split(" ")[
                                           0] + " this is Jason from " + attack.getPlace() +
-                                      " " + attack.getPurpose() + " umm", MainRotesParams.StopRecordEvent, attack.target_name)
+                                      " " + attack.getPurpose() + " umm", MainRotesParams.StopRecordEvent,
+                                      attack.target_name)
         recorder_thread.join()
         file_manager.rename_file('attack_records', 'recording.wav', "recording" + str(attack.getID()) + ".wav")
         file_manager.rename_file('attack_records', 'transcript.txt', "transcript" + str(attack.getID()) + ".txt")
@@ -209,7 +212,7 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
         profile_name = request.args.get('profile_name')
         return render_template("data_collection_pages/record_voice.html", profile_name=profile_name)
 
-    @main.route("/save-record", methods=["GET", "POST"])
+    @main.route("/save-record", methods=["POST"])
     @login_required
     def save_record():
         print("start saving")
@@ -217,13 +220,24 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
             flash("No file part")
             return flask_redirect(request.url)
         file = request.files["file"]
+        profile_name = request.form.get("profile_name")
         if file.filename == "":
             flash("No selected file")
             return flask_redirect(request.url)
-        file_name = str(uuid.uuid4()) + ".mp3"
-        full_file_name = file_manager.get_file_from_audio_dir(file_name)
-        file.save(full_file_name)
-        return "<h1>File saved</h1>"
+        file_name = f'{profile_name}_original_speech.wav'
+
+        file_path = file_manager.get_new_audiofile_path_from_profile_name(profile_name, file_name)
+
+        file.save(file_path)
+        if create_voice_profile(username="oded", profile_name=profile_name,
+                                speaker_wavfile_path=file_path):
+            data_storage.add_profile(Profile(profile_name, file_path))
+            return jsonify({
+                'data': "success"
+            }), 200
+        return jsonify({
+            'data': "failed"
+        }), 500
 
     @main.route("/view_audio_prompts", methods=["GET", "POST"])
     @login_required

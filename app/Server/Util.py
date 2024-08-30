@@ -183,8 +183,9 @@ def request_and_wait_for_audio(task_id, profile_name, audios_directory_path):
                 return output_filename
 
 
-def clone(text, profile_name_for_tts, output_filename, audios_directory_path, cps):
-    task_id = send_speech_generation_request(text=text, profile_name=profile_name_for_tts,cps=cps)
+def clone(text, profile_name_for_tts, output_filename, audios_directory_path, cps, regenerate=False):
+    task_id = send_speech_generation_request(text=text, profile_name=profile_name_for_tts, cps=cps,
+                                             regenerate=regenerate)
     if wait_for_result(task_id=task_id, output_filename=output_filename,
                        profile_name=profile_name_for_tts):
         return output_filename

@@ -40,18 +40,12 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
                 return flask_redirect(url_for('main.record_voice', profile_name=name))
             return flask_redirect(url_for('main.upload_voice_file', profile_name=name))
             # Save the voice sample
-            speaker_wavfile_path = file_manager.get_file_from_audio_dir(secure_filename(data.filename))
-            data.save(speaker_wavfile_path)
-
-            if create_voice_profile(username="oded", profile_name=name,
-                                    speaker_wavfile_path=speaker_wavfile_path):
-                data_storage.add_profile(Profile(name, gen_info, str(speaker_wavfile_path)))
-
-                flash("Profile created successfully")
-                return flask_redirect(url_for("main.index"))
-
-            else:
-                flash("There was a problem to create the profile, please try again.")
+            # speaker_wavfile_path = file_manager.get_file_from_audio_dir(secure_filename(data.filename))
+            # data.save(speaker_wavfile_path)
+            #
+            # if create_voice_profile(username="oded", profile_name=name,
+            #                         speaker_wavfile_path=speaker_wavfile_path):
+            #     data_storage.add_profile(Profile(name, gen_info, str(speaker_wavfile_path)))
 
         return render_template("attack_pages/new_profile.html", form=form)
 

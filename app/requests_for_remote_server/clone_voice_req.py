@@ -11,7 +11,7 @@ load_dotenv()
 URL = os.getenv('SERVER_URL')
 
 
-def send_speech_generation_request(text, profile_name, cps):
+def send_speech_generation_request(text, profile_name, cps,regenerate):
     """Send a request to the Flask server to generate speech from text and a speaker WAV sample."""
 
     # Prepare the data payload
@@ -21,9 +21,9 @@ def send_speech_generation_request(text, profile_name, cps):
         'cps': cps
     }
 
-    # Send the POST request to the server
+    url = f'{URL}/generate_speech' if not regenerate else f'{URL}/regenerate_audio'
     try:
-        response = requests.post(f'{URL}/generate_speech', json=payload)
+        response = requests.post(url, json=payload)
         if response.status_code == 202:
             print(f"Server accepted the task: {response.json()}")
             return response.json().get('task_id')

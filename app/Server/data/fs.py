@@ -50,6 +50,7 @@ class FilesManager(object):
     def get_clone_dir_from_profile_name(self, profile_name):
         try:
             profile_name_voice_dir = os.path.join(self.audios_dir, profile_name + '-clone')
+            self.create_directory(profile_name_voice_dir)
             return profile_name_voice_dir
         except Exception as e:
             print(f"Exception in get_clone_dir_from_profile_name for profile '{profile_name}': {str(e)}")

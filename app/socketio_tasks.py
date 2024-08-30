@@ -162,9 +162,26 @@ def initialize_socketio(socketio, file_manager):
             new_audio_event.set()
             emit("server_update", {'data': "Client has accepted the audio"},
                  broadcast=True)
+        #TODO: CREATE A FUNCTION TO AVOID CODE DUPLICATION!
         else:
-            emit("server_update", {'data': 'Client has not accepted the audio'},
-                 broadcast=True)
+            tts, profile_name, cps = data['tts'], data['profile_name'], data['cps']
+            audio_path = clone(tts, profile_name,
+                               file_manager.get_new_audiofile_path_from_profile_name(profile_name,
+                                                                                     f'{tts.lower().replace(" ", "_")}.wav'),
+                               file_manager.audios_dir, cps, True)
+            if audio_path:
+                logging.info(f"Audio generated to {audio_path}")
+                emit("new_audio", {"tts": tts, "audio_path": audio_path},
+                     broadcast=True)
+
+                emit("server_update", {'data': 'Client has not accepted the audio, regenerate it...'},
+                     broadcast=True)
+            else:
+                logging.error("Error while trying to generate the speech from remote server")
+                emit('server_update', {
+                    'data': "There was a problem while generating the audio, please try again. "
+                })
+
 
     @socketio.on('ask_for_new_messages')
     def handle_ask_for_new_messages():

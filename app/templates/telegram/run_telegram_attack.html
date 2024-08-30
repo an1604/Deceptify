@@ -226,7 +226,10 @@
                     socket.emit("client_audio_decision", {
                         action: 'reject',
                         audio: msg.audio_path,
-                        receiver: $('#receiver_phone_number_audio').val()
+                        receiver: $('#receiver_phone_number_audio').val(),
+                        tts: $('#text_to_speech').val(),
+                        cps: $("#cps").val(),
+                        profile_name: $("#profile_name_for_tts").val()
                     });
 
                     $('#receiver_phone_number_audio').val('');
