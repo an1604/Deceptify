@@ -121,7 +121,7 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
                 generateSpeech(prompt, file_manager.get_file_from_audio_dir(f"\\{prompt}.wav"))
 
         starting_message = "Hello " + attack.getTargetName().split(" ")[
-            0] + " this is Jason from " + attack.getPlace() + " " + attack.getPurpose()
+            0] + " this is Jason from " + attack.getPlace() + " " + attack.getPurpose() + " umm"
         if not file_manager.prompt_rec_exists_in_audio_dir(starting_message):
             path = file_manager.get_file_from_audio_dir(f"\\{starting_message}.wav")
             logging.info(f"From attack --> path is: {path}")
@@ -142,7 +142,7 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
                                       "Hello " +
                                       attack.getTargetName().split(" ")[
                                           0] + " this is Jason from " + attack.getPlace() +
-                                      " " + attack.getPurpose(), MainRotesParams.StopRecordEvent, attack.target_name)
+                                      " " + attack.getPurpose() + " umm", MainRotesParams.StopRecordEvent, attack.target_name)
         recorder_thread.join()
         file_manager.rename_file('attack_records', 'recording.wav', "recording" + str(attack.getID()) + ".wav")
         file_manager.rename_file('attack_records', 'transcript.txt', "transcript" + str(attack.getID()) + ".txt")

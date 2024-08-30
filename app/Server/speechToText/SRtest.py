@@ -108,8 +108,10 @@ def recognize_worker(audios_dir, username, backgroundEvent):
 
 def startConv(audios_dir, attack_prompts, purpose, starting_message, record_event, target_name,
               username="oded"):
-    global flag, waitforllm, prompts_for_user, r, recognize_thread, llm_flag, background_thread, backgroundEvent
+    global flag, waitforllm, prompts_for_user, r, recognize_thread, llm_flag, background_thread,\
+        backgroundEvent, audio_queue
     llm_flag = True
+    audio_queue = Queue()
     backgroundEvent = Event()
     llm.initialize_new_attack(attack_purpose=purpose, profile_name=target_name)  # Refine the llm to the new attack
     flag = False
