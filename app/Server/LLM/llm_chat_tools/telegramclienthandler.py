@@ -32,9 +32,9 @@ class TelegramClientHandler(object):
 
         self.messages_received = []
         self.loop = None
-        self.make_event_loop()
 
-        self.client = TelegramClient(StringSession(), self.app_id, self.app_hash)
+        self.client = None
+        self.loop = None
         self.initialize_client()
 
     def handle_routes(self, client):
@@ -46,9 +46,14 @@ class TelegramClientHandler(object):
             logging.info(f'New message received: {message}')
             self.messages_received.append(message)
 
-    def initialize_client(self):
-        self.handle_routes(self.client)
+    def initialize_client(self, needs_flush=False):
+        if needs_flush:
+            self.flush()
 
+        self.make_event_loop()
+        self.client = TelegramClient(StringSession(), self.app_id, self.app_hash)
+
+        self.handle_routes(self.client)
         self.loop.create_task(self.run_client())  # Run the telegram client as a background task
         logging.info("Added run_client to the loop")
 
@@ -160,3 +165,9 @@ class TelegramClientHandler(object):
                     reason='some string here'
                 ))
                 logging.info(f'from authenticate_client_via_msg --> result.stringify() = {result.stringify()}')
+
+    def flush(self):
+        self.client = None
+        self.loop = None
+        self.messages_received = []
+        self.phone_hash = None

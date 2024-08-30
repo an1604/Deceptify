@@ -31,12 +31,20 @@ telegram_info_event = threading.Event()  # The event that will be triggered the 
 
 async def manual_send_message(receiver, message):
     global client
-    await client.send_message(receiver, message)
+    try:
+        await client.send_message(receiver, message)
+    except Exception as e:
+        logging.error(e)
+        client.initialize_client(True)
 
 
 async def manual_send_audio(receiver, audio):
     global client
-    await client.send_audio(receiver, audio)
+    try:
+        await client.send_audio(receiver, audio)
+    except Exception as e:
+        logging.error(e)
+        client.initialize_client(True)
 
 
 def background_thread(socketio):
@@ -128,12 +136,13 @@ def initialize_socketio(socketio, file_manager):
         logging.info('new_audio_gen_req handler called from front')
         profile_name_for_tts = data['profile_name_for_tts']
         tts = data['tts']
+        cps = data['cps']
 
         logging.info("Send the cloning request to the remote server...")
         audio_path = clone(tts, profile_name_for_tts,
                            file_manager.get_new_audiofile_path_from_profile_name(profile_name_for_tts,
                                                                                  f'{tts.lower().replace(" ", "_")}.wav'),
-                           file_manager.audios_dir)
+                           file_manager.audios_dir, cps)
         if audio_path:
             logging.info(f"Audio generated to {audio_path}")
             emit("new_audio", {"tts": tts, "audio_path": audio_path},

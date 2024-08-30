@@ -14,7 +14,7 @@ from mfa import *
 # Initialize Flask app
 app = Flask(__name__)
 tasks_queue = Queue()  # Q for the voice clone tasks
-results = {}  # Dictionary to keep track the results
+results = {}  # Dictionary to keep track of the results
 authorization_req = {}
 default_file = os.path.join(os.path.dirname(__file__), 'speakers/Drake/Drake.mp3')  # File for health check.
 stop = threading.Event()
@@ -39,33 +39,32 @@ def runner():
         if task_data is not None:
             logging.info(f"New task occurred, task_id is {task_id}")
 
-            text, speaker_wav_path, output_filename = task_data
+            text, speaker_wav_path, output_filename, cps = task_data
             logging.info(f"Data from the task: "
                          f"Text: {text}\n"
                          f"speaker_wav_path: {speaker_wav_path}\n"
                          f"output_filename {output_filename}")
 
             if not os.path.exists(output_filename):
-                output_filename = generate_audio(text, speaker_wav_path, output_filename)
+                output_filename = generate_audio(text, speaker_wav_path, output_filename, cps)
 
             if output_filename is not None:
                 results[task_id] = output_filename
                 logging.info(f'Task {task_id} done and saved in {output_filename}')
 
 
-def generate_audio(text, speaker_wav_path, output_filename, sample_rate=24000):
+def generate_audio(text, speaker_wav_path, output_filename, cps=11.5, sample_rate=24000):
     """Generate audio using the WhisperSpeech model."""
     try:
         logging.info(f"Generating audio for text: {text}, speaker_wav_path: {speaker_wav_path}")
-        audio = pipe.generate(text, lang='en', cps=10.5, speaker=speaker_wav_path)
+        audio = pipe.generate(text, lang='en', cps=cps, speaker=speaker_wav_path)
         generated_audio_cpu = audio.cpu()
         torchaudio.save(output_filename, generated_audio_cpu, sample_rate)
         logging.info(f"Audio saved in {output_filename}")
         return output_filename
     except Exception as e:
         logging.error(f"Failed to generate audio: {e}")
-        return \
-            r'C:\Users\nataf12386\PycharmProjects\Deceptify\WhisperSpeech\speakers\Drake\Drake.mp3'
+        return None
 
 
 @app.route('/create_speaker_profile', methods=['POST'])
@@ -85,10 +84,10 @@ def create_speaker_profile():
     speaker_wav_path = os.path.join(profile_result_dir_path, f'{profile_name}_original_speech.wav')
     speaker_wav.save(speaker_wav_path)
 
-    ogg_filepath = os.path.join(profile_result_dir_path, f'{profile_name}_original_speech.ogg')
-    convert_wav_to_ogg(wav_filepath=speaker_wav, ogg_filepath=ogg_filepath)
+    # ogg_filepath = os.path.join(profile_result_dir_path, f'{profile_name}_original_speech.ogg')
+    # convert_wav_to_ogg(wav_filepath=speaker_wav, ogg_filepath=ogg_filepath)
 
-    if os.path.exists(profile_result_dir_path) and os.path.exists(ogg_filepath):
+    if os.path.exists(profile_result_dir_path) and os.path.exists(speaker_wav_path):
         logging.info(f"Profile {profile_name} created successfully.")
         return jsonify({"success": True}), 200
 
@@ -104,6 +103,7 @@ def generate_speech():
         data = request.get_json()
         text = data.get('text')
         profile_name = data.get('profile_name')
+        cps = data.get('cps')
 
         if not text or not profile_name:
             logging.warning("Missing required fields: text, profile_name")
@@ -111,10 +111,10 @@ def generate_speech():
 
         result_dir_path = os.path.join('speakers', profile_name)
         output_filename = os.path.join(result_dir_path, f'{clean_text(text)}.wav')
-        speaker_wav_path = os.path.join(result_dir_path, f'{profile_name}_original_speech.ogg')
+        speaker_wav_path = os.path.join(result_dir_path, f'{profile_name}_original_speech.wav')
 
         task_id = str(uuid.uuid4())  # Generate a unique task id.
-        tasks_queue.put((task_id, (text, speaker_wav_path, output_filename)))
+        tasks_queue.put((task_id, (text, speaker_wav_path, output_filename, cps)))
         logging.info(f"Task {task_id} created for generating speech.")
         return jsonify({"task_id": task_id}), 202
 
@@ -211,7 +211,7 @@ if __name__ == "__main__":
         logging.info("Main run...")
         runner_thread = threading.Thread(target=runner)
         runner_thread.start()
-        app.run(host='0.0.0.0', port=5000)
+        app.run(host='0.0.0.0', port=8080)
         stop.set()
     except Exception as e:
         stop.set()

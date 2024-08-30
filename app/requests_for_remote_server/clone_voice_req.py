@@ -11,13 +11,14 @@ load_dotenv()
 URL = os.getenv('SERVER_URL')
 
 
-def send_speech_generation_request(text, profile_name):
+def send_speech_generation_request(text, profile_name, cps):
     """Send a request to the Flask server to generate speech from text and a speaker WAV sample."""
 
     # Prepare the data payload
     payload = {
         'text': text,
-        'profile_name': profile_name
+        'profile_name': profile_name,
+        'cps': cps
     }
 
     # Send the POST request to the server
@@ -36,11 +37,17 @@ def send_speech_generation_request(text, profile_name):
 
 def wait_for_result(task_id, profile_name, output_filename):
     if task_id:
+        requests_counter = 0  # Counting the requests for break the loop if there is a problem in the remote server.
         get_audio_after_gen_req = f'{URL}/get_result/{task_id}'
         file_ready = False
 
         while not file_ready:
+            if requests_counter > 13:
+                break
+            requests_counter += 1
+
             time.sleep(3)
+
             response = requests.get(get_audio_after_gen_req.format(task_id=task_id))
             if response.status_code == 200:
                 if response.headers["content-type"].strip().startswith(
@@ -54,6 +61,5 @@ def wait_for_result(task_id, profile_name, output_filename):
                     with open(output_filename, 'wb') as f:
                         f.write(response.content)
                     return True
-    else:
         print("Failed to send the task to the server.")
         return False
