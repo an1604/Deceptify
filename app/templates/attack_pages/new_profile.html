@@ -6,9 +6,24 @@
 {% block title %}Deceptify- New Profile{%endblock%}
 
 {% block page_content %}
-<h2>
+    <style>
+
+/* Page Header Styling */
+h1 {
+    text-align: center;
+    color: #ecf0f1;
+    margin-bottom: 30px;
+    background-color: #1e2f50;
+    padding: 20px;
+    border-radius: 10px;
+    border-bottom: 2px solid #1abc9c;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+    </style>
+
+<h1>
     Create a New Profile.
-</h2>
+</h1>
 {{ wtf.quick_form(form) }}
 
 {%endblock%}

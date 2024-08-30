@@ -32,7 +32,7 @@ class AiAttackForm(FlaskForm):
     campaign_name = StringField(
         label="Campaign Name",
         validators=[DataRequired()],
-        default="My campaign"
+        default="Demo attack"
     )
     # mimic_profile = SelectField(
     #     label="Mimic Profile",
@@ -45,19 +45,19 @@ class AiAttackForm(FlaskForm):
     target_name = StringField(
         label="Target Name(Full name recommended)",
         validators=[DataRequired()],
-        default="Oded Warem"
+        default="Aviv Nataf"
     )
 
     message_type = SelectField(
         label="Message Type",
         choices=[("Whatsapp", "Whatsapp"), ("Email", "Email")],
-        default="Email"
+        default="Whatsapp"
     )
 
     message_name = StringField(
         label="message name (Whatsapp phone for whatsapp with +972 prefix, and email address for email)",
         validators=[validate_message_name],
-        default="odedwar@gmail.com"
+        default="+972522464648"
     )
 
     attack_purpose = SelectField(
@@ -175,14 +175,6 @@ class ProfileForm(FlaskForm):
             ),
         ],
     )
-
-    Image_upload = FileField(
-        label='Upload Video',
-        validators=[FileAllowed(["JPG", "jpg"], message="JPG Images only")]
-    )
-
-    # dataset_upload = FileField('Upload Dataset')
-
     submit = SubmitField("Submit")
 
 
