@@ -115,11 +115,11 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
                 generateSpeech(prompt, file_manager.get_file_from_audio_dir(f"\\{prompt}.wav"))
 
         starting_message = "Hello " + attack.getTargetName().split(" ")[
-            0] + " this is Jason from " + attack.getPlace() + " " + attack.getPurpose() + " umm"
+            0] + " this is Jason from " + attack.getPlace() + " " + attack.getPurpose()
         if not file_manager.prompt_rec_exists_in_audio_dir(starting_message):
             path = file_manager.get_file_from_audio_dir(f"\\{starting_message}.wav")
             logging.info(f"From attack --> path is: {path}")
-            generateSpeech(starting_message, path)
+            generateSpeech(starting_message + ".", path)
         return jsonify({"status": "complete"})
 
     @main.route('/start_attack', methods=['GET', 'POST'])
