@@ -1,17 +1,16 @@
-import os.path
-import time
 from threading import Thread, Event
 from queue import Queue
 from app.Server.Util import *
 from speech_recognition import WaitTimeoutError
 import pyaudio
-from app.Server.Util import generate_voice, get_voice_profile, play_audio_through_vbcable, play_background
-from app.Server.speechToText.utilities_for_s2t import *
+from app.Server.Util import play_audio_through_vbcable, play_background
 import re
 from app.Server.data.DataStorage import Data
 from app.Server.LLM.llm import llm
 from app.Server.run_bark import generateSpeech
-import requests
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 r = sr.Recognizer()
 audio_queue = Queue()
@@ -30,7 +29,7 @@ def get_device_index(device_name="CABLE Output"):
     for i in range(p.get_device_count()):
         dev = p.get_device_info_by_index(i)
         if device_name in dev['name']:
-            print(device_name)
+            logging.info(f"Found device: {device_name}")
             device_index = i
             break
     p.terminate()
@@ -47,27 +46,23 @@ def recognize_worker(audios_dir, username, backgroundEvent):
     index = 0
     time.sleep(2)
     while llm_flag:
-        audio = audio_queue.get()  # Retrieve the next audio processing job from the main thread
+        audio = audio_queue.get()
         if audio is None:
-            break  # Stop processing if the main thread is done
-        # Recognize audio data using Google Speech Recognition
+            break
         try:
             spoken_text = r.recognize_google(audio)
             backgroundEvent.clear()
-            print("User says: " + spoken_text)
+            logging.info(f"User says: {spoken_text}")
             response = llm.get_answer_from_embedding(spoken_text)
 
             if response is None:
                 response = llm.validate_number(spoken_text)
-                if response is None:  # If the response is in the format of a number, means that we must have the
-                    # value that we asked to get from the mimic.
-                    background_thread = Thread(target=play_background, args=(backgroundEvent,
-                                                                             audios_dir
-                                                                             + "\\office.wav",))
+                if response is None:
+                    background_thread = Thread(target=play_background,
+                                               args=(backgroundEvent, audios_dir + "\\office.wav",))
                     background_thread.start()
                     start_filler = Thread(target=play_audio_through_vbcable,
-                                          args=(audios_dir + "\\" +
-                                                fillers[index] + ".wav", "CABLE Input"))
+                                          args=(audios_dir + "\\" + fillers[index] + ".wav", "CABLE Input"))
                     start_filler.daemon = True
                     start_filler.start()
                     index = (index + 1) % 3
@@ -78,35 +73,29 @@ def recognize_worker(audios_dir, username, backgroundEvent):
                     llm.end_conv = True
             response.strip()
 
-            print("AI says: " + response)
+            logging.info(f"AI says: {response}")
 
             if "goodbye" in response.lower():
                 flag = True
 
             if response in prompts_for_user:
-                background_thread = Thread(target=play_background, args=(backgroundEvent,
-                                                                         audios_dir
-                                                                         + "\\office.wav",))
+                background_thread = Thread(target=play_background, args=(backgroundEvent, audios_dir + "\\office.wav",))
                 background_thread.start()
-                play_audio_through_vbcable(audios_dir + "\\" +
-                                           response + ".wav")
+                play_audio_through_vbcable(audios_dir + "\\" + response + ".wav")
                 backgroundEvent.set()
                 background_thread = None
 
             else:
                 if background_thread is None:
-                    background_thread = Thread(target=play_background, args=(backgroundEvent,
-                                                                             audios_dir
-                                                                             + "\\office.wav",))
+                    background_thread = Thread(target=play_background,
+                                               args=(backgroundEvent, audios_dir + "\\office.wav",))
                     background_thread.start()
                     start_filler = Thread(target=play_audio_through_vbcable,
-                                          args=(audios_dir + "\\" +
-                                                fillers[index] + ".wav", "CABLE Input"))
+                                          args=(audios_dir + "\\" + fillers[index] + ".wav", "CABLE Input"))
                     start_filler.daemon = True
                     start_filler.start()
                     index = (index + 1) % 3
-                generateSpeech(text_prompt=response,
-                               path=audios_dir + "\\prompt.wav")
+                generateSpeech(text_prompt=response, path=audios_dir + "\\prompt.wav")
                 play_audio_through_vbcable(audios_dir + "\\prompt.wav")
                 backgroundEvent.set()
                 background_thread = None
@@ -114,22 +103,21 @@ def recognize_worker(audios_dir, username, backgroundEvent):
             if not waitforllm.is_set():
                 waitforllm.set()
 
-        except (sr.UnknownValueError,sr.RequestError):
+        except (sr.UnknownValueError, sr.RequestError):
             waitforllm.set()
-            print("Google Speech Recognition could not understand audio")
+            logging.error("Google Speech Recognition could not understand audio")
         except Exception as e:
             waitforllm.set()
-            print(f'Exception from recognize_worker: {e}')
+            logging.error(f'Exception from recognize_worker: {e}')
         finally:
-            print("llm")
+            logging.info("Processing completed in recognize_worker")
 
 
-def startConv(audios_dir, attack_prompts, purpose, starting_message, record_event, target_name,
-              username="oded"):
+def startConv(audios_dir, attack_prompts, purpose, starting_message, record_event, target_name, username="oded"):
     global flag, waitforllm, prompts_for_user, r, recognize_thread, llm_flag
     llm_flag = True
     backgroundEvent = Event()
-    llm.initialize_new_attack(attack_purpose=purpose, profile_name=target_name)  # Refine the llm to the new attack
+    llm.initialize_new_attack(attack_purpose=purpose, profile_name=target_name)
     flag = False
     started_conv = False
     prompts_for_user = attack_prompts
@@ -140,38 +128,33 @@ def startConv(audios_dir, attack_prompts, purpose, starting_message, record_even
     device_index = get_device_index()
 
     with sr.Microphone() as source:
-        print("Adjusting for ambient noise, please wait...")
-        print("Listening for speech...")
-        # r.adjust_for_ambient_noise(source)
+        logging.info("Adjusting for ambient noise, please wait...")
+        logging.info("Listening for speech...")
         while not flag:
             try:
                 waitforllm.clear()
                 if not started_conv:
-                    background_thread = Thread(target=play_background, args=(backgroundEvent,
-                                                                             audios_dir
-                                                                             + "\\office.wav",))
+                    background_thread = Thread(target=play_background,
+                                               args=(backgroundEvent, audios_dir + "\\office.wav",))
                     background_thread.start()
-                    play_audio_through_vbcable(audios_dir + "\\" +
-                                               starting_message + ".wav", "CABLE Input")
+                    play_audio_through_vbcable(audios_dir + "\\" + starting_message + ".wav", "CABLE Input")
                     backgroundEvent.set()
-                    # need to generate on attack phase
                     llm.chat_history.add_ai_response(starting_message)
-                    print("AI says: " + starting_message)
+                    logging.info(f"AI says: {starting_message}")
                     started_conv = True
-                # r.pause_threshold = 1
                 audio_queue.put(r.listen(source, timeout=8, phrase_time_limit=8))
-                print("sleeping")
+                logging.info("Sleeping")
                 waitforllm.wait()
-                print("Woke up")
+                logging.info("Woke up")
             except WaitTimeoutError:
-                print("Timed out waiting for audio")
+                logging.warning("Timed out waiting for audio")
                 continue
 
     record_event.set()
     backgroundEvent.set()
     is_success = None
     final_msg = llm.get_finish_msg()
-    print(final_msg)
+    logging.info(f"Final message: {final_msg}")
     if purpose == "Bank":
         if final_msg == "Thank you, we have solved the issue. Goodbye":
             is_success = True
@@ -195,13 +178,13 @@ def startConv(audios_dir, attack_prompts, purpose, starting_message, record_even
 
 def stop(is_success=None):
     global flag, llm_flag, recognize_thread
-    print("stop() called!")
+    logging.info("stop() called!")
 
     llm.flush()
     flag = True
     waitforllm.set()
     llm_flag = False
-    audio_queue.put(None)  # Tell the llm_thread to stop
+    audio_queue.put(None)
     if recognize_thread:
-        recognize_thread.join()  # Wait for the llm_thread to actually stop
+        recognize_thread.join()
     return is_success

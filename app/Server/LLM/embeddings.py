@@ -1,29 +1,25 @@
 import json
 import logging
 import os
-
 import faiss
 import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class embeddings(object):
     def __init__(self, knowledgebase=None):
         self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
         self.index = faiss.IndexFlatL2(384)
-
-        self.knowledgebase = knowledgebase if knowledgebase is not None else 'clone'  # Clone for no-purpose attack
-
+        self.knowledgebase = knowledgebase if knowledgebase is not None else 'clone'
         self.json_filename_for_sentences_map = f'{self.knowledgebase}.json'
         self.sentences_map = {}
-
-        # Fetch the correct csv file according the knowledgebase param.
         self.knowledgebase_file_path = None
         self.faq = None
-
         self.stop = False
-        self.active_learner_threshold = 1.39999  # Decide which threshold is valid to apply active learning.
+        self.active_learner_threshold = 1.39999
 
     def get_nearest_neighbors(self, vector, k=3):
         index = faiss.read_index(
@@ -36,7 +32,6 @@ class embeddings(object):
 
     def flush(self):
         self.sentences_map = {}
-
         self.knowledgebase_file_path = None
         self.json_filename_for_sentences_map = None
         self.faq = None
@@ -51,7 +46,6 @@ class embeddings(object):
 
     def init_knowledgebase_path(self, knowledgebase):
         dire = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'prompts', knowledgebase.lower())
-
         if knowledgebase is None:
             knowledgebase = 'knowledgebase_custom.csv'
             self.knowledgebase_file_path = os.path.join(dire, knowledgebase)
@@ -70,7 +64,7 @@ class embeddings(object):
             f.write(sentences_map_json)
 
     def generate_faq_embedding(self):
-        for qa in self.faq:  # Create the embedding representation for each row in the knowledgebase.
+        for qa in self.faq:
             embedding = self.get_embedding(qa)
             self.index.add(embedding)
 
@@ -78,9 +72,7 @@ class embeddings(object):
         indexes_dir = os.path.join(current_dir, 'indexes')
         logging.info(f"From embedding, indexes dir: {indexes_dir}")
         os.makedirs(indexes_dir, exist_ok=True)
-
         index_path = os.path.join(indexes_dir, f'{self.knowledgebase.lower()}-faiss.index')
-
         faiss.write_index(self.index, index_path)
 
     def get_faq(self):
@@ -93,11 +85,11 @@ class embeddings(object):
 
     def get_embedding(self, _input):
         embedding = self.embedding_model.encode(_input)
-        return np.array([embedding])  # Ensure it returns a 2D array
+        return np.array([embedding])
 
     def get_answer_from_embedding(self, _input, threshold=0.7):
-        print(_input)
-        prompt_embedding = self.get_embedding(_input.lower())  # Get the embedding representation for the prompt
+        logging.info(f"Getting answer from embedding for input: {_input}")
+        prompt_embedding = self.get_embedding(_input.lower())
 
         if isinstance(prompt_embedding, tuple):
             prompt_embedding = np.array(prompt_embedding).reshape(1, -1).astype("float32")
@@ -105,15 +97,14 @@ class embeddings(object):
         indices, distances = self.get_nearest_neighbors(prompt_embedding)
 
         closest_distance = distances[0][0]
-        print(closest_distance)
-        faq_index = indices[0][0]  # Taking the closest FAQ index
+        logging.info(f"Closest distance: {closest_distance}")
+        faq_index = indices[0][0]
 
         if closest_distance < threshold:
             try:
                 answer = self.sentences_map[self.faq[faq_index]]
             except IndexError as e:
-                print(f"IndexError: {e}")
-                print(f"Cannot find the value for the given key: {self.faq[faq_index]}")
+                logging.error(f"IndexError: {e}. Cannot find the value for the given key: {self.faq[faq_index]}")
                 answer = "Can you repeat it?"
         else:
             answer = None

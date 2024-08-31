@@ -1,7 +1,6 @@
 import json
 from typing import Optional, Set, List
 
-from app.Server import Util
 from app.Server.data.prompt import Prompt
 
 
@@ -21,11 +20,6 @@ class Profile:
         self.audio_data_path: str = audio_data_path
         self.setDefaultPrompts()
         self.defaultVideo = self.profile_name + ".mp4"  # in case of using video profile this will be used
-        # Create a voice profile on the server
-        # Util.createvoice_profile("oded", profile_name, audio_data_path)
-        # for prompt in self.prompts:
-        #     response = Util.generate_voice("oded", self.profile_name, prompt.prompt_desc)
-        #     Util.get_voice_profile("oded", self.profile_name, prompt.prompt_desc, response['file'])
 
     def getName(self) -> str:
         """

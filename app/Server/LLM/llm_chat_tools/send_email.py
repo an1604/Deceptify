@@ -3,15 +3,18 @@ from email.message import EmailMessage
 import ssl
 import smtplib
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def send_email(email_receiver, display_name, email_subject, email_body, from_email=None):
     email_sender = os.getenv('MAIL_USERNAME')
     email_password = os.getenv('MAIL_PASSWORD')
 
-    print(f"email_sender {email_sender}\n email_password {email_password}")
+    logging.info(f"Email sender: {email_sender}, Email receiver: {email_receiver}")
 
     em = EmailMessage()
     if from_email:
@@ -27,3 +30,4 @@ def send_email(email_receiver, display_name, email_subject, email_body, from_ema
     with smtplib.SMTP_SSL(os.getenv('MAIL_SERVER'), 465, context=context) as smtp:
         smtp.login(email_sender, email_password)
         smtp.sendmail(email_sender, email_receiver, em.as_string())
+        logging.info("Email sent successfully.")

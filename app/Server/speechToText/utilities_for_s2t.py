@@ -1,4 +1,7 @@
 import json
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 end_call_phrases = [
     "goodbye",
@@ -20,9 +23,14 @@ end_call_phrases = [
     "keep in touch",
     "it was nice talking to you",
     "speak soon",
-    "have a nice day"]
+    "have a nice day"
+]
 
 
 def save_conversation_to_json(file_path, conversation_history):
-    with open(file_path, 'w') as file:
-        json.dump(conversation_history, file, indent=4)
+    try:
+        with open(file_path, 'w') as file:
+            json.dump(conversation_history, file, indent=4)
+        logging.info(f"Conversation saved to {file_path}")
+    except Exception as e:
+        logging.error(f"Error saving conversation to {file_path}: {e}")

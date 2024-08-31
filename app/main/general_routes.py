@@ -1,29 +1,32 @@
 import base64
 import urllib
-
+import logging
 from flask import redirect as flask_redirect, jsonify, session, send_file, abort, render_template, url_for, flash, \
     request, send_from_directory
 from werkzeug.utils import secure_filename
 from flask_login import login_required
-
 from zoom_req import *
 from app.Server.Forms.general_forms import *
 from app.Server.Util import *
 from app.Server.data.Profile import Profile
 from app.main.main_params import MainRotesParams
 
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def general_routes(main, data_storage, file_manager, socketio):  # This function stores all the general routes.
-    @main.route("/", methods=["GET", "POST"])  # The root router (welcome page).
+
+def general_routes(main, data_storage, file_manager, socketio):
+    @main.route("/", methods=["GET", "POST"])
     def index():
+        logging.info("Accessing the index page.")
         return render_template("index.html")
 
     @main.route('/save_exit')
     @login_required
     def save_exit():
-        # Save the data
         data_storage.save_data()
         session['message'] = 'Session saved!'
+        logging.info("Session data saved successfully.")
         return index()
 
     @main.route("/new_profile", methods=["GET", "POST"])
@@ -31,7 +34,6 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
     def new_profile():
         form = ProfileForm()
         if form.validate_on_submit():
-            # Get the data from the form
             name = form.name_field.data
             gen_info = form.gen_info_field.data
             data = form.recording_upload.data
@@ -39,20 +41,18 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
             if video.filename == "":
                 video = None
 
-            # Save the voice sample
             speaker_wavfile_path = file_manager.get_file_from_audio_dir(secure_filename(data.filename))
             data.save(speaker_wavfile_path)
+            logging.info(f"Voice sample saved at: {speaker_wavfile_path}")
 
-            if create_voice_profile(username="oded", profile_name=name,
-                                    speaker_wavfile_path=speaker_wavfile_path):
+            if create_voice_profile(username="oded", profile_name=name, speaker_wavfile_path=speaker_wavfile_path):
                 data_storage.add_profile(Profile(name, gen_info, str(speaker_wavfile_path)))
-
                 flash("Profile created successfully")
+                logging.info(f"Profile created successfully for user: {name}.")
                 return flask_redirect(url_for("main.index"))
-
             else:
                 flash("There was a problem to create the profile, please try again.")
-
+                logging.error("Failed to create profile, please check the input and try again.")
         return render_template("attack_pages/new_profile.html", form=form)
 
     @main.route("/profileview", methods=["GET", "POST"])
@@ -64,7 +64,9 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
         if form.validate_on_submit():
             if form.profile_list.data == "No profiles available, time to create some!":
                 flash("No profiles available, time to create some!")
+                logging.info("No profiles available, redirecting to new profile creation.")
                 return flask_redirect(url_for("main.new_profile"))
+            logging.info(f"Viewing profile: {form.profile_list.data}.")
             return flask_redirect(url_for("main.profile", profileo=form.profile_list.data))
         return render_template("profileview.html", form=form)
 
@@ -72,11 +74,13 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
     @login_required
     def profile():
         profile = data_storage.get_profile(request.args.get("profile"))
+        logging.info(f"Accessing profile page for: {request.args.get('profile')}.")
         return render_template("profile.html", profileo=profile)
 
     @main.route("/transcript/<attack_id>")
     @login_required
     def transcript(attack_id):
+        logging.info(f"Fetching transcript for attack ID: {attack_id}.")
         attack = data_storage.get_attack(attack_id)
         json_file_path = file_manager.get_file_from_attack_dir(
             f"Attacker-{attack.get_mimic_profile().getName()}-Target-{attack.getDesc()}.json")
@@ -87,6 +91,7 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
     @main.route("/recording/<attack_id>")
     @login_required
     def recording(attack_id):
+        logging.info(f"Fetching recording for attack ID: {attack_id}.")
         attack = data_storage.get_attack(attack_id)
         file_path = file_manager.get_file_from_attack_dir(
             f"Attacker-{attack.get_mimic_profile().getName()}-Target-{attack.getID()}.wav")
@@ -99,6 +104,7 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
             email = form.email.data
             contact_field = form.contact_field.data
             passwd = form.passwd.data
+            logging.info(f"Contact form submitted for email: {email}.")
             return flask_redirect(url_for("main.index"))
         return render_template("contact.html", form=form)
 
@@ -106,40 +112,46 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
     @login_required
     def dashboard():
         attacks = data_storage.get_ai_attacks()
+        logging.info("Accessing the dashboard.")
         return render_template("dashboard.html", attacks=attacks)
 
-    @main.route('/mp3/<path:filename>')  # Serve the MP3 files statically
+    @main.route('/mp3/<path:filename>')
     @login_required
     def serve_mp3(filename):
+        logging.info(f"Serving MP3 file: {filename}.")
         return send_from_directory(file_manager.audios_dir, filename)
 
     @main.route('/download_file/<filename>')
     @login_required
     def download_file(filename):
-        print(filename)
+        logging.info(f"Downloading file: {filename}.")
         return send_file(file_manager.get_file_from_attack_dir(filename))
 
-    @main.route('/video/<path:filename>')  # Serve the video files statically
+    @main.route('/video/<path:filename>')
     @login_required
     def serve_video(filename):
+        logging.info(f"Serving video file: {filename}.")
         return send_from_directory(filename.video_dir, filename)
 
     @main.route('/get_audio')
     def get_audio():
         file_path = request.args.get('file_path')
         if file_path:
+            logging.info(f"Fetching audio file: {file_path}.")
             return send_file(file_path, mimetype='audio/mpeg')
+        logging.warning("Audio file not found.")
         return "Audio file not found", 404
 
     @main.route('/telegram_info')
     @login_required
     def telegram_info():
+        logging.info("Accessing Telegram info page.")
         return render_template('telegram/telegram_info.html')
 
     @main.route('/run_telegram_attack', methods=['GET', 'POST'])
     @login_required
     def run_telegram_attack():
-        # profile_name = request.args.get('profile_name')
+        logging.info("Running Telegram attack.")
         return render_template('telegram/run_telegram_attack.html')
 
     @main.route('/zoom_authorization')
@@ -149,6 +161,7 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
             'attack_id': request.args.get('id'),
             'zoom_url': None
         }
+        logging.info(f"Zoom authorization initiated for attack ID: {request.args.get('id')}.")
         auth_url = f'{MainRotesParams.AUTH_URL}?response_type=code&client_id={MainRotesParams.ZOOM_CLIENT_ID}&redirect_uri={MainRotesParams.REDIRECT_URI}'
         return flask_redirect(auth_url)
 
@@ -157,6 +170,7 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
     def zoom():
         code = request.args.get('code')
         if code:
+            logging.info(f"Zoom code received: {code}. Exchanging for tokens.")
             data = {
                 'grant_type': 'authorization_code',
                 'code': code,
@@ -178,10 +192,13 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
                     'refresh_token': refresh_token,
                     'access_token': access_token
                 }
+                logging.info("Zoom tokens received successfully.")
                 return flask_redirect(url_for('main.generate_zoom_record'))
             else:
+                logging.error("Failed to retrieve Zoom tokens.")
                 return jsonify({'error': 'Failed to retrieve tokens'}), response.status_code
         else:
+            logging.warning("No code parameter provided for Zoom authentication.")
             return jsonify({'error': 'No code parameter provided'}), 400
 
     @main.route('/generate_zoom_record', methods=["GET", "POST"])
@@ -197,10 +214,11 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
                                                               day=form.day.data,
                                                               hour=form.hour.data, second=form.second.data,
                                                               minute=form.minute.data)
-
                 start_url, password = create_new_meeting(headers=headers, data=data)
                 encoded_start_url = urllib.parse.quote(start_url)
+                logging.info("Zoom meeting created successfully.")
                 return flask_redirect(
                     url_for('main.attack_dashboard_transition', start_url=encoded_start_url, password=password))
             return render_template('generate_zoom_meeting.html', form=form)
-        return abort(404)  # Aborting if we got no access token
+        logging.error("Zoom access token missing; cannot generate record.")
+        return abort(404)

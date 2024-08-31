@@ -1,7 +1,9 @@
 import json
 from datetime import datetime, timedelta
-
 import requests
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def get_meetings_from_zoom(user_id, headers):
@@ -10,7 +12,10 @@ def get_meetings_from_zoom(user_id, headers):
     response_json = response.json()
 
     if response_json.get('meetings'):
+        logging.info("Meetings retrieved successfully from Zoom.")
         return response_json.get('meetings')
+    else:
+        logging.warning("No meetings found for the user.")
     return None
 
 
@@ -20,10 +25,12 @@ def create_new_meeting(headers, data, user_id='nataf12386@gmail.com'):
 
     if response.status_code == 201:
         response_data = response.json()
-        print(response_data)
+        logging.info(f"New meeting created successfully: {response_data}")
         start_url = response_data.get('start_url')
         password = response_data.get('password')
         return start_url, password
+    else:
+        logging.error(f"Failed to create new meeting. Status code: {response.status_code}, Response: {response.text}")
     return None
 
 
@@ -51,4 +58,5 @@ def generate_data_for_new_meeting(access_token, meeting_name="My Meeting",
             "auto_recording": "cloud"
         }
     }
+    logging.info(f"Generated data for new meeting: {data}")
     return headers, data
