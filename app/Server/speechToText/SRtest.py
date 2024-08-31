@@ -123,7 +123,7 @@ def startConv(audios_dir, attack_prompts, purpose, starting_message, record_even
     recognize_thread.start()
     device_index = get_device_index()
 
-    with sr.Microphone() as source:
+    with sr.Microphone(device_index=device_index) as source:
         print("Adjusting for ambient noise, please wait...")
         print("Listening for speech...")
         # r.adjust_for_ambient_noise(source)

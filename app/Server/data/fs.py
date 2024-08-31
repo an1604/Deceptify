@@ -76,7 +76,7 @@ class FilesManager(object):
 
     def get_file_from_audio_dir(self, filename):
         try:
-            return os.path.join(self.audios_dir, filename)
+            return self.audios_dir + filename
         except Exception as e:
             print(f"Exception in get_file_from_voice_folder for filename '{filename}': {str(e)}")
             return None
