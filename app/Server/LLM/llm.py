@@ -132,7 +132,11 @@ llm = Llm()
 
 # if __name__ == '__main__':
 #    llm = Llm()
-#    llm.initialize_new_attack("Bank", "Oded warem")
-#    llm.get_answer("goodbye")
-#    llm.get_answer(
-#        "Based on your history can you tell me with a true or false answer if the person gave you the information")
+#    llm.initialize_new_attack("Delivery", "Oded warem")
+#    llm.chat_history.add_ai_response("hello oded, this is jason from discount bank")
+#    while True:
+#        msg = input("type your message\n")
+#        response = llm.get_answer_from_embedding(msg)
+#        if response is None:
+#            response = llm.get_answer(msg)
+#        print(response)
