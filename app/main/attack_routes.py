@@ -189,7 +189,7 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
         profile_name = request.args.get('profile_name')
         form = VoiceUploadForm()
         if form.validate_on_submit():
-            profile_name_voice_dir = file_manager.get_file_from_audio_dir(profile_name + '-clone')
+            profile_name_voice_dir = file_manager.get_file_from_audio_dir(f'\\{profile_name}-clone')
             file_manager.create_directory(profile_name_voice_dir)
             file = form.file.data
             filename = secure_filename(file.filename)
