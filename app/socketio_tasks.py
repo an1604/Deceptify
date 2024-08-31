@@ -32,6 +32,8 @@ telegram_info_event = threading.Event()  # The event that will be triggered the 
 async def manual_send_message(receiver, message):
     global client
     try:
+        if "deceptifybot" in receiver.lower():
+            await client.send_message(receiver, '/answer')
         await client.send_message(receiver, message)
     except Exception as e:
         logging.error(e)
@@ -41,6 +43,8 @@ async def manual_send_message(receiver, message):
 async def manual_send_audio(receiver, audio):
     global client
     try:
+        if "deceptifybot" in receiver.lower():
+            await client.send_message(receiver, '/answer')
         await client.send_audio(receiver, audio)
     except Exception as e:
         logging.error(e)
@@ -79,6 +83,10 @@ def background_thread(socketio):
                 socketio.emit('connection_update', {'data': False})
 
         socketio.sleep(3)
+
+        if client_auth_event.is_set():
+            client_auth_event.clear()
+            socketio.emit("client_auth")
 
         if new_message_event.is_set() and message_tuple is not None:
             new_message_event.clear()
@@ -162,7 +170,7 @@ def initialize_socketio(socketio, file_manager):
             new_audio_event.set()
             emit("server_update", {'data': "Client has accepted the audio"},
                  broadcast=True)
-        #TODO: CREATE A FUNCTION TO AVOID CODE DUPLICATION!
+        # TODO: CREATE A FUNCTION TO AVOID CODE DUPLICATION!
         else:
             tts, profile_name, cps = data['tts'], data['profile_name'], data['cps']
             audio_path = clone(tts, profile_name,
@@ -181,7 +189,6 @@ def initialize_socketio(socketio, file_manager):
                 emit('server_update', {
                     'data': "There was a problem while generating the audio, please try again. "
                 })
-
 
     @socketio.on('ask_for_new_messages')
     def handle_ask_for_new_messages():
