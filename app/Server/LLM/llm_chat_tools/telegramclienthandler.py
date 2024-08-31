@@ -144,6 +144,8 @@ class TelegramClientHandler(object):
             try:
                 self.phone_hash = await self.client.send_code_request(self.phone_number)
                 while self.auth_code is None:
+                    if not self.auth_event.is_set():
+                        self.auth_event.set()
                     logging.info("from authenticate_client_via_msg --> auth_code is None. Waiting")
                     await asyncio.sleep(3)  # Non-blocking sleep
 
