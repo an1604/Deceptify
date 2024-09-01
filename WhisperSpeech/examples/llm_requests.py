@@ -36,7 +36,7 @@ def new_attack_request(mimic_name, attack_purpose):
         return None
 
 
-def generate_answer_request(task_id, prompt):
+def generate_answer_request(task_id, prompt,chat_history):
     try:
         logging.info("Sending generate_answer_request to the server.")
         response = requests.post(f'{URL}/generate_answer', json={

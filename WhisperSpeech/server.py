@@ -43,13 +43,13 @@ def runner_for_llm():
 
     while not stop.is_set():
         try:
-            task_id, prompt = llm_tasks_queue.get(timeout=1)
+            task_id, prompt, chat_history = llm_tasks_queue.get(timeout=1)
             logging.info(f"Processing LLM task with task_id: {task_id}, prompt: {prompt}")
 
             if task_id is not None:
                 llm = llm_tasks_map.get(task_id)
                 if llm is not None:
-                    answer = llm.get_answer(prompt)
+                    answer = llm.get_answer(prompt, chat_history)
                     with threading.Lock():
                         results[task_id] = answer
                     logging.info(f"Answer generated for task_id: {task_id}")
@@ -251,8 +251,9 @@ def generate_answer():
 
     task_id = request.json.get('task_id')
     prompt = request.json.get('prompt')
+    chat_history = request.json.get('chat_history')
 
-    llm_tasks_queue.put((task_id, prompt))
+    llm_tasks_queue.put((task_id, prompt, chat_history))
     logging.info(f"Task {task_id} added to LLM queue with prompt: {prompt}")
     return jsonify({"status": "success", "req_id": task_id}), 200
 
