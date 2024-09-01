@@ -49,6 +49,10 @@
         <button id="startRecording">Start recording</button>
         <button id="stopRecording" disabled>Stop recording</button>
     </p>
+    <p>
+        <button id="send" disabled>Send recording</button>
+        <button id="restart" disabled>Restart recording</button>
+    </p>
 </div>
 
 <script>
@@ -56,22 +60,21 @@
     let rec;
     const startRecording = document.getElementById("startRecording");
     const stopRecording = document.getElementById("stopRecording");
+    const restart = document.getElementById("restart");
+    const send = document.getElementById("send");
 
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
             rec = new MediaRecorder(stream);
             rec.ondataavailable = e => {
-                audioChunks.push(e.data);
-                if (rec.state === "inactive") {
-                    let blob = new Blob(audioChunks, { type: 'audio/wav' });
-                    sendData(blob);
-                }
+                audioChunks.push(e.data); // Collect audio data chunks during recording
             };
         }).catch(err => {
             console.error('Error accessing microphone:', err);
         });
 
     function sendData(data) {
+        console.log("Sending data...");
         let form = new FormData();
         form.append('file', data, 'data.wav');
         form.append('title', 'data.mp3');
@@ -98,15 +101,46 @@
         console.log('Recording started...');
         startRecording.disabled = true;
         stopRecording.disabled = false;
-        audioChunks = [];
-        rec.start();
+        restart.disabled = true;
+        send.disabled = true;
+        audioChunks = []; // Clear previous audio data
+        rec.start(); // Start recording
     };
 
     stopRecording.onclick = () => {
         console.log("Recording stopped.");
-        startRecording.disabled = false;
         stopRecording.disabled = true;
-        rec.stop();
+        restart.disabled = false;
+        send.disabled = false;
+        rec.stop(); // Stop recording
+    };
+
+    send.onclick = () => {
+        if (audioChunks.length > 0) {
+            console.log("Preparing to send data...");
+            let blob = new Blob(audioChunks, { type: 'audio/wav' });
+            sendData(blob); // Send data when "Send" button is clicked
+            restart.disabled = true;
+            send.disabled = true;
+        } else {
+            console.error('No audio data to send.');
+        }
+    };
+
+    restart.onclick = () => {
+        restart.disabled = true;
+        send.disabled = true;
+        startRecording.disabled = false;
+        audioChunks = []; // Clear audio data on restart
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                rec = new MediaRecorder(stream);
+                rec.ondataavailable = e => {
+                    audioChunks.push(e.data); // Set the handler again
+                };
+            }).catch(err => {
+                console.error('Error accessing microphone:', err);
+            });
     };
 </script>
 {% endblock %}
