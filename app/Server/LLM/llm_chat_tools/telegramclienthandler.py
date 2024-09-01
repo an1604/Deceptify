@@ -3,7 +3,6 @@ import os
 import logging
 from telethon import TelegramClient, events, errors
 from telethon.sessions import StringSession
-from telethon import functions, types
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -76,7 +75,7 @@ class TelegramClientHandler(object):
 
             except asyncio.CancelledError:
                 logging.error("Client task cancelled, exiting run_client.")
-                break  # Exit loop if cancelled
+                break  # Exit loop if canceled
 
             except Exception as e:
                 logging.error(f"An error occurred: {e}")
@@ -88,6 +87,7 @@ class TelegramClientHandler(object):
 
     async def send_message(self, receiver, message):
         try:
+            await asyncio.sleep(5)
             await self.client.connect()
             self.handle_routes(self.client)
 
@@ -137,6 +137,8 @@ class TelegramClientHandler(object):
 
     async def authenticate_client_via_msg(self, counter=None):
         """Authenticate the client by sending a code request and waiting for the code."""
+        await asyncio.sleep(30)  # Non-blocking sleep
+
         await self.client.connect()
         if counter is None or counter <= 1:
             self.auth_event.set()  # Set the event to alert to the background thread that authentication is needed.
@@ -159,15 +161,6 @@ class TelegramClientHandler(object):
                 return
             except Exception as e:
                 logging.error(f"Error from authenticate_client_via_msg --> {e}")
-        else:
-            logging.info(f"Waiting for the client to send the authentication code... (Attempt {counter})")
-            with self.client as client:
-                result = client(functions.auth.ResendCodeRequest(
-                    phone_number=self.phone_number,
-                    phone_code_hash=self.phone_hash,
-                    reason='some string here'
-                ))
-                logging.info(f'from authenticate_client_via_msg --> result.stringify() = {result.stringify()}')
 
     def flush(self):
         self.client = None
