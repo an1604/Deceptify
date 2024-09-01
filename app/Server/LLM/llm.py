@@ -1,11 +1,12 @@
 import os.path
 from datetime import datetime
 from langchain_community.llms import Ollama
-from time import time
+from time import time, sleep
 from app.Server.LLM.chat_history import chatHistory
 from app.Server.LLM.embeddings import embeddings
 from app.Server.LLM.prompts.prompts import Prompts
 import re
+from app.requests_for_remote_server.llm_requests import *
 
 # model_name = 'http://ollama:11434/'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
 model_name = 'llama3'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
@@ -43,7 +44,7 @@ class Llm(object):
         self.end_conv = False
         self.purpose = None
         self.finish_msg = None
-
+        self.task_id = None
     def flush(self):
         self.chat_history.flush()
         self.embedding_model.flush()
@@ -61,6 +62,7 @@ class Llm(object):
         self.user_prompt = self.chat_history.get_prompt()
 
         self.embedd_custom_knowledgebase = False
+        # self.task_id = new_attack_request(profile_name, attack_purpose)
         # self.init_msg = f"Hello {self.mimic_name}, its Jason from {attack_purpose}."
         # self.chat_history.add_ai_response(self.init_msg)
 
@@ -112,6 +114,14 @@ class Llm(object):
     def get_answer(self, prompt):
         time1 = time()
         chain = self.user_prompt | self.llm
+        answer = None
+#        id = generate_answer_request(self.task_id, prompt, self.chat_history.get_chat_history())
+#        if id is not None:
+#            for i in range(10):
+#                answer = get_llm_answer_request(id)
+#                if answer:
+#                    break
+#                sleep(2.5)
 
         answer = chain.invoke({
             "history": self.chat_history.get_chat_history(),
@@ -123,11 +133,12 @@ class Llm(object):
             "time": datetime.now().time(),
             "context": prompt
         })
-        self.chat_history.add_ai_response(answer)
-        if 'bye' in answer.lower() or 'bye' in prompt.lower():
-            self.end_conv = True
-            self.finish_msg = answer
-            # self.flush()
+        if answer:
+            self.chat_history.add_ai_response(answer)
+            if 'bye' in answer.lower() or 'bye' in prompt.lower():
+                self.end_conv = True
+                self.finish_msg = answer
+                # self.flush()
         print(time() - time1)
         return answer
 
@@ -149,15 +160,17 @@ class llm_factory(object):
 
 llm = Llm()
 
-if __name__ == '__main__':
-    llm = Llm()
-    llm.initialize_new_attack("Bank", "Oded warem")
-    llm.chat_history.add_ai_response("hello oded, this is jason from discount bank")
-    while True:
-        msg = input("type your message\n")
-        response = llm.get_answer_from_embedding(msg)
-        if response is None:
-            response = llm.validate_number(msg)
-            if response is None:
-                response = llm.get_answer(msg)
-        print(response)
+# if __name__ == '__main__':
+#   llm = Llm()
+#    llm.initialize_new_attack("Bank", "Oded warem")
+#    llm.chat_history.add_ai_response("hello oded, this is jason from discount bank")
+#    while True:
+#        msg = input("type your message\n")
+#        llm.chat_history.add_human_message(msg)
+#        response = llm.get_answer_from_embedding(msg)
+#        if response is None:
+#            response = llm.validate_number(msg)
+#            if response is None:
+#                response = llm.get_answer(msg)
+#        llm.chat_history.add_ai_response(response)
+#        print(response)

@@ -13,6 +13,7 @@ voice_preset = "v2/en_speaker_6"
 
 
 def generateSpeech(text_prompt, path):
+    print("device is: " + device)
     time1 = time.time()
     inputs = processor(text_prompt, voice_preset=voice_preset)
     speech_output = bark.generate(**inputs.to(device))

@@ -36,12 +36,13 @@ def new_attack_request(mimic_name, attack_purpose):
         return None
 
 
-def generate_answer_request(task_id, prompt,chat_history):
+def generate_answer_request(task_id, prompt, chat_history):
     try:
         logging.info("Sending generate_answer_request to the server.")
         response = requests.post(f'{URL}/generate_answer', json={
             'task_id': task_id,
-            'prompt': prompt
+            'prompt': prompt,
+            'chat_history': chat_history
         })
         logging.info(f"Response received with status code: {response.status_code}")
 
