@@ -67,7 +67,7 @@ def background_thread(socketio):
             telegram_info_event.clear()
             try:
                 client = TelegramClientHandler(telegram_info.app_id, telegram_info.app_hash, telegram_info.phone_number,
-                                               client_auth_event, telegram_info.qr_path)
+                                               client_auth_event)
                 telegram_info.is_connected = True
 
                 socketio.emit("client_auth")  # Send an alert to update the client to check for an authorization code
