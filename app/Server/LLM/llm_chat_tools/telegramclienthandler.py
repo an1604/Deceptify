@@ -3,7 +3,6 @@ import os
 import logging
 from telethon import TelegramClient, events, errors
 from telethon.sessions import StringSession
-from telethon import functions, types
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -76,7 +75,7 @@ class TelegramClientHandler(object):
 
             except asyncio.CancelledError:
                 logging.error("Client task cancelled, exiting run_client.")
-                break  # Exit loop if cancelled
+                break  # Exit loop if canceled
 
             except Exception as e:
                 logging.error(f"An error occurred: {e}")
@@ -94,6 +93,8 @@ class TelegramClientHandler(object):
             await self.client.send_message(receiver, message)
 
             logging.info(f'Message sent: {message}')
+            await asyncio.sleep(5)
+
         except errors.AuthKeyUnregisteredError:
             logging.warning("Authorization key not found or invalid. Re-authenticating...")
             await self.authenticate_client_via_msg()
@@ -109,6 +110,8 @@ class TelegramClientHandler(object):
                     await self.client.send_file(receiver, audiofile_path)
                 else:
                     logging.warning(f"Audio file {audiofile_path} does not exist.")
+                await asyncio.sleep(5)
+
         except errors.AuthKeyUnregisteredError:
             logging.warning("Authorization key not found or invalid. Re-authenticating...")
             await self.authenticate_client_via_msg()
@@ -152,6 +155,7 @@ class TelegramClientHandler(object):
                 await self.client.sign_in(self.phone_number, self.auth_code)
                 logging.info("from authenticate_client_via_msg --> sign in request is sent.")
                 self.auth_event.clear()
+                await asyncio.sleep(20)
 
             except asyncio.CancelledError:
                 logging.error("Authentication task cancelled.")
@@ -159,15 +163,6 @@ class TelegramClientHandler(object):
                 return
             except Exception as e:
                 logging.error(f"Error from authenticate_client_via_msg --> {e}")
-        else:
-            logging.info(f"Waiting for the client to send the authentication code... (Attempt {counter})")
-            with self.client as client:
-                result = client(functions.auth.ResendCodeRequest(
-                    phone_number=self.phone_number,
-                    phone_code_hash=self.phone_hash,
-                    reason='some string here'
-                ))
-                logging.info(f'from authenticate_client_via_msg --> result.stringify() = {result.stringify()}')
 
     def flush(self):
         self.client = None
