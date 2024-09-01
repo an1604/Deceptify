@@ -13,6 +13,23 @@ model_name = 'llama3'  # REPLACE IT TO llama3 IF YOU RUN LOCALLY
 # machine = 'ollama'  # REPLACE IT TO LOCALHOST IF YOU RUN LOCALLY
 machine = 'localhost'  # REPLACE IT TO LOCALHOST IF YOU RUN LOCALLY
 
+number_words = {
+    "zero": "0", "one": "1", "two": "2", "three": "3", "four": "4",
+    "five": "5", "six": "6", "seven": "7", "eight": "8", "nine": "9",
+    "ten": "10", "eleven": "11", "twelve": "12", "thirteen": "13",
+    "fourteen": "14", "fifteen": "15", "sixteen": "16", "seventeen": "17",
+    "eighteen": "18", "nineteen": "19", "twenty": "20", "thirty": "30",
+    "forty": "40", "fifty": "50", "sixty": "60", "seventy": "70",
+    "eighty": "80", "ninety": "90", "hundred": "100", "thousand": "1000"
+}
+
+
+def replace_words_with_numbers(text):
+    # Replace words with corresponding numbers
+    for word, digit in number_words.items():
+        text = text.replace(word, digit)
+    return text
+
 
 class Llm(object):
     def __init__(self):
@@ -22,11 +39,9 @@ class Llm(object):
         self.chat_history.initialize_role(Prompts.ROLE)
         self.user_prompt = self.chat_history.get_prompt()
         self.embedd_custom_knowledgebase = False
-        self.mimic_name = 'Donald'  # Default value
         self.init_msg = None
         self.end_conv = False
         self.purpose = None
-
         self.finish_msg = None
 
     def flush(self):
@@ -51,6 +66,9 @@ class Llm(object):
 
     def validate_number(self, prompt):
         # Regular expression to find the number
+        for word, dig in number_words.items():
+            prompt = prompt.replace(word, dig)
+        print(prompt)
         number = re.findall(r'\d+', prompt.replace(" ", "").replace("/", "").replace("\\", ""))
         # Convert the first match to an integer (or float if needed)
         if number:
@@ -79,7 +97,7 @@ class Llm(object):
     def get_chat_history(self):
         return [msg for msg in self.chat_history.get_chat_history() if msg not in ['user', 'assistant']]
 
-    def get_answer_from_embedding(self,prompt):
+    def get_answer_from_embedding(self, prompt):
         if not self.embedd_custom_knowledgebase:
             self.embedding_model.generate_faq_embedding()
             self.embedd_custom_knowledgebase = True
@@ -96,15 +114,15 @@ class Llm(object):
         chain = self.user_prompt | self.llm
 
         answer = chain.invoke({
-                "history": self.chat_history.get_chat_history(),
-                'name': self.mimic_name,  # Default value
-                # 'place': 'park',  # Default value
-                # 'target': 'address',  # Default value
-                # 'connection': 'co-worker',  # Default value,
-                # 'principles': prompts.get_principles(),
-                "time": datetime.now().time(),
-                "context": prompt
-            })
+            "history": self.chat_history.get_chat_history(),
+            'name': self.mimic_name,  # Default value
+            # 'place': 'park',  # Default value
+            # 'target': 'address',  # Default value
+            # 'connection': 'co-worker',  # Default value,
+            # 'principles': prompts.get_principles(),
+            "time": datetime.now().time(),
+            "context": prompt
+        })
         self.chat_history.add_ai_response(answer)
         if 'bye' in answer.lower() or 'bye' in prompt.lower():
             self.end_conv = True
@@ -131,13 +149,15 @@ class llm_factory(object):
 
 llm = Llm()
 
-# if __name__ == '__main__':
-#    llm = Llm()
-#    llm.initialize_new_attack("Delivery", "Oded warem")
-#    llm.chat_history.add_ai_response("hello oded, this is jason from discount bank")
-#    while True:
-#        msg = input("type your message\n")
-#        response = llm.get_answer_from_embedding(msg)
-#        if response is None:
-#            response = llm.get_answer(msg)
-#        print(response)
+if __name__ == '__main__':
+    llm = Llm()
+    llm.initialize_new_attack("Bank", "Oded warem")
+    llm.chat_history.add_ai_response("hello oded, this is jason from discount bank")
+    while True:
+        msg = input("type your message\n")
+        response = llm.get_answer_from_embedding(msg)
+        if response is None:
+            response = llm.validate_number(msg)
+            if response is None:
+                response = llm.get_answer(msg)
+        print(response)
