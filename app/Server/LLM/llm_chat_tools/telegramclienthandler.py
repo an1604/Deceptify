@@ -155,7 +155,7 @@ class TelegramClientHandler(object):
                 await self.client.sign_in(self.phone_number, self.auth_code)
                 logging.info("from authenticate_client_via_msg --> sign in request is sent.")
                 self.auth_event.clear()
-                await asyncio.sleep(30)
+                await asyncio.sleep(20)
 
             except asyncio.CancelledError:
                 logging.error("Authentication task cancelled.")
