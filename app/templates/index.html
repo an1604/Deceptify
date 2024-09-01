@@ -10,7 +10,6 @@
             <p>Your gateway to advanced AI attacks</p>
         {% else %}
             <h1>WELCOME TO DECEPTIFY!</h1>
-{#            <a href="{{ url_for('auth.register') }}"> Register a new user</a>#}
             <a href="{{ url_for('auth.login') }}"> Login to your account</a>
         {% endif %}
     </div>
@@ -30,6 +29,11 @@
             <a href="{{ url_for('main.new_profile') }}">
                 <button type="button">Create New Profile</button>
             </a>
+
+            <a href="{{ url_for('main.telegram_info') }}">
+                <button type="button">Voice Clone Telegram Attack</button>
+            </a>
+
 
             <a href="{{ url_for('main.save_exit') }}">
                 <button type="button">Save</button>

@@ -92,6 +92,7 @@ class Llm(object):
         return answer
 
     def get_answer(self, prompt):
+        time1 = time()
         chain = self.user_prompt | self.llm
 
         answer = chain.invoke({
@@ -109,7 +110,7 @@ class Llm(object):
             self.end_conv = True
             self.finish_msg = answer
             # self.flush()
-
+        print(time() - time1)
         return answer
 
     def get_finish_msg(self):

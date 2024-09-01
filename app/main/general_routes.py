@@ -11,6 +11,12 @@ from app.Server.Forms.general_forms import *
 from app.Server.Util import *
 from app.Server.data.Profile import Profile
 from app.main.main_params import MainRotesParams
+from dotenv import load_dotenv
+
+load_dotenv()
+
+TELEGRAM_CLIENT_APP_ID = os.getenv('TELEGRAM_CLIENT_APP_ID')
+TELEGRAM_CLIENT_APP_HASH = os.getenv('TELEGRAM_CLIENT_APP_HASH')
 
 
 def general_routes(main, data_storage, file_manager, socketio):  # This function stores all the general routes.
@@ -49,19 +55,6 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
 
         return render_template("attack_pages/new_profile.html", form=form)
 
-    @main.route("/profileview", methods=["GET", "POST"])
-    @login_required
-    def profileview():
-        form = ViewProfilesForm()
-        tmp = data_storage.getAllProfileNames()
-        form.profile_list.choices = tmp
-        if form.validate_on_submit():
-            if form.profile_list.data == "No profiles available, time to create some!":
-                flash("No profiles available, time to create some!")
-                return flask_redirect(url_for("main.new_profile"))
-            return flask_redirect(url_for("main.profile", profileo=form.profile_list.data))
-        return render_template("profileview.html", form=form)
-
     @main.route("/profile", methods=["GET", "POST"])
     @login_required
     def profile():
@@ -99,7 +92,8 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
     @login_required
     def dashboard():
         attacks = data_storage.get_ai_attacks()
-        return render_template("dashboard.html", attacks=attacks)
+        sorted_attacks = sorted(attacks, key=lambda attack: attack.time)
+        return render_template("dashboard.html", attacks=sorted_attacks)
 
     @main.route('/mp3/<path:filename>')  # Serve the MP3 files statically
     @login_required
@@ -133,7 +127,8 @@ def general_routes(main, data_storage, file_manager, socketio):  # This function
     @login_required
     def run_telegram_attack():
         return render_template('telegram/run_telegram_attack.html',
-                               names=data_storage.getAllProfileNames())
+                               names=data_storage.getAllProfileNames(), app_id=TELEGRAM_CLIENT_APP_ID,
+                               app_hash=TELEGRAM_CLIENT_APP_HASH)
 
     @main.route('/zoom_authorization')
     @login_required

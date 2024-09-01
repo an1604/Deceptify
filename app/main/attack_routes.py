@@ -136,7 +136,7 @@ def attack_generation_routes(main, data_storage, file_manager, socketio):
                                       "Hello " +
                                       attack.getTargetName().split(" ")[
                                           0] + " this is Jason from " + attack.getPlace() +
-                                      " " + attack.getPurpose() + " umm", MainRotesParams.StopRecordEvent,
+                                      " " + attack.getPurpose(), MainRotesParams.StopRecordEvent,
                                       attack.target_name)
         recorder_thread.join()
         file_manager.rename_file('attack_records', 'recording.wav', "recording" + str(attack.getID()) + ".wav")

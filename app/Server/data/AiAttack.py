@@ -9,7 +9,7 @@ class AiAttack:
     """
 
     def __init__(self, campaign_name, target_name, message_type, message_name, attack_purpose,
-                 place, attack_id, is_success = None):
+                 place, attack_id, is_success=None, time=None):
         self.campaign_name = campaign_name
         self.target_name = target_name
         self.message_type = message_type
@@ -20,6 +20,9 @@ class AiAttack:
         self.recording = None
         self.transcript = None
         self.is_success = is_success
+        if time is None:
+            time = datetime.now()
+        self.time = time
 
     def getName(self) -> str:
         return self.campaign_name
@@ -48,6 +51,8 @@ class AiAttack:
     def getTranscript(self):
         return self.transcript
 
+    def getTime(self):
+        return self.time
     def getResult(self):
         return self.is_success
 
@@ -100,7 +105,8 @@ class AiAttack:
             "attack_id": self.attack_id,
             "recording": self.recording,
             "transcript": self.transcript,
-            "is_success": self.is_success
+            "is_success": self.is_success,
+            "time": self.time
         }
 
     def to_json(self):
@@ -131,8 +137,9 @@ class AiAttack:
         place = data["place"]
         attack_id = data["attack_id"]
         is_success = data["is_success"]
+        time = data["time"]
         return AiAttack(campaign_name, target_name, message_type, message_name, attack_purpose,
-                        place, attack_id, is_success)
+                        place, attack_id, is_success, time)
 
     @staticmethod
     def from_json(json_data):
@@ -157,7 +164,8 @@ class AiAttack:
                 self.attack_purpose,
                 self.place,
                 self.attack_id,
-                self.is_success
+                self.is_success,
+                self.time
             )
         )
 
@@ -172,5 +180,7 @@ class AiAttack:
             self.attack_purpose,
             self.place,
             self.attack_id,
+            self.is_success,
+            self.time
         ) == (other.campaign_name, other.target_name, other.message_type, other.message_name,
-              other.attack_purpose, other.place, other.attack_id)
+              other.attack_purpose, other.place, other.attack_id, other.is_success, other.time)

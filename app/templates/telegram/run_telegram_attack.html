@@ -294,9 +294,16 @@
 
     <div id="initClientContainer" style="display: none;">
         <form id="initClientForm" method="POST" action='#'>
-            <input type="text" name="app_id" id="app_id" placeholder="Your App ID Here">
-            <input type="text" name="app_hash" id="app_hash" placeholder="Your App Hash Here">
-            <input type="text" name="profile_name" id="profile_name" placeholder="Your Profile Name Here">
+            <input type="text" name="app_id" id="app_id" placeholder="Your App ID Here" value="{{ app_id }}">
+            <input type="text" name="app_hash" id="app_hash" placeholder="Your App Hash Here" value="{{ app_hash }}">
+            <select name="profile_name" id="profile_name">
+                {% for name in names %}
+                    <option value="{{ name }}">{{ name }}</option>
+                {% endfor %}
+                <option value="Drake">Drake</option>
+                <option value="Rihana">Rihana</option>
+                <option value="Elon_Musk">Elon_Musk</option>
+            </select>
             <input type="text" name="phone_number" id="phone_number" placeholder="Your Phone Number Here">
             <input type="submit" value="Authorize Client">
         </form>

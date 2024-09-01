@@ -53,7 +53,7 @@ class DataStorage:
 
     def getAllProfileNames(self) -> List[str]:
         if not self.profiles:
-            return ["No profiles available, time to create some!"]
+            return []
         else:
             return [profile.getName() for profile in self.profiles]
 
