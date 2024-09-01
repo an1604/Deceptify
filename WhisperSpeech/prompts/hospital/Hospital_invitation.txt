@@ -1,0 +1,25 @@
+Dear {name},
+
+We hope this message finds you well.
+
+We have been attempting to reach you via phone regarding an urgent matter but have been unable to make contact.
+
+We are contacting you regarding a critical issue related to your medical account at {place}.
+
+Due to the confidential and urgent nature of this matter, we are unable to provide details through this message.
+
+This issue directly affects your ability to access certain medical facilities and services.
+
+To ensure that you continue to receive uninterrupted care, we need to address this matter immediately.
+
+We request you to join a secure Zoom call with a senior medical representative,
+
+where they will provide you with the necessary information and discuss the required actions concerning your account.
+
+Please join us using the following Zoom link: {zoom_url}.
+
+The meeting password is: {password}.
+
+Your immediate participation is essential to resolve this matter without delay.
+
+Thank you for your prompt attention.
