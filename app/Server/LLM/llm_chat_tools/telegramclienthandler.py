@@ -87,13 +87,14 @@ class TelegramClientHandler(object):
 
     async def send_message(self, receiver, message):
         try:
-            await asyncio.sleep(5)
             await self.client.connect()
             self.handle_routes(self.client)
 
             await self.client.send_message(receiver, message)
 
             logging.info(f'Message sent: {message}')
+            await asyncio.sleep(5)
+
         except errors.AuthKeyUnregisteredError:
             logging.warning("Authorization key not found or invalid. Re-authenticating...")
             await self.authenticate_client_via_msg()
@@ -109,6 +110,8 @@ class TelegramClientHandler(object):
                     await self.client.send_file(receiver, audiofile_path)
                 else:
                     logging.warning(f"Audio file {audiofile_path} does not exist.")
+                await asyncio.sleep(5)
+
         except errors.AuthKeyUnregisteredError:
             logging.warning("Authorization key not found or invalid. Re-authenticating...")
             await self.authenticate_client_via_msg()
@@ -137,8 +140,6 @@ class TelegramClientHandler(object):
 
     async def authenticate_client_via_msg(self, counter=None):
         """Authenticate the client by sending a code request and waiting for the code."""
-        await asyncio.sleep(30)  # Non-blocking sleep
-
         await self.client.connect()
         if counter is None or counter <= 1:
             self.auth_event.set()  # Set the event to alert to the background thread that authentication is needed.
@@ -154,6 +155,7 @@ class TelegramClientHandler(object):
                 await self.client.sign_in(self.phone_number, self.auth_code)
                 logging.info("from authenticate_client_via_msg --> sign in request is sent.")
                 self.auth_event.clear()
+                await asyncio.sleep(30)
 
             except asyncio.CancelledError:
                 logging.error("Authentication task cancelled.")
