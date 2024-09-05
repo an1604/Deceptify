@@ -12,10 +12,13 @@ Deceptify is a project focused on using AI to conduct social engineering attacks
   2. [Telegram Client for Voice Clone Attacks](https://github.com/an1604/telegram-client-flask-socketio.git): Utilizes WhisperSpeech for voice cloning. The server is located in the root directory 'WhisperSpeech.'
   3. [Remote Server for Resource-Intensive Tasks](https://github.com/GurLurye/Remote_Server.git): Manages computationally heavy tasks, such as record generation from the voice model and voice cloning.
 
-## Technology Stack: 
+## Technology Stack
 
-<img  src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white
-"/> 
+![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)  
+![Python](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue)  
+![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)  
+![Hugging Face](https://img.shields.io/badge/Hugging%20Face-FFCA28?style=for-the-badge&logo=huggingface&logoColor=black)
+
 
 ![image](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue)
 
