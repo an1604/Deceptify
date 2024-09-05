@@ -46,15 +46,26 @@ We welcome contributions from the community! If you'd like to contribute to Dece
 4. Push to the branch: `git push origin feature/your-feature-name`
 5. Submit a pull request
 
-## License
+## Docker and Containerization
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+We are in the process of containerizing **Deceptify** to simplify deployment and enhance scalability. This approach will provide several key benefits:
 
-## Badges  
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)  
-[![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-yellow.svg)](https://choosealicense.com/licenses/gpl-3.0/)  
-[![AGPL License](https://img.shields.io/badge/license-AGPL-blue.svg)](https://choosealicense.com/licenses/gpl-3.0/)  
+### Benefits of Containerization
 
+- **Simplified Setup**: Deploy the application quickly with all dependencies pre-configured, reducing setup time and potential configuration errors.
+- **Consistency Across Environments**: Ensure the application runs consistently across different environments, eliminating the "it works on my machine" problem.
+- **Scalability and Portability**: Easily scale the application or migrate it across various platforms without compatibility issues.
+- **Resource Efficiency**: Containers are lightweight and consume fewer resources than traditional virtual machines, allowing for better performance and resource management.
 
-)  
+### Current Status
 
+- The Docker setup for **Deceptify** is still under development. We are working on creating Dockerfiles and related configurations to ensure a smooth containerization process.
+- Once completed, the repository will be updated with the necessary Dockerfiles, along with detailed instructions for building and running the Docker containers.
+
+### Next Steps
+
+1. **Creating Dockerfiles**: Define Dockerfiles for each project component, including the server, chatbot, and remote server.
+2. **Testing and Optimization**: Test the containers across different environments to ensure stability and performance.
+3. **Documentation**: Provide comprehensive documentation for users on how to build and run the containers.
+
+Stay tuned for updates as we continue to make progress on this front!
