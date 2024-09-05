@@ -1,0 +1,13 @@
+{% import "_macros.html" as macros %}
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Deceptify- Nee Demo Attcak{% endblock %}
+
+
+{% block page_content %}
+    <div class="page-header">
+        <h1>Fill this form by specifying the Demo that you want to perform, and submit after that. </h1>
+    </div>
+    {{ wtf.quick_form(form) }}
+{% endblock %}

@@ -1,3 +1,4 @@
+telethon
 blinker
 certifi
 cffi
@@ -33,3 +34,16 @@ langchain_community
 scrapegraphai
 opencv-python
 pyvirtualcam
+flask-mail
+flask-login
+qrcode
+pyotp
+email_validator
+sentence_transformers
+PyPDF2
+pywhatkit
+python-telegram-bot
+aiogram
+flask_socketio
+pytest
+selenium

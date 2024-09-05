@@ -1,11 +1,11 @@
 .idea 
 .env
 .venv
-/Server/AudioFiles/*
+/app/Server/AudioFiles/*
 **/__pycache__/
 .vscode
 /venv/
-!/Server/data.pkl
+!/app/Server/data.pkl
 
 
 

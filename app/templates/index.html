@@ -1,0 +1,49 @@
+{% import "_macros.html" as macros %}
+{% extends "base.html" %}
+
+{% block title %}Deceptify{% endblock %}
+
+{% block page_content %}
+    <div class="page-header">
+        {% if current_user.is_authenticated %}
+            <h1>WELCOME TO DECEPTIFY!</h1>
+            <p>Your gateway to advanced AI attacks</p>
+        {% else %}
+            <h1>WELCOME TO DECEPTIFY!</h1>
+            <a href="{{ url_for('auth.login') }}"> Login to your account</a>
+        {% endif %}
+    </div>
+
+    {% if current_user.is_authenticated %}
+        <div>
+            {% if 'message' in session %}
+                <div class="alert alert-info">{{ session.pop('message') }}</div>
+            {% endif %}
+        </div>
+
+        <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 50px;">
+            <a href="{{ url_for('main.new_ai_attack') }}">
+                <button type="button">Generate AI attack</button>
+            </a>
+
+            <a href="{{ url_for('main.new_profile') }}">
+                <button type="button">Create New Profile</button>
+            </a>
+
+            <a href="{{ url_for('main.telegram_info') }}">
+                <button type="button">Voice Clone Telegram Attack</button>
+            </a>
+
+
+            <a href="{{ url_for('main.save_exit') }}">
+                <button type="button">Save</button>
+            </a>
+        </div>
+    {% else %}
+        <div>
+            <a href="{{ url_for('auth.login') }}">
+                <button type="button">LOGIN</button>
+            </a>
+        </div>
+    {% endif %}
+{% endblock %}

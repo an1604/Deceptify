@@ -1,0 +1,87 @@
+{% import "./_macros.html" as macros %}
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Deceptify- AttackDashboard{%endblock%}
+
+{% block page_content %}
+<div class="page-header">
+    <h1 id="dashboardTitle">Please wait while the attack is being generated</h1>
+    {% if zoom_url %}
+        <h5> <a href="{{ zoom_url }}">Check into the meeting and wait for the victim</a> </h5>
+    {% else %}
+        <h5>No zoom url</h5>
+    {% endif %}
+</div>
+
+<div class="button-container">
+    <button id="attackBtn" class="btn btn-primary" disabled onclick="startAttack()">Start Attack</button>
+</div>
+
+{% endblock %}
+{% block scripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+            integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg=="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
+            integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
+            crossorigin="anonymous"></script>
+    <script>
+        var socket = io();
+
+        socket.on('connect', function () {
+                socket.emit('connect_event', {data: 'I\'m connected!'});
+        });
+
+
+        $('.nav_btn').on('click',function (event){
+            socket.emit("stop_attack")
+        })
+
+        const attack_id = "{{id}}";
+        const zoom_url = "{{ zoom_url }}"
+        const password = "{{ password }}"
+        async function generateAttack(){
+            try {
+                const response = await fetch('/generate_attack_type?attack_id=' + encodeURIComponent(attack_id)
+                    + "&zoom_url=" + encodeURIComponent(zoom_url) + "&password=" + encodeURIComponent(password));
+                const result = await response.json();
+                if (result.status === "complete") {
+                    document.getElementById('attackBtn').disabled = false; // Enable the button
+                    document.getElementById('dashboardTitle').innerText = "The attack has been generated" +
+                        ", you can start the attack"
+
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        window.onload = function() {
+            generateAttack();
+        };
+
+        async function startAttack() {
+            document.getElementById('attackBtn').disabled = true;
+            try {
+                // Call the route to start the attack
+                const response = await fetch('/start_attack?attack_id=' + encodeURIComponent(attack_id), {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    console.error('Network response was not ok');
+                    return;
+                }
+
+                const result = await response.json();
+                const is_success = result.is_success;
+
+                // Redirect to the results page with the success status
+                window.location.href = '/results?is_success=' + encodeURIComponent(is_success) + '&id=' + encodeURIComponent(attack_id);
+
+            } catch (error) {
+                console.error('Error starting the attack:', error);
+            }
+}
+    </script>
+{%endblock%}

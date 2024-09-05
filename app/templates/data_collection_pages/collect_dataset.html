@@ -1,0 +1,13 @@
+{% import "./_macros.html" as macros %}
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Deceptify- Upload DataSet{%endblock%}
+
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Upload the DataSet, Please.</h1>
+</div>
+{{ wtf.quick_form(form) }}
+{%endblock%}

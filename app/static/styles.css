@@ -1,0 +1,147 @@
+div.post-tabs {
+    margin-top: 16px;
+}
+
+ul.posts {
+    list-style-type: none;
+    padding: 0px;
+    margin: 16px 0px 0px 0px;
+    border-top: 1px solid #e0e0e0;
+}
+
+div.post-tabs ul.posts {
+    margin: 0px;
+    border-top: none;
+}
+
+ul.posts li.post {
+    padding: 8px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+ul.posts li.post:hover {
+    background-color: #f0f0f0;
+}
+
+
+div.post-content {
+    margin-left: 48px;
+    min-height: 48px;
+}
+
+
+
+.post-body h1 {
+    font-size: 140%;
+}
+
+.post-body h2 {
+    font-size: 130%;
+}
+
+.post-body h3 {
+    font-size: 120%;
+}
+
+
+.msg-header {
+    border: 1px solid #ccc;
+    width: 100%;
+    height: 10%;
+    border-bottom: none;
+    display: inline-block;
+    /*background-color: #077;*/
+}
+
+.chat-page {
+    padding: 0 0 50px 0;
+}
+
+.msg-inbox {
+    border: 1px solid #ccc;
+    overflow: hidden;
+    padding-bottom: 30px;
+}
+
+.chats {
+    padding: 30px 15px 25px;
+}
+
+.msg-page {
+    height: 516px;
+    overflow-y: auto;
+}
+
+.received-msg {
+    display: inline-block;
+    padding: 0 0 0 10px;
+    vertical-align: top;
+    width: 92%;
+}
+
+.received-msg-inbox {
+    width: 57%;
+}
+
+.received-msg-inbox p {
+    background: #efefef none repeat scroll 0 0;
+    border-radius: 10px;
+    font-size: 14px;
+    margin: 0;
+    padding: 5px 10px 5px 12px;
+    width: 100%;
+}
+
+.outgoing-chats {
+    overflow: hidden;
+    margin: 26px 20px;
+}
+
+.outgoing-chat-msg p {
+    background: #007bff none repeat scroll 0 0;
+    border-radius: 10px;
+    font-size: 14px;
+    margin: 0;
+    padding: 5px 10px 5px 12px;
+    width: 100%;
+}
+
+.outgoing-chat-msg {
+    float: left;
+    width: 46%;
+    margin-left: 45%;
+}
+
+.msg-bottom {
+    position: relative;
+    height: 10%;
+}
+
+.input-group {
+    float: right;
+    margin-top: 13px;
+    margin-right: 20px;
+    outline: none !important;
+    border-radius: 20px;
+    width: 61% !important;
+}
+
+.profile-picture {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 30px;
+}
+
+.page-body {
+    /* background-image: url('{{ url_for(' static ', filename=' background.jpg ') }}'); */
+    /* background-size: cover; */ /* Ensure the image covers the entire element */
+    /* background-repeat: no-repeat; */ /* Prevent the image from repeating */
+    /* background-position: center center; */ /* Center the image */
+    background-color: #2E2E2E; /* Set background to dark-grey */
+    height: 100vh; /* Make sure the element is full height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}

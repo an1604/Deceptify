@@ -1,0 +1,16 @@
+{% import "./_macros.html" as macros %}
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Deceptify- Register{% endblock %}
+
+
+{% block page_content %}
+    <div class="page-header">
+        <h1>Register</h1>
+        <br>
+        <h3>We need to ensure you can register to our service... </h3>
+        <h3>Don't worry, our server will check this out, and let you know your email address! </h3>
+    </div>
+    {{ wtf.quick_form(form) }}
+{% endblock %}
