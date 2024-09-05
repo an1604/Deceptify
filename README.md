@@ -1,12 +1,16 @@
 # Deceptify
 
-Our project is centered around utilizing AI to orchestrate social engineering attacks, leveraging generative AI content such as deepfakes. The primary objective is to enhance organizational awareness and readiness in response to evolving digital threats.
+Deceptify is a project focused on using AI to conduct social engineering attacks, leveraging generative AI content like deepfakes. The primary goal is to enhance organizational awareness and preparedness against evolving digital threats.
 
 ## Features
 
-- AI-powered social engineering attacks
-- Generative AI content (deepfakes)
-- Organizational awareness and readiness
+- **AI-driven Social Engineering Attacks**: Simulates realistic social engineering scenarios.
+- **Generative AI Content (Deepfakes)**: Creates deepfakes to test and improve resilience against such attacks.
+- **Organizational Awareness and Readiness**: Helps develop awareness and readiness against digital threats.
+- **Active Learning and Model Improvement**: Uses helper components to enhance model responses:
+  1. [Telegram Chatbot for Model Response Analysis](https://github.com/an1604/llm-telegram-chatbot-.git): A Telegram chatbot used to evaluate the model's performance.
+  2. [Telegram Client for Voice Clone Attacks](https://github.com/an1604/telegram-client-flask-socketio.git): Utilizes WhisperSpeech for voice cloning. The server is located in the root directory 'WhisperSpeech.'
+  3. [Remote Server for Resource-Intensive Tasks](https://github.com/GurLurye/Remote_Server.git): Manages computationally heavy tasks, such as record generation from the voice model and voice cloning.
 
 ## Technology Stack: 
 
@@ -22,14 +26,14 @@ To get started with Deceptify, follow these steps:
 
 1. Clone the repository: `git clone https://github.com/OmerBart/Deceptify.git`
 2. Install the required dependencies: `pip install -r requirements.txt`
-3. Run the application: Navigate to Server folder and run `python login.py`
+3. Run the application: Navigate to the Server folder and run `python deceptify.py`
 
 ## Usage
 
 Once the application is running, you can perform the following actions:
 
 - Create and manage social engineering campaigns
-- Generate deepfake content
+- Generate deep fake content
 - Monitor and analyze campaign results
 
 ## Contributing
@@ -46,9 +50,6 @@ We welcome contributions from the community! If you'd like to contribute to Dece
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
 
-## Contact
-
-If you have any questions or suggestions, feel free to reach out to us at [omer@bartfeld.net](mailto:omer@bartfeld.net).
 ## Badges  
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)  
 [![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-yellow.svg)](https://choosealicense.com/licenses/gpl-3.0/)  
