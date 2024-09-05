@@ -25,7 +25,7 @@ Deceptify is a project focused on using AI to conduct social engineering attacks
 
 To get started with Deceptify, follow these steps:
 
-1. Clone the repository: `git clone https://github.com/OmerBart/Deceptify.git`
+1. Clone the repository: `git clone https://github.com/an1604/Deceptify.git`
 2. Install the required dependencies: `pip install -r requirements.txt`
 3. Run the application: Navigate to the Server folder and run `python deceptify.py`
 
