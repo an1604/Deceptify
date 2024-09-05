@@ -66,6 +66,5 @@ We are in the process of containerizing **Deceptify** to simplify deployment and
 
 1. **Creating Dockerfiles**: Define Dockerfiles for each project component, including the server, chatbot, and remote server.
 2. **Testing and Optimization**: Test the containers across different environments to ensure stability and performance.
-3. **Documentation**: Provide comprehensive documentation for users on how to build and run the containers.
 
 Stay tuned for updates as we continue to make progress on this front!
