@@ -34,29 +34,21 @@ To get started with **Deceptify**, follow these steps:
    ```bash
    pip install -r requirements.txt
 
-This version includes a brief explanation and maintains the Markdown formatting for clarity and readability.
-
 3. **Set environment variables for Flask**:  
    Define the `FLASK_APP` variable to point to `deceptify.py` and set the `FLASK_DEBUG` variable for development mode:  
    ```bash
    export FLASK_APP=deceptify.py
    export FLASK_DEBUG=1
 
-This provides clear instructions for setting the necessary environment variables, using proper Markdown formatting.
-
 4. **Navigate to the application directory**:  
    Change the directory to the app folder where the Flask application is located:  
    ```bash
    cd app
 
-This step uses Markdown formatting to clearly describe the action required to navigate to the application directory.
-
 5. **Run the Flask application**:  
    Start the server by running:  
    ```bash
    flask run
-
-This provides clear instructions on how to run the Flask application using Markdown formatting.
 
 
 ## Usage
