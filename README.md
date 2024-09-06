@@ -78,6 +78,21 @@ To start using **Deceptify**, follow these steps:
      python server.py
      ```
 
+## VB-Cable Virtual Audio Device
+
+To create a virtual audio cable for audio processing in this project, we use **VB-Cable**.
+
+### Download and Install VB-Cable
+
+1. **Download VB-Cable**:  
+   Visit the official website and download the VB-Cable software: [VB-Cable Download](https://vb-audio.com/Cable/).
+
+2. **Install VB-Cable**:  
+   Follow the installation instructions on the VB-Cable website to install the virtual audio driver on your system.
+
+3. **Set Up VB-Cable for Deceptify**:  
+   After installation, set VB-Cable as your default audio input and output device in your system sound settings. This will allow you to route audio through the virtual cable for processing in the Deceptify project.
+
 ## Usage
 
 Once the application is running, you can perform the following actions:
@@ -108,10 +123,9 @@ We are in the process of containerizing **Deceptify** to simplify deployment and
 
 1. **Creating Dockerfiles**: Define Dockerfiles for each project component, including the server, chatbot, and remote server.
 2. **Testing and Optimization**: Test the containers across different environments to ensure stability and performance.
-3. **Use your imagination**: Use your imagination to create real-word scenarios using our technologies.
+3. **Use your imagination**: Use your imagination to create real-world scenarios using our technologies.
 4. **Improve technologies**: We are open to every technological improvement, for our models and even more.
 
 ## Disclaimer
 
 **We take NO responsibility for the use of this project. This code is intended for educational purposes. Please DO NOT use this program for malicious purposes.**
-
