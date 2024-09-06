@@ -3,6 +3,7 @@
 
 Deceptify is a project focused on using AI to conduct social engineering attacks, leveraging generative AI content like deepfakes. The primary goal is to enhance organizational awareness and preparedness against evolving digital threats.
 
+
 ## Features
 
 - **AI-driven Social Engineering Attacks**: Simulates realistic social engineering scenarios.
@@ -106,3 +107,7 @@ We are in the process of containerizing **Deceptify** to simplify deployment and
 2. **Testing and Optimization**: Test the containers across different environments to ensure stability and performance.
 
 Stay tuned for updates as we continue to make progress on this front!
+
+We take NO responsibility for the use of this project. 
+This code is intended for educational purposes. 
+Please DO NOT use this program for malicious purposes.
