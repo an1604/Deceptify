@@ -1,4 +1,4 @@
-![Deceptify Logo](https://raw.githubusercontent.com/yourusername/Deceptify/main/logo.jpeg)
+![Deceptify Logo](https://raw.githubusercontent.com/an1604/Deceptify/main/logo.jpeg)
 
 # Deceptify
 
