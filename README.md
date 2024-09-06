@@ -1,7 +1,7 @@
 
+<h1 align="center">Deceptify</h1>
 
 <p align="center">
-# Deceptify
   <img src="https://raw.githubusercontent.com/an1604/Deceptify/main/logo.jpeg" alt="Deceptify Logo" width="200" height="auto"/>
 </p>
 
