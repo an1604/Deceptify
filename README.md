@@ -98,8 +98,7 @@ We welcome contributions from the community! If you'd like to contribute to Dece
 
 ## Docker and Containerization
 
-We are in the process of containerizing **Deceptify** to simplify deployment and enhance scalability. This approach will provide several key benefits:
-
+We are in the process of containerizing **Deceptify** to simplify deployment and enhance scalability. 
 ### Current Status
 
 - The Docker setup for **Deceptify** is still under development. We are working on creating Dockerfiles and related configurations to ensure a smooth containerization process.
