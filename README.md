@@ -1,6 +1,6 @@
 
 # Deceptify
-<img src="https://raw.githubusercontent.com/an1604/Deceptify/main/logo.jpeg" alt="Deceptify Logo" width="400"/>
+<img src="https://raw.githubusercontent.com/an1604/Deceptify/main/logo.jpeg" alt="Deceptify Logo" width="200" height="auto"/>
 
 Deceptify is a project focused on using AI to conduct social engineering attacks, leveraging generative AI content like deepfakes. The primary goal is to enhance organizational awareness and preparedness against evolving digital threats.
 
