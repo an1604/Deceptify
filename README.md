@@ -1,4 +1,9 @@
 
+
+# We take NO responsibility for the use of this project. 
+# This code is intended for educational purposes. 
+# Please DO NOT use this program for malicious purposes.
+
 # Deceptify
 
 Deceptify is a project focused on using AI to conduct social engineering attacks, leveraging generative AI content like deepfakes. The primary goal is to enhance organizational awareness and preparedness against evolving digital threats.
@@ -108,6 +113,3 @@ We are in the process of containerizing **Deceptify** to simplify deployment and
 
 Stay tuned for updates as we continue to make progress on this front!
 
-We take NO responsibility for the use of this project. 
-This code is intended for educational purposes. 
-Please DO NOT use this program for malicious purposes.
