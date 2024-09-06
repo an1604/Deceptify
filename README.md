@@ -122,11 +122,10 @@ We are in the process of containerizing **Deceptify** to simplify deployment and
 ### Next Steps
 
 1. **Creating Dockerfiles**: Define Dockerfiles for each project component, including the server, chatbot, and remote server.
-2. **Testing and Optimization**: Test the containers across different environments to ensure stability and performance.
-3. **Integrate Stable Diffusion**: Implement a stable diffusion model to generate deepfakes in real-time, providing a cost-effective alternative to current solutions.
-4. **Utilize AI Web Scraper**: Leverage our existing AI-powered web scraper to gather relevant data on speech patterns, language use, and communication styles, enhancing the authenticity and effectiveness of mimicked content.
-5. **Use your imagination**: Use your imagination to create real-world scenarios using our technologies.
-6. **Improve technologies**: We are open to every technological improvement, for our models and even more.
+2. **Integrate Stable Diffusion**: Implement a stable diffusion model to generate deepfakes in real-time, providing a cost-effective alternative to current solutions.
+3. **Utilize AI Web Scraper**: Leverage our existing AI-powered web scraper to gather relevant data on speech patterns, language use, and communication styles, enhancing the authenticity and effectiveness of mimicked content.
+4. **Use your imagination**: Use your imagination to create real-world scenarios using our technologies.
+5. **Improve technologies**: We are open to every technological improvement, for our models and even more.
 
 ## Disclaimer
 
