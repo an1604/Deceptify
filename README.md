@@ -1,6 +1,3 @@
-
-
-
 # Deceptify
 
 Deceptify is a project focused on using AI to conduct social engineering attacks, leveraging generative AI content like deepfakes. The primary goal is to enhance organizational awareness and preparedness against evolving digital threats.
@@ -107,6 +104,10 @@ We are in the process of containerizing **Deceptify** to simplify deployment and
 
 1. **Creating Dockerfiles**: Define Dockerfiles for each project component, including the server, chatbot, and remote server.
 2. **Testing and Optimization**: Test the containers across different environments to ensure stability and performance.
+3. **Use your imagination**: Use your imagination to create real-word scenarios using our technologies.
+4. **Improve technologies**: We are open to every technological improvement, for our models and even more.
 
-Stay tuned for updates as we continue to make progress on this front!
+## Disclaimer
+
+**We take NO responsibility for the use of this project. This code is intended for educational purposes. Please DO NOT use this program for malicious purposes.**
 
