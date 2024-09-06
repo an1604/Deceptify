@@ -1,8 +1,5 @@
 
 
-# We take NO responsibility for the use of this project. 
-# This code is intended for educational purposes. 
-# Please DO NOT use this program for malicious purposes.
 
 # Deceptify
 
