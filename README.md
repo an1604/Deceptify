@@ -123,8 +123,9 @@ We are in the process of containerizing **Deceptify** to simplify deployment and
 
 1. **Creating Dockerfiles**: Define Dockerfiles for each project component, including the server, chatbot, and remote server.
 2. **Testing and Optimization**: Test the containers across different environments to ensure stability and performance.
-3. **Use your imagination**: Use your imagination to create real-world scenarios using our technologies.
-4. **Improve technologies**: We are open to every technological improvement, for our models and even more.
+3. **Integrate Stable Diffusion**: Implement a stable diffusion model to generate deepfakes in real-time, providing a cost-effective alternative to current solutions.
+4. **Use your imagination**: Use your imagination to create real-world scenarios using our technologies.
+5. **Improve technologies**: We are open to every technological improvement, for our models and even more.
 
 ## Disclaimer
 
