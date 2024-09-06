@@ -1,7 +1,7 @@
 
-# Deceptify
 
 <p align="center">
+# Deceptify
   <img src="https://raw.githubusercontent.com/an1604/Deceptify/main/logo.jpeg" alt="Deceptify Logo" width="200" height="auto"/>
 </p>
 
